@@ -2834,7 +2834,7 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 
 ---
 
-### US-061: HackResult model + hack_result barrier tool
+### US-061: HackResult model + hack_result barrier tool (DONE)
 
 **Epic:** Scanner Agent
 
