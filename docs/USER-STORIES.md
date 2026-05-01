@@ -1054,7 +1054,7 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 
 ---
 
-### US-018: Startup Cleanup
+### US-018: Startup Cleanup (DONE)
 
 **Epic:** Docker Sandbox
 
