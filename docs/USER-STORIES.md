@@ -890,7 +890,7 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 
 ---
 
-### US-015: Container Exec (Command Execution)
+### US-015: Container Exec (Command Execution) (DONE)
 
 **Epic:** Docker Sandbox
 
@@ -899,7 +899,7 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 **Context:** PentAGI's terminal tool (`terminal.go` lines 140-279) executes commands via Docker exec: create exec instance, attach to it, read output, handle timeouts, support detached mode. The Docker client provides the low-level exec methods; the terminal tool handler wraps them.
 
 **Acceptance Criteria:**
-- [ ] `exec_command(container_id, command, cwd, timeout, detach) -> str` that:
+- [x] `exec_command(container_id, command, cwd, timeout, detach) -> str` that:
   1. Verifies the container is running (`is_container_running`)
   2. Creates an exec instance with `sh -c {command}`
   3. Attaches to the exec instance (stdout + stderr, TTY mode)
@@ -912,12 +912,12 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
      - Waits 500ms for quick check
      - If done in 500ms: returns output
      - If still running: returns "Command started in background" message
-- [ ] Default timeout: 5 minutes (300 seconds)
-- [ ] Maximum timeout: 20 minutes (1200 seconds)
-- [ ] Working directory defaults to `/work` if not specified
-- [ ] Output is sanitized: invalid UTF-8 bytes are replaced
-- [ ] Empty output returns "Command completed successfully with exit code 0"
-- [ ] `is_container_running(container_id) -> bool` checks container state and health
+- [x] Default timeout: 5 minutes (300 seconds)
+- [x] Maximum timeout: 20 minutes (1200 seconds)
+- [x] Working directory defaults to `/work` if not specified
+- [x] Output is sanitized: invalid UTF-8 bytes are replaced
+- [x] Empty output returns "Command completed successfully with exit code 0"
+- [x] `is_container_running(container_id) -> bool` checks container state and health
 
 **Technical Notes:**
 - PentAGI reference: `terminal.go` lines 140-279 (ExecCommand, getExecResult)
@@ -929,22 +929,22 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 - Truncation: if partial output on timeout, show first 500 chars
 
 **Tests Required:**
-- [ ] `exec_command("echo hello")` returns `"hello\n"` (basic command)
-- [ ] `exec_command("ls /nonexistent")` returns stderr output (error capture)
-- [ ] `exec_command("sleep 10", timeout=2)` returns timeout error with partial output
-- [ ] Detached mode: `exec_command("sleep 60", detach=True)` returns immediately with background message
-- [ ] Custom working directory: `exec_command("pwd", cwd="/tmp")` returns `/tmp`
-- [ ] Default working directory is `/work`
-- [ ] `is_container_running` returns True for a running container
-- [ ] `is_container_running` returns False for a stopped container
-- [ ] Empty output: `exec_command("true")` returns success message
-- [ ] Invalid UTF-8 handling: output with binary data does not crash
-- [ ] Max timeout clamping: timeout=9999 is clamped to 1200 seconds
+- [x] `exec_command("echo hello")` returns `"hello\n"` (basic command)
+- [x] `exec_command("ls /nonexistent")` returns stderr output (error capture)
+- [x] `exec_command("sleep 10", timeout=2)` returns timeout error with partial output
+- [x] Detached mode: `exec_command("sleep 60", detach=True)` returns immediately with background message
+- [x] Custom working directory: `exec_command("pwd", cwd="/tmp")` returns `/tmp`
+- [x] Default working directory is `/work`
+- [x] `is_container_running` returns True for a running container
+- [x] `is_container_running` returns False for a stopped container
+- [x] Empty output: `exec_command("true")` returns success message
+- [x] Invalid UTF-8 handling: output with binary data does not crash
+- [x] Max timeout clamping: timeout=9999 is clamped to 1200 seconds
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Can execute `nmap --version` inside a Kali container
+- [x] Code written and passing all tests
+- [x] Code reviewed
+- [x] Can execute `nmap --version` inside a Kali container
 
 **Dependencies:** US-014b
 **Estimated Complexity:** L
