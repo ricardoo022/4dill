@@ -65,9 +65,12 @@ async def test_search_guide_nothing_found():
 
     search_tool, _ = create_guide_tools(mock_session)
 
-    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}), patch(
-        "langchain_openai.OpenAIEmbeddings.aembed_query", new_callable=AsyncMock
-    ) as mock_embed:
+    with (
+        patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}),
+        patch(
+            "langchain_openai.OpenAIEmbeddings.aembed_query", new_callable=AsyncMock
+        ) as mock_embed,
+    ):
         mock_embed.return_value = [0.1] * 1536
         result = await search_tool.arun(
             {"questions": ["how to bypass waf"], "type": "pentest", "message": "searching"}
@@ -99,9 +102,12 @@ async def test_search_guide_merge_and_deduplicate():
 
     search_tool, _ = create_guide_tools(mock_session)
 
-    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}), patch(
-        "langchain_openai.OpenAIEmbeddings.aembed_query", new_callable=AsyncMock
-    ) as mock_embed:
+    with (
+        patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}),
+        patch(
+            "langchain_openai.OpenAIEmbeddings.aembed_query", new_callable=AsyncMock
+        ) as mock_embed,
+    ):
         mock_embed.return_value = [0.1] * 1536
         result = await search_tool.arun(
             {"questions": ["q1", "q2"], "type": "pentest", "message": "searching"}
@@ -119,9 +125,12 @@ async def test_store_guide_success():
     mock_session = AsyncMock()
     _, store_tool = create_guide_tools(mock_session)
 
-    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}), patch(
-        "langchain_openai.OpenAIEmbeddings.aembed_query", new_callable=AsyncMock
-    ) as mock_embed:
+    with (
+        patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}),
+        patch(
+            "langchain_openai.OpenAIEmbeddings.aembed_query", new_callable=AsyncMock
+        ) as mock_embed,
+    ):
         mock_embed.return_value = [0.1] * 1536
         result = await store_tool.arun(
             {
