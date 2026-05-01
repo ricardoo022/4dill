@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import contextlib
 import uuid
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock
 
 import docker
 import pytest
@@ -147,8 +145,10 @@ async def test_cleanup_removes_orphaned_containers(
 
     # 6. Assert DB status is DELETED
     async with get_session() as session:
-        from pentest.database.models import Container as ContainerModel
         from sqlalchemy import select
+
+        from pentest.database.models import Container as ContainerModel
+
         stmt = select(ContainerModel).where(ContainerModel.id == container.id)
         result = await session.execute(stmt)
         c_db = result.scalar_one()
@@ -208,8 +208,10 @@ async def test_cleanup_parallel_removal(
             docker_api.containers.get(r.id)
 
     async with get_session() as session:
-        from pentest.database.models import Container as ContainerModel
         from sqlalchemy import select
+
+        from pentest.database.models import Container as ContainerModel
+
         for c in containers:
             stmt = select(ContainerModel).where(ContainerModel.id == c.id)
             result = await session.execute(stmt)
@@ -295,8 +297,10 @@ async def test_cleanup_finds_by_name_if_local_id_missing(
         docker_api.containers.get(name)
 
     async with get_session() as session:
-        from pentest.database.models import Container as ContainerModel
         from sqlalchemy import select
+
+        from pentest.database.models import Container as ContainerModel
+
         stmt = select(ContainerModel).where(ContainerModel.id == container.id)
         result = await session.execute(stmt)
         c_db = result.scalar_one()
