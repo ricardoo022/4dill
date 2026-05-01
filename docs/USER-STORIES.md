@@ -1006,7 +1006,7 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 
 ---
 
-### US-017: Container Stop and Remove
+### US-017: Container Stop and Remove (DONE)
 
 **Epic:** Docker Sandbox
 
