@@ -52,6 +52,7 @@ Hub notes: [[Epics/Generator agent/README|Generator agent]], [[Epics/Searcher ag
 | [US-041 Stubs](Epics/Generator%20agent/US-041-STUBS-EXPLAINED.md) | `tools/stubs.py` |
 | [US-042 Skill Loader](Epics/Generator%20agent/US-042-SKILL-LOADER-EXPLAINED.md) | `skills/loader.py` |
 | [US-043 Prompt Templates](Epics/Generator%20agent/US-043-GENERATOR-PROMPTS-EXPLAINED.md) | `templates/renderer.py`, templates Jinja2 |
+| [US-044 Generator Agent](Epics/Generator%20agent/US-044-GENERATOR-AGENT-EXPLAINED.md) | `agents/generator.py` — entry point funcional, integra graph + tools + skills + prompts |
 | [US-054 Search Models](Epics/Searcher%20agent/US-054-SEARCH-MODELS-EXPLAINED.md) | `models/search.py` |
 | [US-055 Search Result Barrier](Epics/Searcher%20agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md) | `tools/barriers.py` — search_result barrier |
 | [US-056 DuckDuckGo Search Tool](Epics/Searcher%20agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md) | `tools/duckduckgo.py` |
