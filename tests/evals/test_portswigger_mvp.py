@@ -107,9 +107,9 @@ class TestPortSwiggerMVPLabIntegrity:
     def test_all_labs_have_custom_api_backend(self, mvp_dataset):
         """Per US-045 MVP: all labs must have expected_backend_type == 'custom_api'."""
         for lab in mvp_dataset["labs"]:
-            assert (
-                lab["expected_backend_type"] == "custom_api"
-            ), f"Lab {lab['lab_id']} has backend_type {lab['expected_backend_type']}, expected 'custom_api'"
+            assert lab["expected_backend_type"] == "custom_api", (
+                f"Lab {lab['lab_id']} has backend_type {lab['expected_backend_type']}, expected 'custom_api'"
+            )
 
     def test_all_lab_urls_are_strings(self, mvp_dataset):
         """All lab_urls should be valid URL strings."""
@@ -121,19 +121,19 @@ class TestPortSwiggerMVPLabIntegrity:
         """All labs should have difficulty in [beginner, intermediate, advanced]."""
         valid_difficulties = ["beginner", "intermediate", "advanced"]
         for lab in mvp_dataset["labs"]:
-            assert (
-                lab["difficulty"] in valid_difficulties
-            ), f"Lab {lab['lab_id']} has invalid difficulty: {lab['difficulty']}"
+            assert lab["difficulty"] in valid_difficulties, (
+                f"Lab {lab['lab_id']} has invalid difficulty: {lab['difficulty']}"
+            )
 
     def test_all_labs_have_integer_fase_phase(self, mvp_dataset):
         """All labs should have integer fase_phase."""
         for lab in mvp_dataset["labs"]:
-            assert isinstance(
-                lab["fase_phase"], int
-            ), f"Lab {lab['lab_id']} fase_phase should be integer, got {type(lab['fase_phase'])}"
-            assert (
-                1 <= lab["fase_phase"] <= 21
-            ), f"Lab {lab['lab_id']} fase_phase {lab['fase_phase']} out of range [1-21]"
+            assert isinstance(lab["fase_phase"], int), (
+                f"Lab {lab['lab_id']} fase_phase should be integer, got {type(lab['fase_phase'])}"
+            )
+            assert 1 <= lab["fase_phase"] <= 21, (
+                f"Lab {lab['lab_id']} fase_phase {lab['fase_phase']} out of range [1-21]"
+            )
 
 
 class TestPortSwiggerMVPSummary:
@@ -153,9 +153,9 @@ class TestPortSwiggerMVPSummary:
         actual_categories = sorted({labs_by_id[lab_id]["category"] for lab_id in quick_lab_ids})
         expected_categories = sorted(mvp_dataset["summary"]["categories_covered"])
 
-        assert (
-            actual_categories == expected_categories
-        ), f"Summary categories {expected_categories} don't match actual {actual_categories}"
+        assert actual_categories == expected_categories, (
+            f"Summary categories {expected_categories} don't match actual {actual_categories}"
+        )
 
     def test_summary_total_subsets_matches_actual(self, mvp_dataset):
         """Summary.total_subsets should match actual number of subsets."""
