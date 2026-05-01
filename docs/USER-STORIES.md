@@ -1063,7 +1063,7 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 **Context:** PentAGI's `Cleanup()` (`client.go` lines 427-516) runs on startup: finds all flows in the DB, checks their container status, stops/removes containers for flows that are no longer active, marks incomplete flows as failed. This prevents resource leaks from crashed scans.
 
 **Acceptance Criteria:**
-- [ ] `cleanup() -> None` that runs on system startup and:
+- [x] `cleanup() -> None` that runs on system startup and:
   1. Loads all flows from DB
   2. Loads all containers from DB
   3. For each flow:
@@ -1071,12 +1071,12 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
      - For flows that are finished/failed: stop and remove any running/starting containers
   4. Container removal runs in parallel (asyncio.gather or concurrent.futures)
   5. Logs the cleanup activity and results
-- [ ] Flow status transitions:
+- [x] Flow status transitions:
   - `created` -> `failed` (never started properly)
   - `running` with dead containers -> `failed`
   - `finished` with orphan containers -> containers removed (flow stays `finished`)
-- [ ] Cleanup is idempotent: running it twice has no effect the second time
-- [ ] Cleanup logs: "cleaning up containers..." at start, "cleanup finished" at end
+- [x] Cleanup is idempotent: running it twice has no effect the second time
+- [x] Cleanup logs: "cleaning up containers..." at start, "cleanup finished" at end
 
 **Technical Notes:**
 - PentAGI reference: `client.go` lines 427-516 (Cleanup method)
@@ -1086,17 +1086,17 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 - Consider adding a `--skip-cleanup` flag for development (when you want to inspect containers)
 
 **Tests Required:**
-- [ ] Setup: create a flow (status=running) and container (status=running) in DB but no actual Docker container. Cleanup marks flow as `failed` and container as `deleted`.
-- [ ] Setup: create a flow (status=finished) and a running Docker container. Cleanup removes the container.
-- [ ] Setup: create a flow (status=running) with a running Docker container. Cleanup does NOT touch it (flow is legitimately running).
-- [ ] Cleanup is idempotent: run cleanup twice, second run has no effect
-- [ ] Multiple orphaned containers: 3 containers across 2 flows, all cleaned up in parallel
-- [ ] Cleanup with empty database: no errors, logs "cleanup finished"
+- [x] Setup: create a flow (status=running) and container (status=running) in DB but no actual Docker container. Cleanup marks flow as `failed` and container as `deleted`.
+- [x] Setup: create a flow (status=finished) and a running Docker container. Cleanup removes the container.
+- [x] Setup: create a flow (status=running) with a running Docker container. Cleanup does NOT touch it (flow is legitimately running).
+- [x] Cleanup is idempotent: run cleanup twice, second run has no effect
+- [x] Multiple orphaned containers: 3 containers across 2 flows, all cleaned up in parallel
+- [x] Cleanup with empty database: no errors, logs "cleanup finished"
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] System starts clean even after a hard crash
+- [x] Code written and passing all tests
+- [x] Code reviewed
+- [x] System starts clean even after a hard crash
 
 **Dependencies:** US-017, US-012
 **Estimated Complexity:** L

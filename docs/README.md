@@ -103,6 +103,7 @@ Hub note: [[Epics/Agent Evaluation/README|Agent Evaluation]]
 | Doc | Descrição |
 |---|---|
 | [EVAL-TARGETS](Epics/Agent%20Evaluation/EVAL-TARGETS.md) | Targets vulneráveis, setup, vulnerabilidades documentadas |
+| [US-045 PortSwigger MVP Dataset](Epics/Agent%20Evaluation/US-045-PORTSWIGGER-MVP-DATASET-EXPLAINED.md) | Dataset MVP com 4 labs curados, subsets, ground truth |
 
 ## Related Notes
 
