@@ -477,3 +477,119 @@ def test_normalize_path_variations() -> None:
     assert DockerClient._normalize_path("/work/already.txt") == "/work/already.txt"
     assert DockerClient._normalize_path("/etc/passwd") == "/etc/passwd"
     assert DockerClient._normalize_path("/tmp/nmap_output.txt") == "/tmp/nmap_output.txt"
+
+
+def test_is_container_running_true_when_running_without_health(
+    docker_client_for_files: DockerClient,
+) -> None:
+    container = MagicMock()
+    container.attrs = {"State": {"Status": "running"}}
+    docker_client_for_files._client.containers.get.return_value = container
+
+    assert docker_client_for_files.is_container_running("cid-1") is True
+    container.reload.assert_called_once()
+
+
+def test_is_container_running_false_when_unhealthy(docker_client_for_files: DockerClient) -> None:
+    container = MagicMock()
+    container.attrs = {"State": {"Status": "running", "Health": {"Status": "unhealthy"}}}
+    docker_client_for_files._client.containers.get.return_value = container
+
+    assert docker_client_for_files.is_container_running("cid-1") is False
+
+
+def test_is_container_running_false_when_not_found(docker_client_for_files: DockerClient) -> None:
+    docker_client_for_files._client.containers.get.side_effect = docker.errors.NotFound("missing")
+
+    assert docker_client_for_files.is_container_running("missing") is False
+
+
+def test_exec_command_returns_output_for_success(docker_client_for_files: DockerClient) -> None:
+    stream = MagicMock()
+    raw_stream = MagicMock()
+    raw_stream.recv.side_effect = [b"hello\n", b""]
+    stream._sock = raw_stream
+
+    docker_client_for_files.is_container_running = MagicMock(return_value=True)
+    docker_client_for_files._client.api.exec_create.return_value = {"Id": "exec-1"}
+    docker_client_for_files._client.api.exec_start.return_value = stream
+    docker_client_for_files._client.api.exec_inspect.return_value = {"Running": False, "ExitCode": 0}
+
+    result = docker_client_for_files.exec_command("cid-1", "echo hello", "/work", 10, False)
+
+    assert result == "hello\n"
+
+
+def test_exec_command_returns_success_message_on_empty_output(
+    docker_client_for_files: DockerClient,
+) -> None:
+    stream = MagicMock()
+    raw_stream = MagicMock()
+    raw_stream.recv.side_effect = [b""]
+    stream._sock = raw_stream
+
+    docker_client_for_files.is_container_running = MagicMock(return_value=True)
+    docker_client_for_files._client.api.exec_create.return_value = {"Id": "exec-2"}
+    docker_client_for_files._client.api.exec_start.return_value = stream
+    docker_client_for_files._client.api.exec_inspect.return_value = {"Running": False, "ExitCode": 0}
+
+    result = docker_client_for_files.exec_command("cid-1", "true", "/work", 10, False)
+
+    assert result == "Command completed successfully with exit code 0"
+
+
+def test_exec_command_timeout_returns_partial_and_hint(docker_client_for_files: DockerClient) -> None:
+    stream = MagicMock()
+    raw_stream = MagicMock()
+    raw_stream.recv.side_effect = [b"partial output"]
+    raw_stream.settimeout = MagicMock()
+    stream._sock = raw_stream
+
+    docker_client_for_files.is_container_running = MagicMock(return_value=True)
+    docker_client_for_files._client.api.exec_create.return_value = {"Id": "exec-3"}
+    docker_client_for_files._client.api.exec_start.return_value = stream
+    docker_client_for_files._client.api.exec_inspect.return_value = {"Running": True, "ExitCode": None}
+
+    with patch("pentest.docker.client.time.monotonic", side_effect=[0.0, 0.1, 3.0]):
+        result = docker_client_for_files.exec_command("cid-1", "sleep 10", "/work", 2, False)
+
+    assert "partial output" in result
+    assert "Command timed out after 2s" in result
+
+
+def test_exec_command_detach_returns_background_message(
+    docker_client_for_files: DockerClient,
+) -> None:
+    stream = MagicMock()
+    raw_stream = MagicMock()
+    raw_stream.recv.side_effect = [b"x"]
+    raw_stream.settimeout = MagicMock()
+    stream._sock = raw_stream
+
+    docker_client_for_files.is_container_running = MagicMock(return_value=True)
+    docker_client_for_files._client.api.exec_create.return_value = {"Id": "exec-4"}
+    docker_client_for_files._client.api.exec_start.return_value = stream
+    docker_client_for_files._client.api.exec_inspect.return_value = {"Running": True, "ExitCode": None}
+
+    with patch("pentest.docker.client.time.monotonic", side_effect=[0.0, 1.0]):
+        result = docker_client_for_files.exec_command("cid-1", "sleep 60", "/work", 10, True)
+
+    assert result == "Command started in background"
+
+
+def test_exec_command_clamps_timeout_to_max_1200(docker_client_for_files: DockerClient) -> None:
+    stream = MagicMock()
+    raw_stream = MagicMock()
+    raw_stream.recv.side_effect = [b"out"]
+    raw_stream.settimeout = MagicMock()
+    stream._sock = raw_stream
+
+    docker_client_for_files.is_container_running = MagicMock(return_value=True)
+    docker_client_for_files._client.api.exec_create.return_value = {"Id": "exec-5"}
+    docker_client_for_files._client.api.exec_start.return_value = stream
+    docker_client_for_files._client.api.exec_inspect.return_value = {"Running": True, "ExitCode": None}
+
+    with patch("pentest.docker.client.time.monotonic", side_effect=[0.0, 2000.0]):
+        result = docker_client_for_files.exec_command("cid-1", "sleep 9999", "/work", 9999, False)
+
+    assert "Command timed out after 1200s" in result

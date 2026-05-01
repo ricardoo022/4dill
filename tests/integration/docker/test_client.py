@@ -458,6 +458,138 @@ async def test_run_container_invalid_image_and_default_failure_marks_failed(
 
 
 # ---------------------------------------------------------------------------
+# US-015: is_container_running / exec_command integration tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_is_container_running_true_for_running_container(
+    file_client: DockerClient,
+    running_container: docker.models.containers.Container,
+) -> None:
+    assert file_client.is_container_running(running_container.id) is True
+
+
+@pytest.mark.integration
+def test_is_container_running_false_for_stopped_container(
+    file_client: DockerClient,
+    docker_api: docker.DockerClient,
+    existing_local_image: str,
+) -> None:
+    container = docker_api.containers.run(
+        existing_local_image,
+        entrypoint=["tail", "-f", "/dev/null"],
+        detach=True,
+        name=f"test-stopped-{uuid.uuid4().hex[:8]}",
+    )
+    try:
+        container.stop()
+        assert file_client.is_container_running(container.id) is False
+    finally:
+        with contextlib.suppress(docker.errors.NotFound):
+            container.remove(force=True)
+
+
+@pytest.mark.integration
+def test_exec_command_basic_and_stderr_capture(
+    file_client: DockerClient,
+    running_container: docker.models.containers.Container,
+) -> None:
+    ok_output = file_client.exec_command(running_container.id, "echo hello", timeout=5)
+    assert "hello" in ok_output
+
+    err_output = file_client.exec_command(running_container.id, "ls /nonexistent", timeout=5)
+    assert "No such file" in err_output or "cannot access" in err_output
+
+
+@pytest.mark.integration
+def test_exec_command_timeout_and_detach_mode(
+    file_client: DockerClient,
+    running_container: docker.models.containers.Container,
+) -> None:
+    timeout_output = file_client.exec_command(running_container.id, "sleep 10", timeout=2)
+    assert "Command timed out after 2s" in timeout_output
+
+    detach_output = file_client.exec_command(
+        running_container.id,
+        "sleep 60",
+        timeout=5,
+        detach=True,
+    )
+    assert detach_output == "Command started in background"
+
+
+@pytest.mark.integration
+def test_exec_command_workdir_defaults_and_custom(
+    file_client: DockerClient,
+    running_container: docker.models.containers.Container,
+) -> None:
+    default_cwd = file_client.exec_command(running_container.id, "pwd", timeout=5)
+    assert default_cwd.strip() == "/work"
+
+    custom_cwd = file_client.exec_command(running_container.id, "pwd", cwd="/tmp", timeout=5)
+    assert custom_cwd.strip() == "/tmp"
+
+
+@pytest.mark.integration
+def test_exec_command_empty_output_and_invalid_utf8(
+    file_client: DockerClient,
+    running_container: docker.models.containers.Container,
+) -> None:
+    empty_output = file_client.exec_command(running_container.id, "true", timeout=5)
+    assert empty_output == "Command completed successfully with exit code 0"
+
+    invalid_utf8 = file_client.exec_command(
+        running_container.id,
+        "printf 'ok\\377\\376bad'",
+        timeout=5,
+    )
+    assert "ok" in invalid_utf8
+    assert "bad" in invalid_utf8
+    assert "�" in invalid_utf8
+
+
+@pytest.mark.integration
+def test_exec_command_timeout_output_is_truncated_to_500_chars(
+    file_client: DockerClient,
+    running_container: docker.models.containers.Container,
+) -> None:
+    long_running_output = file_client.exec_command(
+        running_container.id,
+        "yes A | tr -d '\\n' | head -c 700; sleep 10",
+        timeout=1,
+    )
+
+    rendered_output, timeout_hint = long_running_output.split("\nCommand timed out after 1s", maxsplit=1)
+    assert rendered_output.endswith("...")
+    assert len(rendered_output[:-3]) == 500
+    assert set(rendered_output[:-3]) == {"A"}
+    assert "Try detached mode for long-running commands." in timeout_hint
+
+
+@pytest.mark.integration
+def test_exec_command_timeout_uses_max_timeout_clamp_in_hint(
+    file_client: DockerClient,
+    running_container: docker.models.containers.Container,
+) -> None:
+    monotonic_values = [0.0, 1301.0, 1302.0]
+
+    def _fake_monotonic() -> float:
+        if monotonic_values:
+            return monotonic_values.pop(0)
+        return 1302.0
+
+    with patch("pentest.docker.client.time", SimpleNamespace(monotonic=_fake_monotonic)):
+        output = file_client.exec_command(
+            running_container.id,
+            "sleep 60",
+            timeout=9999,
+        )
+
+    assert "Command timed out after 1200s" in output
+
+
+# ---------------------------------------------------------------------------
 # US-016: read_file / write_file integration tests
 # ---------------------------------------------------------------------------
 
@@ -473,6 +605,7 @@ def running_container(
         detach=True,
         name=f"test-file-ops-{uuid.uuid4().hex[:8]}",
     )
+    container.exec_run(["sh", "-c", "mkdir -p /work"])
     yield container
     with contextlib.suppress(docker.errors.NotFound):
         container.remove(force=True)

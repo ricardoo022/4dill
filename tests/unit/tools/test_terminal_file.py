@@ -16,6 +16,9 @@ def test_terminal_action_validation():
     assert ta.input == "ls -la"
     assert ta.timeout == 10
 
+    default_timeout = TerminalAction(input="pwd", message="default")
+    assert default_timeout.timeout == 300
+
 
 def test_file_action_validation():
     with pytest.raises(ValidationError):
