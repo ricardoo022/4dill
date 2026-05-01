@@ -23,7 +23,7 @@ Execute the phases below in order.
 
 ---
 
-### Phase 1 — Detect Branch and User Story
+### Phase 0 — Handle Main Branch Auto-Creation
 
 Get the current branch name:
 
@@ -31,8 +31,31 @@ Get the current branch name:
 git branch --show-current
 ```
 
-Extract the User Story ID from the branch name (pattern: `feature/US-XXX-...`).
-If the branch does not follow the naming convention, ask the user for the US number.
+**If currently on `main` and no feature branch exists:**
+
+If the current branch is `main`, determine if this is a User Story change:
+
+1. Ask the user for the **User Story ID** (e.g., `US-037`) and optionally a **short description** for the branch name
+2. If the user provides a US ID, create a feature branch: `feature/US-XXX-<description>`
+3. If the user indicates this is a non-US change (chore, docs, etc.), ask for the **change type** (chore/docs/fix) and a **short description**, then create: `chore/<description>` or `docs/<description>`
+4. Check out the new branch and proceed to Phase 1
+
+**If already on a feature branch:** Skip to Phase 1
+
+---
+
+### Phase 1 — Detect Branch and User Story
+
+Get the current branch name (should no longer be `main` after Phase 0):
+
+```bash
+git branch --show-current
+```
+
+Extract the User Story ID from the branch name (pattern: `feature/US-XXX-...` or use the type prefix like `chore/`, `docs/`, `fix/`).
+
+For User Story branches (`feature/US-XXX-...`), the US ID is used directly.
+For non-US branches (e.g., `chore/update-docs`), use the branch name as the context for the PR title.
 
 Verify there is an open PR for this branch already:
 
@@ -68,7 +91,9 @@ Categorize the changes:
 
 ---
 
-### Phase 3 — Read the User Story
+### Phase 3 — Read the User Story (if applicable)
+
+**Only for User Story branches** (`feature/US-XXX-...`):
 
 Extract the US number from the branch name (pattern: `US-\d+`).
 
@@ -89,11 +114,16 @@ From the User Story, extract:
 - **Acceptance Criteria** — to verify coverage in the checklist
 - **Tests Required** — to verify test completeness
 
+**For non-US branches** (e.g., `chore/`, `docs/`, `fix/`):
+- Skip User Story lookup; use the branch name and commit messages as context for the PR summary
+
 ---
 
 ### Phase 4 — Build the PR Body
 
 Construct the PR body using the project's PR template (`.github/pull_request_template.md`):
+
+**For User Story branches** (`feature/US-XXX-...`):
 
 ```markdown
 ## User Story
@@ -127,16 +157,40 @@ US-XXX: {title from USER-STORIES.md}
 - [ ] Docs updated in `docs/` (if new module or pattern added)
 ```
 
+**For non-US branches** (e.g., `chore/`, `docs/`, `fix/`):
+
+```markdown
+## Summary
+
+- {concise description of what changed and why, derived from the diff}
+
+## Changes
+
+- [ ] {change 1: file or module affected}
+- [ ] {change 2}
+- [ ] {change N}
+
+## Tests
+
+- [ ] All existing tests pass locally
+
+## Checklist
+
+- [ ] Code follows project conventions (English code, async-first)
+- [ ] No secrets or credentials in code
+- [ ] Ran `ruff check` and `ruff format` locally
+```
+
 **Auto-fill rules:**
 
 | Template section | How to populate |
 |---|---|
-| `US-XXX: {title}` | Extract from `docs/USER-STORIES.md` using the US ID from the branch |
+| `US-XXX: {title}` | (US branches only) Extract from `docs/USER-STORIES.md` using the US ID from the branch |
 | `## Summary` | 1-2 bullet points summarizing the diff's purpose |
 | `## Changes` | One checkbox per file or logical group of files changed |
-| `## Tests` | Pre-check items that apply: unit always, integration if `tests/integration/` changed, agent if `tests/agent/` changed, e2e if `tests/e2e/` changed |
-| `Alembic migration` | Pre-check if any file under `alembic/versions/` was added |
-| `Docs updated` | Pre-check if any file under `docs/` was added |
+| `## Tests` | (US branches only) Pre-check items that apply: unit always, integration if `tests/integration/` changed, agent if `tests/agent/` changed, e2e if `tests/e2e/` changed. For non-US branches, only check "All existing tests pass locally" |
+| `Alembic migration` | (US branches only) Pre-check if any file under `alembic/versions/` was added |
+| `Docs updated` | (US branches only) Pre-check if any file under `docs/` was added |
 
 ---
 
@@ -171,19 +225,20 @@ EOF
 )"
 ```
 
-**PR title format:** Follow the branch convention — use the commit message style:
+**PR title format:**
 
+For **User Story branches** (`feature/US-XXX-...`):
 ```
-feat(US-XXX): short description
+feat(US-XXX): short description from USER-STORIES.md title
 ```
 
-or for non-feature changes:
-
+For **non-US branches**, follow the branch prefix and use conventional commit style:
 ```
-fix(US-XXX): short description
-chore(US-XXX): short description
-test(US-XXX): short description
-docs(US-XXX): short description
+chore: short description
+docs: short description
+fix: short description
+test: short description
+refactor: short description
 ```
 
 After creation, report the PR URL to the user.
