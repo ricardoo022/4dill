@@ -1,4 +1,4 @@
----
+﻿---
 tags: [planning]
 ---
 
@@ -1962,7 +1962,7 @@ class BarrierAwareToolNode:
 - [ ] Pode ser chamado standalone: `python -c "from pentest.agents.generator import generate_subtasks; ..."`
 - [ ] Testado com target real (agent test com mock LLM + e2e com Claude)
 
-**Dependencies:** US-037, US-038, US-039, US-040, US-041, US-042, US-043
+**Dependencies:** US-19, US-037, US-038, US-039, US-040, US-041, US-042, US-043
 **Estimated Complexity:** L
 
 ---
@@ -2683,7 +2683,7 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 
 ---
 
-### US-059: Searcher prompt templates
+### US-059: Searcher prompt templates (DONE)
 
 **Epic:** Searcher Agent
 
@@ -2819,7 +2819,7 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 - [ ] `agents/generator.py` actualizado para usar `create_searcher_tool()` (stub removido ou deprecated)
 - [ ] Testado com mock LLM (agent test) + verificação manual com Claude
 
-**Dependencies:** US-054, US-055, US-056, US-057, US-058, US-059
+**Dependencies:** US-044, US-054, US-055, US-056, US-057, US-058, US-059
 **Estimated Complexity:** L
 
 ---
