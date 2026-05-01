@@ -263,6 +263,20 @@ Use YES / NO / N/A for each row, with a one-line justification.
 
 ---
 
+### Phase 6.5 — Update User Story (If Approved)
+
+If the verdict will be APPROVE, update the USER-STORIES.md file to mark the User Story as complete:
+
+1. Find the US section in `docs/USER-STORIES.md` (e.g., `### US-055: Description`)
+2. Add `(DONE)` to the section title if not already present: `### US-055: Description (DONE)`
+3. For each checkbox under **Acceptance Criteria**, change `- [ ]` to `- [x]` (all must be checked)
+4. For each checkbox under **Tests Required**, change `- [ ]` to `- [x]` (all must be checked)
+5. For each checkbox under **Definition of Done**, change `- [ ]` to `- [x]` (all must be checked)
+
+Use the Edit tool to make these changes. If any criteria or tests are already checked, preserve them.
+
+---
+
 ### Phase 7 — Verdict
 
 Produce the following structured report:
@@ -372,5 +386,11 @@ Non-blocking suggestions:
 - `ruff` and `mypy` produce no new errors
 - No blocking architecture issues
 - No CRITICAL findings from the code quality review (Pass 1 of checklist)
+
+When APPROVE is issued, automatically execute Phase 6.5 to mark the User Story as complete in `docs/USER-STORIES.md`:
+- Add `(DONE)` to the US title if not present
+- Check all acceptance criteria boxes
+- Check all test requirement boxes
+- Check all definition of done boxes
 
 **REQUEST CHANGES** when any of the above is not satisfied.
