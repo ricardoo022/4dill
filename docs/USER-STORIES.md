@@ -2881,7 +2881,7 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 
 ---
 
-### US-062: Sploitus search tool
+### US-062: Sploitus search tool (DONE)
 
 **Epic:** Scanner Agent
 
