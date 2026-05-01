@@ -2964,7 +2964,7 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 
 ---
 
-### US-063: search_guide + store_guide tools
+### US-063: search_guide + store_guide tools (DONE)
 
 **Epic:** Scanner Agent
 
