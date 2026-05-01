@@ -560,7 +560,9 @@ def test_exec_command_timeout_output_is_truncated_to_500_chars(
         timeout=1,
     )
 
-    rendered_output, timeout_hint = long_running_output.split("\nCommand timed out after 1s", maxsplit=1)
+    rendered_output, timeout_hint = long_running_output.split(
+        "\nCommand timed out after 1s", maxsplit=1
+    )
     assert rendered_output.endswith("...")
     assert len(rendered_output[:-3]) == 500
     assert set(rendered_output[:-3]) == {"A"}
