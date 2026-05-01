@@ -4062,6 +4062,196 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 
 ---
 
+## Epic 13: Memorist Agent
+
+Implementar o agente Memorist como especialista de memória de longo prazo, substituindo o stub actual por delegação real com loop LangGraph, pesquisa em memória vetorial (pgvector) e memória episódica (Graphiti).
+
+**Referência PentAGI confirmada:**
+- Delegação real via handler + performer (`GetMemoristHandler` -> `performMemorist`)
+- Executor dedicado do Memorist com barrier `memorist_result`
+- Tool de pesquisa semântica `search_in_memory` e integração opcional com `graphiti_search`
+- Escrita em Graphiti feita pela camada runtime/provider (não pelo Memorist directamente), via `storeToGraphiti()` + `AddMessages(...)`
+
+### US-080: MemoristResult model + memorist_result barrier tool
+
+**Epic:** Memorist Agent
+
+**Story:** As a developer, I want a typed Memorist result contract and a barrier tool so that Memorist agent runs can terminate deterministically and return structured payloads.
+
+**Ficheiros:**
+- `src/pentest/models/memorist.py` (ou `src/pentest/models/search.py`, conforme convenção)
+- `src/pentest/tools/barriers.py`
+- `tests/unit/models/test_memorist_models.py`
+- `tests/unit/tools/test_barriers.py`
+
+**Acceptance Criteria:**
+- [ ] Existe modelo `MemoristResult` com campos `result` e `message` (não vazios)
+- [ ] Existe tool `memorist_result` com `args_schema=MemoristResult`
+- [ ] `memorist_result` integra com `BarrierAwareToolNode` e encerra o loop
+- [ ] Validação rejeita payloads vazios/whitespace
+
+**Tests Required:**
+- [ ] Model validation (`result`/`message`) com casos válidos e inválidos
+- [ ] Barrier extraction de args no `create_agent_graph`
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+
+**Dependencies:** US-037
+**Estimated Complexity:** S
+
+---
+
+### US-081: search_in_memory tool with flow/task/subtask filters
+
+**Epic:** Memorist Agent
+
+**Story:** As a developer, I want Memorist to query vector memory with strict contextual filters so that retrieval is relevant to the current execution branch.
+
+**Ficheiros:**
+- `src/pentest/tools/search_memory.py`
+- `src/pentest/models/tool_args.py`
+- `tests/unit/tools/test_search_memory_unit.py`
+- `tests/integration/tools/test_search_memory_integration.py`
+
+**Acceptance Criteria:**
+- [ ] `search_in_memory` aceita 1-5 queries
+- [ ] Suporta filtros opcionais por `task_id`/`subtask_id` (quando aplicável ao modelo de dados)
+- [ ] Faz merge + deduplicação de resultados multi-query
+- [ ] Ordena por relevância e aplica limite de resultados
+- [ ] Falha gracefully quando DB/embeddings não estiverem disponíveis
+- [ ] Prova em infra real: com PostgreSQL+pgvector real, inserir dados reais de memória e recuperar resultados relevantes com score/ranking esperado
+- [ ] Quando `OPENAI_API_KEY` ou o provider de embeddings não estiver configurado, a tool devolve fallback explícito e não quebra o fluxo do agente chamador
+
+**Technical Notes:**
+- Basear comportamento no PentAGI `memory.go` (threshold + multi-query + dedup)
+- Manter anonimização e evitar retorno de dados sensíveis em claro
+
+**Tests Required:**
+- [ ] Multi-query com deduplicação
+- [ ] Sem resultados -> mensagem clara
+- [ ] Erros de DB/embedding -> tratamento robusto
+- [ ] Com filtros e sem filtros
+- [ ] Integração real (sem mocks) com PostgreSQL+pgvector: round-trip completo `store` (seed controlado) -> `search_in_memory` -> assert de relevância
+- [ ] Integração real com filtro de `task_id`/`subtask_id`: resultados fora do escopo não aparecem
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+
+**Dependencies:** US-010, US-080
+**Estimated Complexity:** M
+
+---
+
+### US-082: Memorist prompt templates (system + user)
+
+**Epic:** Memorist Agent
+
+**Story:** As a developer, I want dedicated Memorist prompts so that the agent consistently distinguishes episodic history from reusable vector knowledge.
+
+**Ficheiros:**
+- `templates/prompts/memorist_system.md.j2`
+- `templates/prompts/memorist_user.md.j2`
+- `src/pentest/templates/renderer.py`
+- `tests/unit/templates/test_memorist_templates.py`
+
+**Acceptance Criteria:**
+- [ ] Prompt define explicitamente a diferença Graphiti vs pgvector
+- [ ] Prompt define ordem recomendada: histórico episódico primeiro, depois memória vetorial
+- [ ] Prompt força finalização via `memorist_result`
+- [ ] Prompt inclui regras de eficiência (max ações, parar cedo quando suficiente)
+
+**Tests Required:**
+- [ ] Render com todas as variáveis esperadas
+- [ ] Snapshot/asserts para secções críticas do prompt
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+
+**Dependencies:** US-080
+**Estimated Complexity:** S
+
+---
+
+### US-083: Memorist agent + delegation handler (replace stub)
+
+**Epic:** Memorist Agent
+
+**Story:** As a developer, I want a real Memorist delegation handler that spawns an isolated graph and returns `memorist_result` to the caller so that other agents can use long-term memory during scans.
+
+**Ficheiros:**
+- `src/pentest/agents/memorist.py`
+- `src/pentest/tools/stubs.py` (substituir stub de `memorist`)
+- `src/pentest/providers/` (handler/factory de delegação, conforme estrutura final)
+- `tests/unit/agents/test_memorist_agent.py`
+- `tests/integration/agents/test_memorist_delegation.py`
+
+**Acceptance Criteria:**
+- [ ] Tool `memorist(...)` deixa de ser stub e passa a delegar para um graph dedicado
+- [ ] O graph do Memorist usa `create_agent_graph` com barrier `memorist_result`
+- [ ] Retorno da delegação volta como tool response para o agente chamador
+- [ ] Contexto do chamador é filtrado (sem dump integral desnecessário)
+- [ ] Fluxo real provado: num flow real, um agente chama `memorist(...)`, o Memorist consulta memória, fecha com `memorist_result` e o chamador continua a execução com esse resultado
+- [ ] O graph do Memorist define `recursion_limit` explícito (target: 20) para prevenção de loops
+- [ ] Se o Memorist falhar internamente (erro de tool/timeout), o chamador recebe resposta controlada e segue com fallback seguro
+
+**Technical Notes:**
+- Seguir padrão de delegação já usado no Searcher (graph isolado por chamada)
+- Divergência intencional vs PentAGI deve ficar documentada se decidirmos não expor `terminal`/`file` ao Memorist
+
+**Tests Required:**
+- [ ] Delegação de ponta a ponta com barrier hit
+- [ ] Caso de erro no Memorist retorna mensagem de falha controlada
+- [ ] Substituição efectiva do stub no registry/callsite
+- [ ] Teste integration/agent com flow real (DB real + runtime real), sem mocks sintéticos de resultado, validando handoff completo entre agente chamador e Memorist
+- [ ] E2E mínimo: executar um cenário de scan controlado onde existe memória prévia real e verificar que o plano/decisão muda com base no retorno do Memorist
+- [ ] E2E com critério observável objetivo: comparar execução A (sem memória relevante) vs execução B (com memória relevante) e validar diferença concreta em `subtask_list` (ordem, conteúdo, ou inclusão de subtask)
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+
+**Dependencies:** US-037, US-080, US-081, US-082
+**Estimated Complexity:** L
+
+---
+
+### US-084: Memory policy and persistence boundaries (Reporter vs Memorist)
+
+**Epic:** Memorist Agent
+
+**Story:** As a developer, I want explicit memory-write boundaries so that only validated knowledge is persisted and memory poisoning risk stays low.
+
+**Ficheiros:**
+- `docs/AGENT-ARCHITECTURE.md`
+- `docs/PROJECT-STRUCTURE.md` (se necessário)
+- `tests/unit/templates/test_searcher_templates.py`
+- `tests/unit/templates/test_memorist_templates.py`
+
+**Acceptance Criteria:**
+- [ ] Documentação explicita quem escreve no Graphiti e quem escreve no pgvector
+- [ ] `store_answer` permanece centralizado no Reporter
+- [ ] Searcher/Memorist não fazem store de conhecimento não validado
+- [ ] Regras de memória estão alinhadas entre docs e prompts
+- [ ] Existe proteção de regressão para impedir introdução de `store_answer` fora do Reporter (prompt, ligação de tools ou registry)
+
+**Tests Required:**
+- [ ] Tests/guardrails que garantem ausência de `store_answer` no Searcher prompts
+- [ ] Tests/guardrails para instruções de boundary no Memorist prompt
+- [ ] Teste/proteção que falha se qualquer agente não-Reporter expuser `store_answer` no seu conjunto de tools
+
+**Definition of Done:**
+- [ ] Documentation and tests updated
+- [ ] Code reviewed
+
+**Dependencies:** US-060, US-083
+**Estimated Complexity:** S
+
+---
+
 ## Related Notes
 
 - [Docs Home](README.md)

@@ -488,32 +488,115 @@ o Reporter (não o Searcher) pode guardar conhecimento validado via `store_answe
 
 ### 6. Memorist — Memória de Longo Prazo
 
-**Papel:** Guarda e recupera conhecimento de scans anteriores no vector DB.
+**Papel:** Especialista de memória de longo prazo. Recupera contexto histórico e conhecimento reutilizável para apoiar decisões dos outros agentes.
 
-**Quando corre:** Quando qualquer agente quer guardar ou consultar conhecimento.
+**Mental model correcto:** O Memorist não é um mini-Scanner nem um motor de web search. É um "arquivista" que responde com base em memória histórica.
 
-**Input:** Query de pesquisa ou dados para guardar.
+**Quando corre:** Quando outro agente precisa de reutilizar experiência passada (padrões repetidos, técnicas que já funcionaram, contexto de execuções anteriores).
 
-**Output:** Resultado via `memorist_result`.
+**Input:** Pergunta contextualizada (delegação `memorist(question, message)`), opcionalmente com contexto de task/subtask.
 
-**Tools:**
-- `search_in_memory` — pesquisa semântica no vector DB
-- `search_guide` / `store_guide` — guias de instalação/uso
-- `search_answer` / `store_answer` — pares Q&A
-- `search_code` / `store_code` — exemplos de código
-- `memorist_result` (barrier) — entregar resultado
+**Output:** Resultado via `memorist_result(result, message)`:
+- `result`: resposta detalhada em inglês com contexto histórico consolidado
+- `message`: resumo curto para handoff/orquestração
 
-**Prompt inclui:** Como categorizar e anonimizar dados antes de guardar. Como fazer queries eficazes ao vector DB.
+#### Tipos de memória (distinção crítica)
 
-**Limites:** Max 20 iterações.
+- **Memória vetorial (pgvector):** "biblioteca" de conhecimento reutilizável (guides, padrões, snippets, respostas anteriores).
+- **Memória episódica (Graphiti):** "histórico factual" do que realmente aconteceu no fluxo (quem fez o quê, quando, e com que resultado).
 
-**Sem terminal.** O Memorist só interage com o vector DB.
+Regra prática: usar memória episódica para "o que aconteceu" e memória vetorial para "o que sabemos que costuma funcionar".
 
-**Exemplos do que guarda:**
-- "Apps Lovable sempre têm PDF.js desatualizado"
-- "Supabase com RLS disabled é padrão FIND-001 severity CRITICAL"
-- "SvelteKit form actions retornam sempre 200 — testar body, não status code"
-- Script Python que funcionou para testar race conditions
+#### Quem escreve em cada memória
+
+- **Graphiti (episódica):** escrita automática pela camada de runtime/orquestração do scan (controller/provider), que regista respostas dos agentes e execuções de tools ao longo do flow.
+- **pgvector (vetorial):** escrita explícita por tools de store, com política de segurança do SecureDev a centralizar `store_answer` no Reporter após validação (Judge Mode).
+
+**Confirmação no PentAGI (fonte de referência):**
+- A escrita no Graphiti é feita no provider runtime via `storeToGraphiti()` que chama `graphitiClient.AddMessages(...)`.
+- As entradas são criadas automaticamente para respostas de agentes (`storeAgentResponseToGraphiti`) e execuções de tools (`storeToolExecutionToGraphiti`).
+
+**Importante:** isto não é só desenho conceptual; é código real implementado no PentAGI:
+- `backend/pkg/providers/performer.go` — `storeToGraphiti(...)`
+- `backend/pkg/providers/performer.go` — chamada `graphitiClient.AddMessages(...)`
+- `backend/pkg/providers/performer.go` — `storeAgentResponseToGraphiti(...)`
+- `backend/pkg/providers/performer.go` — `storeToolExecutionToGraphiti(...)`
+
+Isto significa que o Memorist usa ambas principalmente para leitura e síntese; não é o writer principal da memória do sistema.
+
+#### Para que serve cada uma (diferença prática)
+
+- **Graphiti serve para contexto de execução do scan de um URL/flow:** timeline, tentativas anteriores, outputs observados, relações entre entidades e acções.
+- **pgvector serve para conhecimento reutilizável entre scans:** técnicas que funcionam, guias, padrões e respostas semânticas que podem ser recuperadas por similaridade.
+
+Em linguagem simples:
+
+- Graphiti = "diário do que aconteceu neste scan e noutros relacionados".
+- pgvector = "biblioteca do que já aprendemos e tende a funcionar".
+
+Em termos operacionais:
+
+- Perguntas de **facto histórico** ("quem fez", "quando", "qual foi o output", "que tentativa já falhou") devem priorizar `graphiti_search`.
+- Perguntas de **heurística reutilizável** ("que técnica tende a resultar", "que checklist usamos", "que padrão já foi útil em alvos semelhantes") devem priorizar `search_in_memory`.
+- Quando a decisão depende dos dois ângulos, o Memorist combina as fontes nesta ordem:
+  1. Primeiro recupera episódio/contexto para evitar repetir passos já tentados.
+  2. Depois recupera conhecimento vetorial para propor o próximo passo com maior probabilidade de sucesso.
+
+Exemplos rápidos:
+
+- "O Scanner já testou RLS na tabela users nesta task?" → episódica (Graphiti).
+- "Em scans Supabase parecidos, que abordagem funcionou melhor para confirmar RLS bypass?" → vetorial (pgvector).
+- "Já tentámos X aqui e falhou; que alternativa costuma funcionar?" → episódica para confirmar tentativa + vetorial para sugerir alternativa.
+
+Sinal de uso correcto:
+
+- Se a resposta pede **timeline/evidência de execução**, estás no domínio da memória episódica.
+- Se a resposta pede **padrão/tática reutilizável**, estás no domínio da memória vetorial.
+
+#### Tools do Memorist
+
+- `search_in_memory` — pesquisa semântica no vector DB (fonte principal)
+- `graphiti_search` — recuperação temporal/episódica do histórico da execução
+- `memorist_result` (barrier) — entrega final; termina o loop do agente
+
+**Nota de alinhamento com PentAGI:** no PentAGI o executor do Memorist também expõe `terminal` e `file`. No SecureDev mantemos, por agora, o Memorist focado em memória (sem execução activa) por princípio de least privilege e separação clara de responsabilidades.
+
+**Nota sobre escrita no knowledge DB:**
+- Por política de segurança do sistema, `store_answer` permanece no Reporter (após validação Judge Mode), para evitar envenenamento de memória com conteúdo não verificado.
+- O Memorist privilegia leitura e síntese de conhecimento já guardado/validado.
+
+#### O que o Memorist faz vs não faz
+
+**Faz:**
+- Quebra perguntas complexas em queries semânticas mais eficazes
+- Executa múltiplas pesquisas, deduplica mentalmente resultados e sintetiza resposta accionável
+- Cruza histórico episódico (Graphiti) com conhecimento reutilizável (pgvector)
+
+**Não faz:**
+- Não executa testes activos no target
+- Não substitui o Searcher para pesquisa web/CVEs
+- Não valida finding final (isso é responsabilidade do Reporter)
+
+#### Exemplo de uso
+
+```
+Scanner delega:
+  memorist(question="Que tecnicas funcionaram em scans Supabase com RLS fraco?",
+           message="Recuperar padroes historicos para orientar proximo passo")
+
+Memorist executa:
+  → graphiti_search(recent_context / successful_tools)
+  → search_in_memory(questions=[...])
+  → memorist_result(
+      result="Historically, 3 similar Supabase scans exposed unprotected tables...",
+      message="Encontrados padroes reutilizaveis para testes RLS"
+    )
+```
+
+#### Limites
+
+- Max 20 iterações
+- Sem execução activa no target (sem comandos de exploração)
 
 ---
 
