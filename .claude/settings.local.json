@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh pr:*)",
+      "mcp__claude_ai_Linear__create_issue_label",
+      "mcp__claude_ai_Linear__research",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "mcp__claude_ai_Linear__save_issue",
+      "Bash(grep -n \"GetAskAdviceHandler\\\\|GetCoderHandler\\\\|GetPentesterHandler\\\\|GetInstallerHandler\\\\|GetMemoristHandler\" /workspaces/lusitai-aipentest/pentagi/backend/pkg/providers/*.go)",
+      "Bash(git fetch:*)",
+      "Bash(mypy:*)",
+      "Bash(pytest:*)",
+      "Bash(python:*)",
+      "Bash(ruff format:*)",
+      "Bash(python3:*)",
+      "Bash(pip list:*)",
+      "Bash(ruff check:*)",
+      "Bash(git checkout:*)",
+      "WebFetch(domain:blog.langchain.com)",
+      "Bash(gh api *)"
+    ]
+  }
+}

@@ -1,0 +1,676 @@
+{
+  "version": "1.0",
+  "created": "2026-05-01",
+  "description": "PortSwigger Web Security Academy labs. Names and URLs sourced from portswigger.net. fase_phase is our own mapping to the Scanner FASE phases.",
+  "labs": [
+    {
+      "id": "infodisc-error-messages",
+      "name": "Information disclosure in error messages",
+      "url": "https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-in-error-messages",
+      "category": "information-disclosure",
+      "fase_phase": 2
+    },
+    {
+      "id": "infodisc-debug-page",
+      "name": "Information disclosure on debug page",
+      "url": "https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-on-debug-page",
+      "category": "information-disclosure",
+      "fase_phase": 2
+    },
+    {
+      "id": "infodisc-backup-files",
+      "name": "Information disclosure via backup files",
+      "url": "https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-via-backup-files",
+      "category": "information-disclosure",
+      "fase_phase": 2
+    },
+    {
+      "id": "infodisc-auth-bypass",
+      "name": "Authentication bypass via information disclosure",
+      "url": "https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-authentication-bypass",
+      "category": "information-disclosure",
+      "fase_phase": 2
+    },
+    {
+      "id": "infodisc-version-control",
+      "name": "Information disclosure in version control history",
+      "url": "https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-in-version-control-history",
+      "category": "information-disclosure",
+      "fase_phase": 2
+    },
+    {
+      "id": "sqli-retrieve-hidden-data",
+      "name": "SQL injection vulnerability in WHERE clause allowing retrieval of hidden data",
+      "url": "https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-login-bypass",
+      "name": "SQL injection vulnerability allowing login bypass",
+      "url": "https://portswigger.net/web-security/sql-injection/lab-login-bypass",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-union-num-columns",
+      "name": "SQL injection UNION attack, determining the number of columns returned by the query",
+      "url": "https://portswigger.net/web-security/sql-injection/union-attacks/lab-determine-number-of-columns",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-union-find-text-column",
+      "name": "SQL injection UNION attack, finding a column containing text",
+      "url": "https://portswigger.net/web-security/sql-injection/union-attacks/lab-find-column-containing-text",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-union-retrieve-data",
+      "name": "SQL injection UNION attack, retrieving data from other tables",
+      "url": "https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-data-from-other-tables",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-union-multiple-values",
+      "name": "SQL injection UNION attack, retrieving multiple values in a single column",
+      "url": "https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-multiple-values-in-single-column",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-db-version-oracle",
+      "name": "SQL injection attack, querying the database type and version on Oracle",
+      "url": "https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-oracle",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-db-version-mysql-microsoft",
+      "name": "SQL injection attack, querying the database type and version on MySQL and Microsoft",
+      "url": "https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-mysql-microsoft",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-list-contents-non-oracle",
+      "name": "SQL injection attack, listing the database contents on non-Oracle databases",
+      "url": "https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-non-oracle",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-list-contents-oracle",
+      "name": "SQL injection attack, listing the database contents on Oracle",
+      "url": "https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-oracle",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-blind-conditional-responses",
+      "name": "Blind SQL injection with conditional responses",
+      "url": "https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-blind-conditional-errors",
+      "name": "Blind SQL injection with conditional errors",
+      "url": "https://portswigger.net/web-security/sql-injection/blind/lab-conditional-errors",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-blind-time-delays",
+      "name": "Blind SQL injection with time delays",
+      "url": "https://portswigger.net/web-security/sql-injection/blind/lab-time-delays",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-blind-time-delays-info",
+      "name": "Blind SQL injection with time delays and information retrieval",
+      "url": "https://portswigger.net/web-security/sql-injection/blind/lab-time-delays-info-retrieval",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-blind-oob",
+      "name": "Blind SQL injection with out-of-band interaction",
+      "url": "https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "sqli-blind-oob-exfil",
+      "name": "Blind SQL injection with out-of-band data exfiltration",
+      "url": "https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band-data-exfiltration",
+      "category": "sql-injection",
+      "fase_phase": 3
+    },
+    {
+      "id": "auth-username-enum-different-responses",
+      "name": "Username enumeration via different responses",
+      "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-username-enum-subtle-responses",
+      "name": "Username enumeration via subtly different responses",
+      "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-username-enum-response-timing",
+      "name": "Username enumeration via response timing",
+      "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-response-timing",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-bruteforce-ip-block",
+      "name": "Broken brute-force protection, IP block",
+      "url": "https://portswigger.net/web-security/authentication/password-based/lab-broken-bruteforce-protection-ip-block",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-username-enum-account-lock",
+      "name": "Username enumeration via account lock",
+      "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-account-lock",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-2fa-simple-bypass",
+      "name": "2FA simple bypass",
+      "url": "https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-simple-bypass",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-2fa-broken-logic",
+      "name": "2FA broken logic",
+      "url": "https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-broken-logic",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-stay-logged-in-bruteforce",
+      "name": "Brute-forcing a stay-logged-in cookie",
+      "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-brute-forcing-a-stay-logged-in-cookie",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-offline-password-cracking",
+      "name": "Offline password cracking",
+      "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-offline-password-cracking",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-password-reset-broken-logic",
+      "name": "Password reset broken logic",
+      "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-broken-logic",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-password-reset-poisoning-middleware",
+      "name": "Password reset poisoning via middleware",
+      "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-poisoning-via-middleware",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "auth-password-brute-force-change",
+      "name": "Password brute-force via password change",
+      "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-brute-force-via-password-change",
+      "category": "authentication",
+      "fase_phase": 4
+    },
+    {
+      "id": "ac-unprotected-admin",
+      "name": "Unprotected admin functionality",
+      "url": "https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-unprotected-admin-unpredictable-url",
+      "name": "Unprotected admin functionality with unpredictable URL",
+      "url": "https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality-with-unpredictable-url",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-user-role-request-param",
+      "name": "User role controlled by request parameter",
+      "url": "https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-user-role-modified-profile",
+      "name": "User role can be modified in user profile",
+      "url": "https://portswigger.net/web-security/access-control/lab-user-role-can-be-modified-in-user-profile",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-url-based-circumvented",
+      "name": "URL-based access control can be circumvented",
+      "url": "https://portswigger.net/web-security/access-control/lab-url-based-access-control-can-be-circumvented",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-method-based-circumvented",
+      "name": "Method-based access control can be circumvented",
+      "url": "https://portswigger.net/web-security/access-control/lab-method-based-access-control-can-be-circumvented",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-user-id-request-param",
+      "name": "User ID controlled by request parameter",
+      "url": "https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-user-id-unpredictable-ids",
+      "name": "User ID controlled by request parameter, with unpredictable user IDs",
+      "url": "https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-unpredictable-user-ids",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-user-id-data-leakage-redirect",
+      "name": "User ID controlled by request parameter with data leakage in redirect",
+      "url": "https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-data-leakage-in-redirect",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-user-id-password-disclosure",
+      "name": "User ID controlled by request parameter with password disclosure",
+      "url": "https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-password-disclosure",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-insecure-direct-object-references",
+      "name": "Insecure direct object references",
+      "url": "https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-multi-step-no-access-control",
+      "name": "Multi-step process with no access control on one step",
+      "url": "https://portswigger.net/web-security/access-control/lab-multi-step-process-with-no-access-control-on-one-step",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "ac-referer-based",
+      "name": "Referer-based access control",
+      "url": "https://portswigger.net/web-security/access-control/lab-referer-based-access-control",
+      "category": "access-control",
+      "fase_phase": 5
+    },
+    {
+      "id": "pt-simple",
+      "name": "File path traversal, simple case",
+      "url": "https://portswigger.net/web-security/file-path-traversal/lab-simple",
+      "category": "path-traversal",
+      "fase_phase": 5
+    },
+    {
+      "id": "pt-absolute-path-bypass",
+      "name": "File path traversal, traversal sequences blocked with absolute path bypass",
+      "url": "https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass",
+      "category": "path-traversal",
+      "fase_phase": 5
+    },
+    {
+      "id": "pt-sequences-stripped-non-recursive",
+      "name": "File path traversal, traversal sequences stripped non-recursively",
+      "url": "https://portswigger.net/web-security/file-path-traversal/lab-sequences-stripped-non-recursively",
+      "category": "path-traversal",
+      "fase_phase": 5
+    },
+    {
+      "id": "pt-superfluous-url-decode",
+      "name": "File path traversal, traversal sequences stripped with superfluous URL-decode",
+      "url": "https://portswigger.net/web-security/file-path-traversal/lab-superfluous-url-decode",
+      "category": "path-traversal",
+      "fase_phase": 5
+    },
+    {
+      "id": "pt-validate-start-of-path",
+      "name": "File path traversal, validation of start of path",
+      "url": "https://portswigger.net/web-security/file-path-traversal/lab-validate-start-of-path",
+      "category": "path-traversal",
+      "fase_phase": 5
+    },
+    {
+      "id": "pt-null-byte",
+      "name": "File path traversal, validation of file extension with null byte bypass",
+      "url": "https://portswigger.net/web-security/file-path-traversal/lab-validate-file-extension-null-byte-bypass",
+      "category": "path-traversal",
+      "fase_phase": 5
+    },
+    {
+      "id": "xss-reflected-html-nothing-encoded",
+      "name": "Reflected XSS into HTML context with nothing encoded",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-nothing-encoded",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-stored-html-nothing-encoded",
+      "name": "Stored XSS into HTML context with nothing encoded",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-dom-document-write-sink",
+      "name": "DOM XSS in document.write sink using source location.search",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-document-write-sink",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-dom-document-write-sink-select",
+      "name": "DOM XSS in document.write sink using source location.search inside a select element",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-document-write-sink-inside-select-element",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-dom-innerhtml-sink",
+      "name": "DOM XSS in innerHTML sink using source location.search",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-innerhtml-sink",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-dom-jquery-href-sink",
+      "name": "DOM XSS in jQuery anchor href attribute sink using location.search source",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-jquery-href-attribute-sink",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-dom-jquery-hashchange",
+      "name": "DOM XSS in jQuery selector sink using a hashchange event",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-jquery-selector-hash-change-event",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-dom-angularjs-expression",
+      "name": "DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-angularjs-expression",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-reflected-dom",
+      "name": "Reflected DOM XSS",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-dom-xss-reflected",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-stored-dom",
+      "name": "Stored DOM XSS",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-dom-xss-stored",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-steal-cookies",
+      "name": "Exploiting cross-site scripting to steal cookies",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/exploiting/lab-stealing-cookies",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-capture-passwords",
+      "name": "Exploiting cross-site scripting to capture passwords",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/exploiting/lab-capturing-passwords",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-perform-csrf",
+      "name": "Exploiting XSS to perform CSRF",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/exploiting/lab-perform-csrf",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-reflected-most-tags-blocked",
+      "name": "Reflected XSS into HTML context with most tags and attributes blocked",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-most-tags-and-attributes-blocked",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-reflected-all-tags-blocked",
+      "name": "Reflected XSS into HTML context with all tags blocked except custom ones",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-all-standard-tags-blocked",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "xss-reflected-svg-allowed",
+      "name": "Reflected XSS with some SVG markup allowed",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/contexts/lab-some-svg-markup-allowed",
+      "category": "xss",
+      "fase_phase": 6
+    },
+    {
+      "id": "ssrf-basic-localhost",
+      "name": "Basic SSRF against the local server",
+      "url": "https://portswigger.net/web-security/ssrf/lab-basic-ssrf-against-localhost",
+      "category": "ssrf",
+      "fase_phase": 7
+    },
+    {
+      "id": "ssrf-basic-backend",
+      "name": "Basic SSRF against another back-end system",
+      "url": "https://portswigger.net/web-security/ssrf/lab-basic-ssrf-against-backend-system",
+      "category": "ssrf",
+      "fase_phase": 7
+    },
+    {
+      "id": "ssrf-blacklist-filter",
+      "name": "SSRF with blacklist-based input filter",
+      "url": "https://portswigger.net/web-security/ssrf/lab-ssrf-with-blacklist-filter",
+      "category": "ssrf",
+      "fase_phase": 7
+    },
+    {
+      "id": "ssrf-open-redirection",
+      "name": "SSRF with filter bypass via open redirection vulnerability",
+      "url": "https://portswigger.net/web-security/ssrf/lab-ssrf-filter-bypass-via-open-redirection",
+      "category": "ssrf",
+      "fase_phase": 7
+    },
+    {
+      "id": "ssrf-blind-oob",
+      "name": "Blind SSRF with out-of-band detection",
+      "url": "https://portswigger.net/web-security/ssrf/blind/lab-out-of-band-detection",
+      "category": "ssrf",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-retrieve-files",
+      "name": "Exploiting XXE using external entities to retrieve files",
+      "url": "https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-ssrf",
+      "name": "Exploiting XXE to perform SSRF attacks",
+      "url": "https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-perform-ssrf",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-blind-oob",
+      "name": "Blind XXE with out-of-band interaction",
+      "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-blind-oob-param-entities",
+      "name": "Blind XXE with out-of-band interaction via XML parameter entities",
+      "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction-using-parameter-entities",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-blind-exfil-malicious-dtd",
+      "name": "Exploiting blind XXE to exfiltrate data using a malicious external DTD",
+      "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-exfiltration",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-blind-error-messages",
+      "name": "Exploiting blind XXE to retrieve data via error messages",
+      "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-data-retrieval-via-error-messages",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-xinclude",
+      "name": "Exploiting XInclude to retrieve files",
+      "url": "https://portswigger.net/web-security/xxe/lab-xinclude-attack",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "xxe-file-upload",
+      "name": "Exploiting XXE via image file upload",
+      "url": "https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload",
+      "category": "xxe",
+      "fase_phase": 7
+    },
+    {
+      "id": "cmdi-simple",
+      "name": "OS command injection, simple case",
+      "url": "https://portswigger.net/web-security/os-command-injection/lab-simple",
+      "category": "os-command-injection",
+      "fase_phase": 8
+    },
+    {
+      "id": "cmdi-blind-time-delays",
+      "name": "Blind OS command injection with time delays",
+      "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-time-delays",
+      "category": "os-command-injection",
+      "fase_phase": 8
+    },
+    {
+      "id": "cmdi-blind-output-redirect",
+      "name": "Blind OS command injection with output redirection",
+      "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-output-redirection",
+      "category": "os-command-injection",
+      "fase_phase": 8
+    },
+    {
+      "id": "cmdi-blind-oob",
+      "name": "Blind OS command injection with out-of-band interaction",
+      "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band",
+      "category": "os-command-injection",
+      "fase_phase": 8
+    },
+    {
+      "id": "cmdi-blind-oob-exfil",
+      "name": "Blind OS command injection with out-of-band data exfiltration",
+      "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band-data-exfiltration",
+      "category": "os-command-injection",
+      "fase_phase": 8
+    },
+    {
+      "id": "fileupload-rce-web-shell",
+      "name": "Remote code execution via web shell upload",
+      "url": "https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-web-shell-upload",
+      "category": "file-upload",
+      "fase_phase": 9
+    },
+    {
+      "id": "fileupload-content-type-bypass",
+      "name": "Web shell upload via Content-Type restriction bypass",
+      "url": "https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-content-type-restriction-bypass",
+      "category": "file-upload",
+      "fase_phase": 9
+    },
+    {
+      "id": "fileupload-path-traversal",
+      "name": "Web shell upload via path traversal",
+      "url": "https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-path-traversal",
+      "category": "file-upload",
+      "fase_phase": 9
+    },
+    {
+      "id": "fileupload-extension-blacklist",
+      "name": "Web shell upload via extension blacklist bypass",
+      "url": "https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-extension-blacklist-bypass",
+      "category": "file-upload",
+      "fase_phase": 9
+    },
+    {
+      "id": "fileupload-obfuscated-extension",
+      "name": "Web shell upload via obfuscated file extension",
+      "url": "https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension",
+      "category": "file-upload",
+      "fase_phase": 9
+    },
+    {
+      "id": "fileupload-polyglot",
+      "name": "Remote code execution via polyglot web shell upload",
+      "url": "https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-polyglot-web-shell-upload",
+      "category": "file-upload",
+      "fase_phase": 9
+    }
+  ],
+  "summary": {
+    "total_labs": 91,
+    "by_fase_phase": {
+      "2": 5,
+      "3": 16,
+      "4": 12,
+      "5": 19,
+      "6": 15,
+      "7": 13,
+      "8": 5,
+      "9": 6
+    },
+    "by_category": {
+      "information-disclosure": 5,
+      "sql-injection": 16,
+      "authentication": 12,
+      "access-control": 13,
+      "path-traversal": 6,
+      "xss": 15,
+      "ssrf": 5,
+      "xxe": 8,
+      "os-command-injection": 5,
+      "file-upload": 6
+    }
+  }
+}

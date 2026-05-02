@@ -1,0 +1,6 @@
+[submodule "pentagi"]
+	path = pentagi
+	url = https://github.com/vxcontrol/pentagi.git
+[submodule "lusitai-internal-scan"]
+	path = lusitai-internal-scan
+	url = https://github.com/ricardoo022/lusitai-internal-scan.git

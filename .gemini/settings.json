@@ -1,0 +1,14 @@
+{
+  "general": {
+    "defaultApprovalMode": "auto_edit",
+    "maxAttempts": 10
+  },
+  "tools": {
+    "disableLLMCorrection": false
+  },
+  "general": {
+    "checkpointing": {
+      "enabled": true
+    }
+  }
+}
