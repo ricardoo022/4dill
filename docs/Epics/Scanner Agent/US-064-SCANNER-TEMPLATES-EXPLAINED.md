@@ -1,5 +1,5 @@
 ---
-tags: [scanner, templates, jinja2, prompts]
+tags: [agents, planning]
 ---
 
 # US-064: Scanner prompt templates + FASE skill injection — Explicação Detalhada

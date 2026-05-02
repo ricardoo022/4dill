@@ -28,4 +28,5 @@ pytest tests/agent/ -v -m agent
 |---|---|
 | `__init__.py` | Package init |
 | `test_generator_agent.py` | Testes do Generator em camada agent: plano realista, seleção de tools com/sem Docker, erro quando barrier não é atingido |
+| `test_scanner_templates.py` | Testes do Scanner prompt rendering: system+user templates, injecção de FASE skill em runtime e integração com SKILL.md real do `lusitai-internal-scan` |
 | `test_placeholder.py` | Placeholder para smoke test da camada de agentes |

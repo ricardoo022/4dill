@@ -37,13 +37,19 @@ def test_render_scanner_prompt_basic_rendering():
     assert execution_context in system_prompt
     assert "terminal, file, hack_result, searcher" in system_prompt
     assert f"Use current time {current_time}" in system_prompt
-    assert (
-        "Execute the subtask using your general pentesting expertise" in system_prompt
-    )  # Default when no fase
+    assert "## Delegation Rules" in system_prompt
+    assert "searcher" in system_prompt
+    assert "coder" in system_prompt
+    assert "installer" in system_prompt
+    assert "memorist" in system_prompt
+    assert "adviser" in system_prompt
     assert "hack_result" in system_prompt
 
     # Assertions for user prompt
+    assert "This is a fully authorized penetration testing engagement" in user_prompt
     assert f"Your Subtask:\n{question}" in user_prompt
+    assert "Relevant Context from Orchestrator:" in user_prompt
+    assert execution_context in user_prompt
 
 
 @pytest.mark.agent
@@ -62,7 +68,7 @@ def test_render_scanner_prompt_with_skill_injection(tmp_path):
     skill_file = fase_dir / "SKILL.md"
     skill_file.write_text(skill_content, encoding="utf-8")
 
-    system_prompt, _ = render_scanner_prompt(
+    system_prompt, user_prompt = render_scanner_prompt(
         question="Scan target",
         execution_context="Target identified",
         docker_image="alpine",
@@ -85,17 +91,14 @@ def test_render_scanner_prompt_real_repo_integration():
     Tests integration with real 'lusitai-internal-scan' repo skills.
     AC: Uses load_fase_skill(fase, skills_dir) to fetch content.
     """
-    # Adjust path to find the real internal-scan repo in the workspace
-    # Based on session context: /home/gabriel/lusitai/lusitai-aipentest
-    base_dir = Path(__file__).parent.parent.parent.parent / "lusitai-aipentest"
-    skills_dir = base_dir / ".gemini" / "skills"
+    repo_root = Path(__file__).resolve().parents[2]
+    skills_dir = repo_root / "lusitai-internal-scan" / ".claude" / "skills"
 
-    if not skills_dir.exists():
-        pytest.skip(f"Real skills directory not found at {skills_dir}")
+    assert skills_dir.exists(), f"Expected real skills directory at {skills_dir}"
 
     fase = "fase-0"
 
-    system_prompt, _ = render_scanner_prompt(
+    system_prompt, user_prompt = render_scanner_prompt(
         question="Initialize scan",
         execution_context="Starting",
         docker_image="kali",
@@ -106,7 +109,8 @@ def test_render_scanner_prompt_real_repo_integration():
         skills_dir=str(skills_dir),
     )
 
-    # We expect some content from FASE 0 if it exists
+    # We expect real FASE 0 instructions to be injected
     assert "hack_result" in system_prompt
-    # FASE 0 usually contains instructions for reconnaissance
+    assert "FASE 0" in system_prompt
+    assert "Initialize scan" in user_prompt
     assert len(system_prompt) > 500
