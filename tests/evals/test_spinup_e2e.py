@@ -47,13 +47,13 @@ async def test_sqli_login_bypass_spinup_returns_instance_url():
     result = await spinup_lab(lab_url)
 
     assert result.startswith("https://"), f"Expected https:// URL, got: {result!r}"
-    assert (
-        "web-security-academy.net" in result
-    ), f"Expected *.web-security-academy.net instance URL, got: {result!r}"
+    assert "web-security-academy.net" in result, (
+        f"Expected *.web-security-academy.net instance URL, got: {result!r}"
+    )
     # The instance URL must NOT be the canonical lab page itself
-    assert (
-        "portswigger.net" not in result
-    ), f"Got canonical page URL instead of instance URL: {result!r}"
+    assert "portswigger.net" not in result, (
+        f"Got canonical page URL instead of instance URL: {result!r}"
+    )
 
 
 @pytest.mark.e2e
@@ -79,30 +79,30 @@ async def test_session_persisted_and_reused_on_second_spinup():
 
     # 2. First spinup — must log in and write SESSION_FILE
     result_1 = await spinup_lab(first_lab_url)
-    assert (
-        "web-security-academy.net" in result_1
-    ), f"First spinup returned unexpected URL: {result_1!r}"
-    assert (
-        SESSION_FILE.exists()
-    ), "SESSION_FILE was not created after first spinup — session persistence is broken"
+    assert "web-security-academy.net" in result_1, (
+        f"First spinup returned unexpected URL: {result_1!r}"
+    )
+    assert SESSION_FILE.exists(), (
+        "SESSION_FILE was not created after first spinup — session persistence is broken"
+    )
 
     # Verify cookies are valid JSON and non-empty
     cookies = json.loads(SESSION_FILE.read_text())
-    assert (
-        isinstance(cookies, list) and len(cookies) > 0
-    ), f"SESSION_FILE contains unexpected content: {cookies!r}"
-    assert any(
-        c.get("domain", "").endswith("portswigger.net") for c in cookies
-    ), "No portswigger.net cookie found in saved session"
+    assert isinstance(cookies, list) and len(cookies) > 0, (
+        f"SESSION_FILE contains unexpected content: {cookies!r}"
+    )
+    assert any(c.get("domain", "").endswith("portswigger.net") for c in cookies), (
+        "No portswigger.net cookie found in saved session"
+    )
 
     # 3. Record mtime before second spinup
     mtime_before = SESSION_FILE.stat().st_mtime_ns
 
     # 4. Second spinup — session should be reused, no re-login
     result_2 = await spinup_lab(second_lab_url)
-    assert (
-        "web-security-academy.net" in result_2
-    ), f"Second spinup returned unexpected URL: {result_2!r}"
+    assert "web-security-academy.net" in result_2, (
+        f"Second spinup returned unexpected URL: {result_2!r}"
+    )
 
     # 5. SESSION_FILE must NOT have been re-written (login was skipped)
     mtime_after = SESSION_FILE.stat().st_mtime_ns
@@ -123,9 +123,9 @@ async def test_spinup_batch_quick_subset_returns_all_urls():
     results = await spinup_batch(_QUICK_LAB_IDS)
 
     # All 4 lab IDs must appear in the result dict
-    assert set(results.keys()) == set(
-        _QUICK_LAB_IDS
-    ), f"Batch result keys {set(results.keys())} do not match expected {set(_QUICK_LAB_IDS)}"
+    assert set(results.keys()) == set(_QUICK_LAB_IDS), (
+        f"Batch result keys {set(results.keys())} do not match expected {set(_QUICK_LAB_IDS)}"
+    )
 
     failed = []
     for lab_id in _QUICK_LAB_IDS:
@@ -156,11 +156,11 @@ def test_missing_credentials_raise_auth_error_before_browser_launch(monkeypatch)
         _load_credentials()
 
     message = str(exc_info.value)
-    assert (
-        "PORTSWIGGER_EMAIL" in message
-    ), f"Error message does not name PORTSWIGGER_EMAIL: {message!r}"
-    assert (
-        "PORTSWIGGER_PASSWORD" in message
-    ), f"Error message does not name PORTSWIGGER_PASSWORD: {message!r}"
+    assert "PORTSWIGGER_EMAIL" in message, (
+        f"Error message does not name PORTSWIGGER_EMAIL: {message!r}"
+    )
+    assert "PORTSWIGGER_PASSWORD" in message, (
+        f"Error message does not name PORTSWIGGER_PASSWORD: {message!r}"
+    )
     # Proof: error is not a silent crash — it's a typed exception with actionable text
     assert len(message) > 20, f"Error message is too terse to be useful: {message!r}"
