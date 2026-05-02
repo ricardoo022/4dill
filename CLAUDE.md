@@ -253,8 +253,8 @@ Detailed architecture docs (Portuguese) in `docs/`:
 
 - Project is in early implementation — several `src/pentest/` modules are still `__init__.py` stubs (`controller/`, `mcp/`, `providers/` except factory.py, `agents/` except base.py + generator.py + exceptions.py)
 - **Implemented modules:**
-  - `config.py` — `LLMConfig` Pydantic model; reads provider + model from env vars (`LLM_PROVIDER`, `LLM_MODEL`, per-agent overrides like `GENERATOR_LLM_MODEL`); used by `providers/factory.py`
-  - `providers/factory.py` — `create_chat_model()` factory + `resolve_provider_config()`; supports Anthropic and OpenAI; selects provider and model per agent via `LLMConfig`
+  - `config.py` — function-based provider/model resolver; reads environment-based configuration using provider/model pairs and per-agent overrides such as `GENERATOR_PROVIDER` / `GENERATOR_MODEL`; used by `providers/factory.py`
+  - `providers/factory.py` — `create_chat_model()` factory + `resolve_provider_config()`; supports Anthropic and OpenAI; selects provider and model per agent via the config resolver
   - `recon/` — backend detection (supabase, firebase, custom_api, subdomains, orchestrator)
   - `agents/base.py` — LangGraph base graph pattern (BarrierAwareToolNode, AgentState, create_agent_graph)
   - `agents/exceptions.py` — `GeneratorError` typed exception for Generator failures
