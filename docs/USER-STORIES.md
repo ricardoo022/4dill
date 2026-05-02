@@ -3231,13 +3231,13 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/tools/browser.py`, `src/pentest/tools/README.md`, documentação relevante do epic quando implementado
 
 **Acceptance Criteria:**
-- [ ] O `browser` passa a suportar navegação/renderização real adequada para SPAs e apps modernas
-- [ ] O `browser` consegue produzir screenshots quando pedido
-- [ ] O `browser` consegue extrair conteúdo já renderizado pelo browser, não apenas HTML bruto da resposta inicial
-- [ ] O `browser` consegue interagir com a página em operações básicas quando fizer sentido (ex: abrir URL, esperar renderização, seguir links, interagir com elementos simples)
-- [ ] O output continua utilizável pelo agente e com limites de tamanho razoáveis
-- [ ] A tool mantém uma interface clara entre modos simples de leitura e modos mais pesados de browser real
-- [ ] O Scanner pode continuar a usar o browser de forma não interactiva para casos simples sem pagar sempre o custo do modo avançado
+- [x] O `browser` passa a suportar navegação/renderização real adequada para SPAs e apps modernas
+- [x] O `browser` consegue produzir screenshots quando pedido
+- [x] O `browser` consegue extrair conteúdo já renderizado pelo browser, não apenas HTML bruto da resposta inicial
+- [x] O `browser` consegue interagir com a página em operações básicas quando fizer sentido (ex: abrir URL, esperar renderização, seguir links, interagir com elementos simples)
+- [x] O output continua utilizável pelo agente e com limites de tamanho razoáveis
+- [x] A tool mantém uma interface clara entre modos simples de leitura e modos mais pesados de browser real
+- [x] O Scanner pode continuar a usar o browser de forma não interactiva para casos simples sem pagar sempre o custo do modo avançado
 
 **Technical Notes:**
 - Esta US é uma melhoria explícita face à US-040
@@ -3246,16 +3246,16 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - Deve preservar um modo leve para páginas simples e um modo avançado para renderização/interacção
 
 **Tests Required:**
-- [ ] Página simples continua a funcionar no modo actual de leitura
-- [ ] Página com conteúdo renderizado por JavaScript devolve conteúdo útil após renderização
-- [ ] Screenshot é gerada com sucesso quando pedida
-- [ ] Interacção básica com página funciona em pelo menos um cenário representativo
-- [ ] E2E / real-data test: contra uma app real com frontend moderno, o Scanner consegue usar o browser melhorado para observar conteúdo que não aparecia no fetch HTTP simples
+- [x] Página simples continua a funcionar no modo actual de leitura
+- [x] Página com conteúdo renderizado por JavaScript devolve conteúdo útil após renderização
+- [x] Screenshot é gerada com sucesso quando pedida
+- [x] Interacção básica com página funciona em pelo menos um cenário representativo
+- [x] E2E / real-data test: contra uma app real com frontend moderno, o Scanner consegue usar o browser melhorado para observar conteúdo que não aparecia no fetch HTTP simples
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O `browser` deixa de ser apenas um HTTP fetcher e passa a cobrir casos reais necessários ao Scanner
+- [x] Code written and passing all tests
+- [x] Code reviewed
+- [x] O `browser` deixa de ser apenas um HTTP fetcher e passa a cobrir casos reais necessários ao Scanner
 
 **Dependencies:** US-040
 **Estimated Complexity:** L
