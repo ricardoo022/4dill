@@ -4252,6 +4252,243 @@ Implementar o agente Memorist como especialista de memória de longo prazo, subs
 
 ---
 
+## Epic 14: Memorist Agent Evaluation (LangSmith)
+
+Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliza o padrão dos Epics 8 e 11 (dataset + evaluators + LangSmith + CLI runner), mas adapta o ground truth para memória: recuperação relevante, isolamento de escopo (flow/task/subtask), uso correcto de memória episódica vs vetorial, e cumprimento dos boundaries de persistência.
+
+**Pré-requisito:** Epic 13 (Memorist Agent) completo. O Memorist precisa de delegação real, `memorist_result`, `search_in_memory` funcional e integração de contexto para gravar trajectories úteis.
+
+**Princípio core:** O dataset do Memorist é baseado em **perguntas de memória com ground truth verificável**. Cada cenário define: pergunta, contexto, memória semeada (seed controlado), factos obrigatórios, e policy esperada de tool use (`search_in_memory`, `graphiti_search`, `memorist_result`).
+
+**Avaliação em 3 níveis:**
+- **Nível 1** — Final memory answer: avalia só `memorist_result` final (estrutura + cobertura factual + boundaries)
+- **Nível 2** — Determinístico com fixtures/seed: avalia resposta + trajectory com memória controlada (pgvector/Graphiti seeded)
+- **Nível 3** — E2E controlado: integração real em flow com agente chamador, validando impacto da memória na decisão
+
+**4 tipos de evaluator:**
+- **Code evaluator** — checks determinísticos (estrutura, relevância, escopo, boundaries)
+- **LLM-as-judge** — scoring semântico da utilidade da resposta de memória
+- **Composite** — média ponderada dos scores
+- **Summary** — agregação automática por dataset no LangSmith
+
+**Riscos principais:**
+- Drift de relevância (respostas vagas que não usam memória concreta)
+- Vazamento de escopo (retornar memória de task/subtask erradas)
+- Quebra de boundary (`store_answer` fora do Reporter)
+- Loops/tool spam em queries semelhantes
+
+**Nota — LangSmith setup (obrigatório para upload/comparação de experiments):**
+- Definir `LANGSMITH_API_KEY` no ambiente
+- Definir `LANGSMITH_TRACING=true`
+- Definir `LANGSMITH_PROJECT` (ex.: `lusitai-memorist-evals`)
+- Para runners locais sem upload, usar `--no-upload`
+- Judge model vem de `EVAL_JUDGE_MODEL` com fallback low-cost
+
+---
+
+### US-085: Memorist Eval Infrastructure & Runner Base
+
+**Epic:** Memorist Agent Evaluation (LangSmith)
+
+**Story:** As a developer, I want dedicated Memorist eval scaffolding so that I can record runs, run deterministic checks, and compare experiments from CLI.
+
+**Ficheiros:**
+- `tests/evals/memorist/__init__.py`
+- `tests/evals/memorist/datasets/` (directório)
+- `tests/evals/memorist/evaluators/__init__.py`
+- `tests/evals/memorist/fixtures/` (directório)
+- `tests/evals/memorist/record_memorist_run.py`
+- `tests/evals/memorist/run_memorist_eval.py`
+- `tests/evals/memorist/conftest.py`
+
+**Acceptance Criteria:**
+- [ ] Estrutura `tests/evals/memorist/` criada com subdirectórios `datasets/`, `evaluators/`, `fixtures/`, `recordings/`
+- [ ] `record_memorist_run.py` grava JSON completo: inputs, contexto, tool calls, output `memorist_result`, metadata de modelo
+- [ ] `run_memorist_eval.py` aceita flags `--model`, `--dataset`, `--level`, `--upload/--no-upload`, `--judge-model`, `--tags`, `--output`
+- [ ] Runner invoca o graph com `thread_id` por exemplo e `recursion_limit` explícito para reprodutibilidade e prevenção de loops
+- [ ] Com `--no-upload` corre local sem LangSmith API key
+- [ ] Com `--no-upload`, o runner não depende de artifacts remotos do LangSmith para produzir resultados locais
+- [ ] Scripts executáveis standalone
+
+**Tests Required:**
+- [ ] `tests/evals/memorist/` importável como package
+- [ ] `record_memorist_run.py --help` sem erros
+- [ ] `run_memorist_eval.py --no-upload` executa com dataset placeholder
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+- [ ] Pelo menos 1 run real gravado
+
+**Dependencies:** US-083
+**Estimated Complexity:** M
+
+---
+
+### US-086: Memorist Dataset (memory scenarios + scope filters)
+
+**Epic:** Memorist Agent Evaluation (LangSmith)
+
+**Story:** As a developer, I want a curated Memorist dataset so that retrieval quality and memory policy are measured with explicit ground truth.
+
+**Ficheiros:**
+- `tests/evals/memorist/datasets/memorist.json`
+- `tests/evals/memorist/datasets/README.md`
+
+**Acceptance Criteria:**
+- [ ] Dataset com pelo menos 12 cenários reais cobrindo:
+  - recuperação vetorial (`search_in_memory`)
+  - recuperação episódica (`graphiti_search`)
+  - cenários híbridos (episódico + vetorial)
+  - cenários com filtro `task_id`/`subtask_id`
+  - cenários sem resultados (fallback esperado)
+- [ ] Cada entry contém:
+  - `inputs.question`
+  - `inputs.context` (opcional)
+  - `reference_outputs.required_facts`
+  - `reference_outputs.expected_tools`
+  - `reference_outputs.scope_filters` (flow/task/subtask esperados)
+  - `reference_outputs.forbidden_tools` (default: `store_answer`, `terminal`, `file`)
+  - `metadata.memory_mode` (`vector`, `episodic`, `hybrid`)
+  - `metadata.difficulty` (`easy`, `medium`, `hard`)
+- [ ] Pelo menos 3 cenários provam isolamento de escopo (dados fora do filtro não podem aparecer)
+- [ ] README documenta curadoria, seed da memória e validação do ground truth
+
+**Tests Required:**
+- [ ] `memorist.json` parseable e válido
+- [ ] Sem duplicados por pergunta/contexto
+- [ ] Todos os cenários têm `required_facts` e `memory_mode`
+- [ ] `forbidden_tools` presente em todos os cenários
+
+**Definition of Done:**
+- [ ] Dataset curado e validado manualmente
+- [ ] Code/data reviewed
+
+**Dependencies:** US-085
+**Estimated Complexity:** M
+
+---
+
+### US-087: Memory Fixtures & Seeded Stores (pgvector + Graphiti)
+
+**Epic:** Memorist Agent Evaluation (LangSmith)
+
+**Story:** As a developer, I want deterministic memory fixtures and seeded stores so that Memorist evals are reproducible and independent from production drift.
+
+**Ficheiros:**
+- `tests/evals/memorist/fixtures/memorist_fixtures.json`
+- `tests/evals/memorist/fixtures/seed_vector_store.json`
+- `tests/evals/memorist/fixtures/seed_graphiti.json`
+- `tests/evals/memorist/extract_memorist_fixtures.py`
+
+**Acceptance Criteria:**
+- [ ] Fixtures para `search_in_memory`, `graphiti_search` e `memorist_result`
+- [ ] Seed controlado para pgvector e Graphiti com casos positivos e negativos por escopo
+- [ ] Interceptor regista calls (matched/unmatched) e preserva barrier real
+- [ ] Fixtures preservam ordem temporal da trajetória e identificadores de tool call (`tool_call_id` equivalente) para trajectory eval determinístico
+- [ ] Fallback seguro para calls não correspondentes sem quebrar fluxo
+
+**Tests Required:**
+- [ ] Fixtures parseables e válidas
+- [ ] Match exacto/parcial retorna resposta esperada
+- [ ] Unmatched incrementa contador
+- [ ] Cenário com filtro impede retorno cross-task/cross-subtask
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+- [ ] Pelo menos 6 cenários reproduzíveis sem drift externo
+
+**Dependencies:** US-086, US-081
+**Estimated Complexity:** L
+
+---
+
+### US-088: Memorist Evaluators (relevance + scope + boundaries + judge)
+
+**Epic:** Memorist Agent Evaluation (LangSmith)
+
+**Story:** As a developer, I want evaluator functions for Memorist so that memory retrieval quality and safety policy are measured objectively.
+
+**Ficheiros:**
+- `tests/evals/memorist/evaluators/memorist_evaluators.py`
+- `tests/evals/memorist/evaluators/weights.json`
+
+**Acceptance Criteria:**
+- [ ] `structure_check`: output final com `result`/`message` não vazios e `memorist_result` presente
+- [ ] `memory_relevance`: cobertura de `required_facts` (0.0..1.0)
+- [ ] `scope_isolation_check`: penaliza retorno fora de `scope_filters` (task/subtask)
+- [ ] `source_policy_check`: valida uso coerente de `search_in_memory` vs `graphiti_search` por cenário
+- [ ] `efficiency_check`: penaliza loops/repetição e excesso de ações
+- [ ] `safe_boundary_check`: score 0.0 se usar tool proibida (`store_answer`/persistência indevida)
+- [ ] `answer_quality` (judge): factualidade, utilidade para próximo passo, ausência de alucinação
+- [ ] `memorist_composite` com pesos em JSON (não hardcoded)
+- [ ] Todos os evaluators seguem assinatura LangSmith v0.2+
+- [ ] Cada evaluator retorna payload normalizado (`key`, `score`) com `metadata` opcional
+- [ ] `answer_quality` usa modelo de judge diferente do target model e regista custo/tokens nos metadados
+- [ ] Evaluators incluem tags explícitas (`coverage`, `scope`, `boundary`, `semantic`, `trajectory`) para suportar `--tags`
+
+**Pesos iniciais sugeridos (`weights.json`):**
+- [ ] structure: 0.10
+- [ ] memory_relevance: 0.30
+- [ ] scope_isolation: 0.20
+- [ ] source_policy: 0.15
+- [ ] efficiency: 0.10
+- [ ] safe_boundary: 0.10
+- [ ] answer_quality: 0.05
+
+**Tests Required:**
+- [ ] `memory_relevance` com cobertura total -> 1.0
+- [ ] `scope_isolation_check` com vazamento -> 0.0 ou penalização forte
+- [ ] `safe_boundary_check` com `store_answer` -> 0.0
+- [ ] `efficiency_check` detecta repetição sem ganho
+- [ ] `memorist_composite` retorna weighted average correcto
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+- [ ] Evaluators integrados no runner
+
+**Dependencies:** US-086, US-087
+**Estimated Complexity:** L
+
+---
+
+### US-089: Regression Gate + Failure Triage for Memorist
+
+**Epic:** Memorist Agent Evaluation (LangSmith)
+
+**Story:** As a developer, I want baseline regression rules and a failure triage loop so that Memorist quality improves continuously without silently regressing.
+
+**Ficheiros:**
+- `tests/evals/memorist/baseline.json`
+- `tests/evals/memorist/compare.py`
+- `tests/evals/memorist/failure_log.jsonl`
+- `tests/evals/memorist/analyze_failures.py`
+
+**Acceptance Criteria:**
+- [ ] Baseline oficial para subset `quick`
+- [ ] `compare.py` falha em regressão >10% nas métricas `memory_relevance`, `scope_isolation`, `memorist_composite`
+- [ ] `compare.py` falha com qualquer regressão em `safe_boundary_check` (gate de segurança hard)
+- [ ] `analyze_failures.py` lista piores casos e exporta candidatos para dataset
+- [ ] Runner suporta `--tags` para subsets (`coverage`, `scope`, `boundary`, `semantic`, `trajectory`)
+
+**Tests Required:**
+- [ ] Scores iguais ao baseline -> exit 0
+- [ ] Regressão >10% -> exit 1
+- [ ] `analyze_failures.py --export-cases` gera JSON válido
+- [ ] `--tags scope` corre apenas evaluators relevantes
+
+**Definition of Done:**
+- [ ] Regras de regressão activas e documentadas
+- [ ] Loop de melhoria contínua operacional
+- [ ] Code reviewed
+
+**Dependencies:** US-088
+**Estimated Complexity:** M
+
+---
+
 ## Related Notes
 
 - [Docs Home](README.md)
