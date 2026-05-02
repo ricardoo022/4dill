@@ -360,6 +360,20 @@ jobs:
           pytest tests/e2e/ -v --tb=short --timeout=300
           -m e2e --junitxml=test-results/e2e.xml
 
+      - name: Run eval runner E2E tests (Generator, requires OPENAI_API_KEY)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: >-
+          pytest tests/evals/test_run_agent_eval.py -v --tb=short --timeout=300
+          -m e2e --junitxml=test-results/evals-runner-e2e.xml
+
+      - name: Upload eval runner E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-evals-runner-e2e
+          path: test-results/evals-runner-e2e.xml
+
       - name: Run strict Graphiti validation
         continue-on-error: true
         env:
