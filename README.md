@@ -6,7 +6,9 @@ The current scope is intentionally narrower than the full PentAGI platform: the 
 
 ## Quick Start
 
-You are recommended to open the project with devcontainer, or use the following simplified approach.
+Recommended: open this repository in the provided devcontainer.
+
+Alternative local setup:
 
 ```bash
 # Clone with submodules
@@ -23,7 +25,19 @@ ruff check src/ tests/
 pytest tests/unit/ -v
 pytest tests/integration/ -v -m integration
 pytest tests/agent/ -v -m agent
+
+# E2E (manual only)
+pytest tests/e2e/ -v -m e2e
 ```
+
+### Devcontainer services
+
+The devcontainer runs four services via docker-compose:
+
+- `app` (Python dev environment)
+- `db` (PostgreSQL 16 + pgvector)
+- `neo4j` (knowledge graph)
+- `graphiti` (Graphiti API)
 
 ## Architecture
 
@@ -34,6 +48,8 @@ pytest tests/agent/ -v -m agent
 Supporting agents: **Memorist** (long-term memory), **Adviser** (unstuck loops), **Installer** (tool setup), **Enricher** (context enrichment), **Reflector** (force tool usage)
 
 Normal execution is autonomous. When a scan enters `WAITING`, that should be read as an operational pause such as MCP resume, external dependency, or recovery after interruption, not as mandatory human intervention during the normal scan flow.
+
+Execution flow: MCP request -> Flow creation -> Kali container startup -> subtask planning/execution loop -> Reporter final JSON (`ScanReport`).
 
 ## Tech Stack
 
@@ -64,7 +80,7 @@ tests/
     unit/          # No deps, fast
     integration/   # Real PostgreSQL + Docker
     agent/         # Mocked LLM
-    e2e/           # Full scan flow (real LLM + Docker; runs on push to main)
+    e2e/           # Full scan flow (real LLM + Docker; manual workflow only)
 ```
 
 Each module has a `README.md` with file descriptions, responsibilities, and import rules.
@@ -75,7 +91,13 @@ Each module has a `README.md` with file descriptions, responsibilities, and impo
 2. Implement + write tests
 3. Push and open PR
 4. CI runs (lint + unit + integration + agent tests)
-5. 1 review required → merge to `main`
+5. 1 review required -> merge to `main`
+
+Notes:
+
+- Branch protection requires a single `ci-pass` check
+- PRs touching only `docs/**` or `*.md` skip CI
+- E2E tests are not part of default CI and run manually via `workflow_dispatch`
 
 ## Submodules
 
@@ -89,12 +111,12 @@ Each module has a `README.md` with file descriptions, responsibilities, and impo
 - [Project Structure](docs/PROJECT-STRUCTURE.md) — folder structure, tech stack, PentAGI mapping
 - [User Stories](docs/USER-STORIES.md) — 12 epics, 72 stories with acceptance criteria
 - [Database Schema](docs/DATABASE-SCHEMA.md) — PostgreSQL + pgvector schema design
-
-Note: `docs/DATABASE-SCHEMA.md` documents the full PentAGI schema as a reference. The current LusitAI implementation intentionally uses a narrower runtime-focused subset; see `docs/USER-STORIES.md` for the scoped implementation plan.
 - [LangChain Skills Guide](docs/LANGCHAIN-SKILLS-GUIDE.md) — when to use each LangChain skill
 - [LangSmith Evals Research](docs/LANGSMITH-EVALS-RESEARCH.md) — LangSmith evaluation framework research
 - [Docs Index](docs/README.md) — Obsidian-friendly index for all project docs
 - [Epics/](docs/Epics/) — per-US deep-dive EXPLAINED.md files (Database, Docker Sandbox, Generator agent, Knowledge Graph, Searcher agent, Agent Evaluation)
+
+Note: `docs/DATABASE-SCHEMA.md` documents the full PentAGI schema as a reference. The current LusitAI implementation intentionally uses a narrower runtime-focused subset; see `docs/USER-STORIES.md` for the scoped implementation plan.
 
 ## License
 
