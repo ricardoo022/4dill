@@ -10,13 +10,13 @@ tags: [architecture]
 
 ## Overview
 
-O SecureDev PentestAI usa **12 agentes especializados** que colaboram via delegação por tool calls. Cada agente tem um prompt específico, um conjunto restrito de tools, e um papel definido no scan.
+O SecureDev PentestAI usa **12 papéis especializados** no runtime. Destes, 11 são executores standalone com toolset próprio; o Reflector é um papel de recovery embutido no performer (não é executor standalone). Cada papel tem um prompt específico, um conjunto restrito de tools, e um papel definido no scan.
 
 A principal diferença vs PentAGI: o conhecimento de segurança das **FASE 0-21** alimenta os prompts dos agentes (especialmente Generator e Scanner), em vez de o LLM inventar tudo do zero.
 
 ---
 
-## Os 12 Agentes
+## Os 12 Papéis
 
 ### 1. Generator — Planeamento do Scan
 
@@ -736,7 +736,7 @@ Refiner ajusta:
 
 ---
 
-### 11. Reflector — Correção de Erros
+### 11. Reflector — Correção de Erros (recovery interno)
 
 **Papel:** Corrige agentes que devolvem texto em vez de tool calls.
 

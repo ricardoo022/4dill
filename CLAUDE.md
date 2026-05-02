@@ -88,12 +88,8 @@ pytest tests/unit/database/test_models.py::TestFlowModel::test_flow_tablename -v
 # Coverage
 pytest tests/ --ignore=tests/e2e/ --cov=src/pentest --cov-report=term-missing
 
-# Evals (local mode, no LangSmith — requires ANTHROPIC_API_KEY or OPENAI_API_KEY)
-python tests/evals/run_agent_eval.py --agent generator --subset quick --no-upload
-# Evals (upload to LangSmith — also requires LANGSMITH_API_KEY)
-python tests/evals/run_agent_eval.py --agent generator --subset quick
-# Override model via env var (default: gpt-4.1-mini; model name only)
-GENERATOR_MODEL=gpt-4.1 python tests/evals/run_agent_eval.py --agent generator --subset quick --no-upload
+# Evals
+# See tests/evals/run_agent_eval.py --help for current runner usage and prerequisites.
 
 # Alembic migrations (run inside devcontainer where DATABASE_URL is set)
 alembic upgrade head        # apply all pending migrations
@@ -269,7 +265,7 @@ Detailed architecture docs (Portuguese) in `docs/`:
   - `database/queries/` — 8 CRUD modules: containers.py, flows.py, msgchains.py, msglogs.py, subtasks.py, tasks.py, termlogs.py, toolcalls.py; each exports `Create*Params` dataclass + typed async query functions (create, get, list)
   - `alembic/` — fully configured: `alembic.ini` (env-driven URL), async `env.py`, `versions/001_initial_schema.py` (all 9 runtime tables, 10 enums, 6 triggers, ivfflat index, pgvector extension)
   - `templates/renderer.py` — `render_generator_prompt()` using Jinja2; templates live in `templates/prompts/` as `.md.j2` files (currently `generator_system.md.j2`, `generator_user.md.j2`)
-  - `templates/searcher.py` — `render_searcher_prompt()` stub for the Searcher agent (searcher `.md.j2` templates not yet created)
+  - `templates/searcher.py` — `render_searcher_prompt()` for Searcher Agent using Jinja2 templates from `templates/prompts/searcher_system.md.j2` and `templates/prompts/searcher_user.md.j2`
   - `graphiti/` — config.py (env-based settings), client.py (async HTTP client with 7 search methods), models.py (typed request/response models), local_fallback.py (local Neo4j fallback for ingestion/search when Graphiti server is unavailable; regex-based entity extraction for hosts, CVEs, ports, credentials, URLs, products)
   - `docker/utils.py` — container naming (`primary_terminal_name`) and deterministic port allocation (`get_primary_container_ports`)
   - `docker/client.py` — `DockerClient` with `ensure_image()` (cache → pull → fallback → `DockerImageError`), `_pull_image()` with configurable timeout via `ThreadPoolExecutor`, `DockerConfig.pull_timeout` (default 300s); `run_container()` creates and starts a flow container with full DB lifecycle (STARTING → RUNNING / FAILED), deterministic port bindings, CRC32 hostname, volume setup, bridge/host networking, and image fallback retry; `exec_command(container_id, cmd, timeout, detach)` runs commands inside a running container; `read_file(container_id, path)` / `write_file(container_id, path, content)` for container file I/O; `stop_container(container_id)` / `remove_container(container_id)` with DB sync (RUNNING → STOPPED / REMOVED); helpers: `_crc32_hostname()`, `_resolve_flow_paths()`, `_build_port_bindings()`, `_build_volumes()`, `_build_run_kwargs()`

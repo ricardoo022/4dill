@@ -2695,10 +2695,10 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 
 **Context:** O PentAGI tem `searcher.tmpl` (system prompt, 144 linhas) e `question_searcher.tmpl` (user message, 30 linhas). Nós usamos Jinja2 templates em `.md` files. O system prompt define o papel, regras de eficiência, prioridade de fontes, e protocolo de anonimização. O user message inclui a questão e contexto opcional.
 
-**Ficheiros:** `src/pentest/templates/searcher_system.md`, `src/pentest/templates/searcher_user.md`
+**Ficheiros:** `src/pentest/templates/prompts/searcher_system.md.j2`, `src/pentest/templates/prompts/searcher_user.md.j2`
 
 **Acceptance Criteria:**
-- [ ] `templates/searcher_system.md` — system prompt Jinja2 com:
+- [ ] `templates/prompts/searcher_system.md.j2` — system prompt Jinja2 com:
   - Papel: "You are the Searcher. Your job is to find information for penetration testing."
   - Autorização: pentesting pré-autorizado, sem disclaimers sobre pesquisa de exploits/CVEs
   - **Lista de tools dinâmica** via `{{ available_tools }}` — só lista tools que estão realmente disponíveis (evita que o LLM desperdice tool calls com stubs ou tools não configurados)
@@ -2713,13 +2713,13 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
     - Não usar mais de 2-3 tools diferentes para uma query
   - Protocolo de entrega: DEVE usar `search_result` para entregar resposta final
   - Formato de resposta: resultado detalhado em `result`, resumo curto em `message`
-- [ ] `templates/searcher_user.md` — user message Jinja2 com variáveis:
+- [ ] `templates/prompts/searcher_user.md.j2` — user message Jinja2 com variáveis:
   - `{{ question }}` — a questão concreta (obrigatório)
   - `{{ task }}` — contexto do task actual (opcional)
   - `{{ subtask }}` — contexto do subtask actual (opcional)
   - `{{ execution_context }}` — resumo do estado do scan (opcional)
 - [ ] Função `render_searcher_prompt(question, task=None, subtask=None, execution_context="") -> tuple[str, str]` que renderiza os dois templates
-- [ ] Templates em Jinja2 (`.md` files), não hardcoded em Python
+- [ ] Templates em Jinja2 (`.md.j2` files), não hardcoded em Python
 - [ ] Prompts em inglês (código e prompts em EN, docs em PT)
 
 **Technical Notes:**
