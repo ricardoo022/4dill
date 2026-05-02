@@ -15,9 +15,9 @@ pytestmark = pytest.mark.e2e
 
 ROOT = Path(__file__).resolve().parents[3]
 TEST_DATABASE_URL = os.getenv(
-    "DATABASE_URL",
+    "TEST_DATABASE_URL",
     os.getenv(
-        "TEST_DATABASE_URL",
+        "DATABASE_URL",
         "postgresql+asyncpg://postgres:postgres@localhost:5432/pentagidb_test",
     ),
 )
