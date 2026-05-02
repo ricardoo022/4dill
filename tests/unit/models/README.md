@@ -8,6 +8,7 @@ Testes unitários de `models/` — validação dos schemas Pydantic partilhados.
 |---|---|
 | `test_hack.py` | Testa `ExploitInfo` e `PayloadConfig` — validação de payloads e exploits |
 | `test_search_us054.py` | Testa `SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction` (US-054) |
+| `test_memorist_models.py` | Testa `MemoristResult`: campos obrigatórios, rejeição de vazio/whitespace e trim automático |
 
 ## O que é testado
 
@@ -17,6 +18,7 @@ Testes unitários de `models/` — validação dos schemas Pydantic partilhados.
 - `SearchAction`: criação com queries simples e compostas
 - `ComplexSearch`: lista de `SearchAction`, validação de estrutura
 - `SearchAnswerAction`: answer e fontes rankeadas
+- `MemoristResult`: contrato final (`result` + `message`), validação non-empty e normalização por trim
 - Serialização/deserialização JSON round-trip
 
 ## Módulo de produção

@@ -49,5 +49,6 @@ pytest tests/e2e/ -v -m e2e
 | `test_graphiti_raw_text_to_graph.py` | Testa pipeline raw text → entidades → grafo |
 | `test_real_materialization.py` | Valida materialização de episódios no Graphiti |
 | `test_real_pentest_scenarios.py` | Cenários reais de pentest contra targets vulneráveis |
+| `tools/test_memorist_barrier_e2e.py` | Valida comportamento e2e de barrier: terminação por `memorist_result` + payload final estruturado |
 | `TEST_RESULTS_FINAL.md` | Registo histórico de resultados da suite E2E |
 | `TEST_RESULTS_GRAPHITI_E2E.md` | Registo histórico de resultados dos testes Graphiti E2E |
