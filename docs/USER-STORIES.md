@@ -3412,7 +3412,7 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 
 ---
 
-### US-069: Searcher Dataset (queries, facts, citations, expected tools)
+### US-069: Searcher Dataset (queries, facts, citations, expected tools) (DONE)
 
 **Epic:** Searcher Agent Evaluation (LangSmith)
 

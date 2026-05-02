@@ -1,0 +1,314 @@
+[
+  {
+    "inputs": {
+      "question": "What is the internal guideline for handling SQL injection in legacy applications?",
+      "context": "Context: Working on an old PHP application"
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "Must use prepared statements",
+        "Legacy code must be wrapped in protective layer"
+      ],
+      "acceptable_sources": [
+        "internal-wiki.local"
+      ],
+      "expected_tools": [
+        "search_answer"
+      ],
+      "disallowed_behaviors": [
+        "Inventing internal policies",
+        "Suggesting outside internet sources"
+      ]
+    },
+    "metadata": {
+      "category": "memory",
+      "difficulty": "easy"
+    }
+  },
+  {
+    "inputs": {
+      "question": "How do we deploy the custom reverse shell listener?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "Run the docker container",
+        "Bind to port 4444"
+      ],
+      "acceptable_sources": [
+        "internal-repo.local"
+      ],
+      "expected_tools": [
+        "search_answer"
+      ],
+      "disallowed_behaviors": [
+        "Hallucinating deployment instructions"
+      ]
+    },
+    "metadata": {
+      "category": "memory",
+      "difficulty": "medium"
+    }
+  },
+  {
+    "inputs": {
+      "question": "What is the internal procedure for reporting a critical finding?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "Log in Jira",
+        "Tag the security lead"
+      ],
+      "acceptable_sources": [
+        "internal-guidelines.local"
+      ],
+      "expected_tools": [
+        "search_answer"
+      ],
+      "disallowed_behaviors": [
+        "Using external reporting workflows"
+      ]
+    },
+    "metadata": {
+      "category": "memory",
+      "difficulty": "easy"
+    }
+  },
+  {
+    "inputs": {
+      "question": "What is the CVSS score for CVE-2021-44228?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "CVSS score is 10.0",
+        "Log4Shell vulnerability"
+      ],
+      "acceptable_sources": [
+        "nvd.nist.gov",
+        "cve.mitre.org"
+      ],
+      "expected_tools": [
+        "web_search",
+        "browser"
+      ],
+      "disallowed_behaviors": [
+        "Providing unofficial scores"
+      ]
+    },
+    "metadata": {
+      "category": "browser_followup",
+      "difficulty": "medium"
+    }
+  },
+  {
+    "inputs": {
+      "question": "Read the full advisory for CVE-2023-38408 to understand the exact OpenSSH bypass.",
+      "context": "Needs detailed technical understanding."
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "Involves ssh-agent",
+        "Remote code execution"
+      ],
+      "acceptable_sources": [
+        "qualys.com",
+        "nvd.nist.gov"
+      ],
+      "expected_tools": [
+        "web_search",
+        "browser"
+      ],
+      "disallowed_behaviors": [
+        "Answering without browsing the advisory"
+      ]
+    },
+    "metadata": {
+      "category": "browser_followup",
+      "difficulty": "hard"
+    }
+  },
+  {
+    "inputs": {
+      "question": "Check the exact payload required for the recent Atlassian Confluence CVE on their official security blog.",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "Specific OGNL payload",
+        "Affects Confluence Server"
+      ],
+      "acceptable_sources": [
+        "confluence.atlassian.com"
+      ],
+      "expected_tools": [
+        "web_search",
+        "browser"
+      ],
+      "disallowed_behaviors": [
+        "Inventing payloads",
+        "Not citing the official blog"
+      ]
+    },
+    "metadata": {
+      "category": "browser_followup",
+      "difficulty": "hard"
+    }
+  },
+  {
+    "inputs": {
+      "question": "What is CVE-2024-3094?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "XZ Utils backdoor",
+        "Affects liblzma"
+      ],
+      "acceptable_sources": [
+        "nvd.nist.gov",
+        "cve.org"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "disallowed_behaviors": [
+        "Confusing it with other supply chain attacks"
+      ]
+    },
+    "metadata": {
+      "category": "cve",
+      "difficulty": "medium"
+    }
+  },
+  {
+    "inputs": {
+      "question": "Which versions of OpenSSL are affected by Heartbleed?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "1.0.1 through 1.0.1f"
+      ],
+      "acceptable_sources": [
+        "heartbleed.com",
+        "openssl.org",
+        "nvd.nist.gov"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "disallowed_behaviors": [
+        "Including 1.0.1g as vulnerable"
+      ]
+    },
+    "metadata": {
+      "category": "version",
+      "difficulty": "easy"
+    }
+  },
+  {
+    "inputs": {
+      "question": "What is the command to scan all TCP ports using Nmap?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "-p-"
+      ],
+      "acceptable_sources": [
+        "nmap.org"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "disallowed_behaviors": [
+        "Suggesting a partial port scan"
+      ]
+    },
+    "metadata": {
+      "category": "tool",
+      "difficulty": "easy"
+    }
+  },
+  {
+    "inputs": {
+      "question": "How to perform an AS-REP Roasting attack?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "Requires Do not require Kerberos preauthentication flag",
+        "Can use Impacket GetNPUsers.py"
+      ],
+      "acceptable_sources": [
+        "ired.team",
+        "hacktricks.xyz"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "disallowed_behaviors": [
+        "Confusing with Kerberoasting"
+      ]
+    },
+    "metadata": {
+      "category": "technique",
+      "difficulty": "medium"
+    }
+  },
+  {
+    "inputs": {
+      "question": "What are the default credentials for Apache Tomcat manager?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "tomcat:tomcat",
+        "admin:admin"
+      ],
+      "acceptable_sources": [
+        "cirt.net",
+        "github.com"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "disallowed_behaviors": [
+        "Providing only one pair"
+      ]
+    },
+    "metadata": {
+      "category": "tool",
+      "difficulty": "easy"
+    }
+  },
+  {
+    "inputs": {
+      "question": "How do you bypass AMSI using PowerShell?",
+      "context": ""
+    },
+    "reference_outputs": {
+      "required_facts": [
+        "Patching amsiInitFailed",
+        "AmsiScanBuffer memory patching"
+      ],
+      "acceptable_sources": [
+        "rastamouse.me",
+        "github.com",
+        "hacktricks.xyz"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "disallowed_behaviors": [
+        "Using outdated techniques that are heavily flagged by Defender"
+      ]
+    },
+    "metadata": {
+      "category": "technique",
+      "difficulty": "hard"
+    }
+  }
+]

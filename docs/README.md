@@ -134,6 +134,7 @@ Hub note: [[Epics/Agent Evaluation/README|Agent Evaluation]]
 | Doc | Descrição |
 |---|---|
 | [US-068 Searcher Eval Infra](Epics/Searcher%20Agent%20Evaluation/US-068-SEARCHER-EVAL-INFRA-EXPLAINED.md) | Infraestrutura base de avaliações, gravação de trajectories |
+| [US-069 Searcher Dataset](Epics/Searcher%20Agent%20Evaluation/US-069-SEARCHER-DATASET-EXPLAINED.md) | Ground truth dataset e testes de avaliação para o agente Searcher |
 
 ## Related Notes
 
