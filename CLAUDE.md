@@ -243,7 +243,8 @@ Detailed architecture docs (Portuguese) in `docs/`:
 - `Epics/Searcher Agent/US-059-Searcher-prompt-templates-EXPLAINED.md` — render_searcher_prompt(), searcher_system.md.j2 / searcher_user.md.j2
 - `Epics/Scanner Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md` — HackResult Pydantic model for Scanner agent output
 - `Epics/Scanner Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md` — Sploitus.com exploit search tool, result formatting, truncation
-- `Epics/Scanner Agent/US-063-GUIDE-TOOLS-EXPLAINED.md` — Guide tools for semantic search and storage of reusable Scanner playbooks
+- `Epics/Scanner Agent/US-063-GUIDE-TOOLS-EXPLAINED.md` — guide search/store tools: OpenAI embeddings, pgvector retrieval, anonymization pipeline
+- `Epics/Agent Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md` — Generator eval harness: LangSmith integration, subtask_plan structural evaluator, CLI runner
 
 ## Development Notes
 
@@ -253,10 +254,10 @@ Detailed architecture docs (Portuguese) in `docs/`:
   - `providers/factory.py` — `create_chat_model()` factory + `resolve_provider_config()`; supports Anthropic and OpenAI; selects provider and model per agent via the config resolver
   - `recon/` — backend detection (supabase, firebase, custom_api, subdomains, orchestrator)
   - `agents/base.py` — LangGraph base graph pattern (BarrierAwareToolNode, AgentState, create_agent_graph)
-  - `agents/exceptions.py` — `GeneratorError` typed exception for Generator failures
-  - `agents/generator.py` — full Generator agent: `generate_subtasks(input, backend_profile, skills_dir, docker_client=None)` is the **async** public entry point; resolves LLM via `providers/factory.py`, loads FASE skill index, renders prompt via `templates/renderer.py`, builds tool list, calls `create_agent_graph()`; also defines `GeneratorError` inline
-  - `models/` — subtask.py, recon.py, tool_args.py, search.py (Pydantic schemas; search.py has `SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction`), hack.py (`HackResult` with `result` + `message` fields for Scanner output)
-  - `tools/` — barriers.py (`subtask_list` + `search_result`), terminal.py, file.py (Docker execution via factory closures), browser.py (HTTP content fetching), stubs.py (memorist/searcher placeholders), graphiti_search.py (Graphiti knowledge graph search), duckduckgo.py (DuckDuckGo web search), tavily.py (Tavily web search), search_memory.py (`create_search_answer_tool()` pgvector semantic search for Memorist), sploitus.py (Sploitus.com exploit search with result formatting/truncation), registry.py (tool registry dataclasses)
+  - `agents/generator.py` — full Generator agent: resolves LLM via `providers/factory.py`, loads FASE skill index, renders prompt via `templates/renderer.py`, builds tool list, calls `create_agent_graph()`
+  - `agents/exceptions.py` — `GeneratorError` exception for Generator agent failures; used by evaluation harness and future controller
+  - `models/` — subtask.py, recon.py, tool_args.py (Pydantic schemas; includes `SearchGuideAction` + `StoreGuideAction` for guide tools), search.py (`SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction`), hack.py (`HackResult` with `result` + `message` fields for Scanner output)
+  - `tools/` — barriers.py (`subtask_list` + `search_result`), terminal.py, file.py (Docker execution via factory closures), browser.py (HTTP content fetching), stubs.py (memorist/searcher placeholders), graphiti_search.py (Graphiti knowledge graph search), duckduckgo.py (DuckDuckGo web search), tavily.py (Tavily web search), search_memory.py (`create_search_answer_tool()` pgvector semantic search for Memorist), sploitus.py (Sploitus.com exploit search with result formatting/truncation), guide.py (`search_guide()` + `store_guide()` semantic memory for pentest playbooks using OpenAI embeddings + pgvector; automatic content anonymization for IPs/credentials/patterns; `is_available()` check), registry.py (tool registry dataclasses)
   - `skills/loader.py` — `load_fase_index()` parses SKILL.md frontmatter for Generator prompt injection; `load_fase_skill()` loads full SKILL.md for Scanner
   - `database/connection.py` — async engine init, session context manager, connection pool (pool_size=10, max_overflow=20)
   - `database/exceptions.py` — `DatabaseConnectionError` with hostname/port context
