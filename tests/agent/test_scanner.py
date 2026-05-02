@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from langchain_core.messages import AIMessage
 
 from pentest.agents.scanner import ScannerError, create_scanner_graph, run_scanner
 from pentest.models.hack import HackResult
@@ -26,6 +27,7 @@ async def test_run_scanner_happy_path(monkeypatch):
     mock_llm = MagicMock()
 
     mock_result = {
+        "messages": [AIMessage(content="Thinking...")],
         "barrier_hit": True,
         "barrier_result": {"result": "Vulnerability found: XSS", "message": "Found XSS on /search"},
     }
@@ -34,11 +36,8 @@ async def test_run_scanner_happy_path(monkeypatch):
     mock_graph = MagicMock()
     mock_graph.ainvoke = AsyncMock(return_value=mock_result)
 
-    # Mock create_scanner_graph to return our mock_graph
-    async def mock_create_graph(*args, **kwargs):
-        return mock_graph
-
-    monkeypatch.setattr("pentest.agents.scanner.create_scanner_graph", mock_create_graph)
+    # create_agent_graph is NOT a coroutine, so we use a regular mock or lambda
+    monkeypatch.setattr("pentest.agents.scanner.create_agent_graph", lambda **k: mock_graph)
     monkeypatch.setattr("pentest.agents.scanner._resolve_scanner_llm", lambda **k: mock_llm)
 
     docker_client = MagicMock()
@@ -61,11 +60,9 @@ async def test_run_scanner_happy_path(monkeypatch):
 async def test_run_scanner_no_barrier(monkeypatch):
     mock_llm = MagicMock()
     mock_graph = MagicMock()
-    mock_graph.ainvoke = AsyncMock(return_value={"barrier_hit": False})
+    mock_graph.ainvoke = AsyncMock(return_value={"messages": [], "barrier_hit": False})
 
-    monkeypatch.setattr(
-        "pentest.agents.scanner.create_scanner_graph", AsyncMock(return_value=mock_graph)
-    )
+    monkeypatch.setattr("pentest.agents.scanner.create_agent_graph", lambda **k: mock_graph)
     monkeypatch.setattr("pentest.agents.scanner._resolve_scanner_llm", lambda **k: mock_llm)
 
     docker_client = MagicMock()

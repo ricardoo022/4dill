@@ -5,12 +5,12 @@ from __future__ import annotations
 import os
 import uuid
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock
 
 import pytest
 
 from pentest.agents.scanner import run_scanner
-from pentest.database.enums import ContainerType, ContainerStatus
+from pentest.database.enums import ContainerStatus, ContainerType
 from pentest.database.models import Container
 from pentest.docker.client import DockerClient
 from pentest.docker.config import DockerConfig
@@ -41,6 +41,7 @@ async def test_run_scanner_e2e_hello_world(docker_client: DockerClient, monkeypa
     docker_image = "alpine:latest"
     # Ensure image is present
     import docker as docker_lib
+
     try:
         api_client = docker_lib.from_env()
         api_client.images.pull(docker_image)
@@ -49,7 +50,7 @@ async def test_run_scanner_e2e_hello_world(docker_client: DockerClient, monkeypa
 
     # Use a random flow_id to avoid container name conflicts
     flow_id = uuid.uuid4().int & 0xFFFF
-    
+
     # Mock the DB queries to avoid "awaiting coroutine" errors with AsyncMock session
     mock_container = Container(
         id=1,
@@ -57,12 +58,12 @@ async def test_run_scanner_e2e_hello_world(docker_client: DockerClient, monkeypa
         name=f"test-scanner-{flow_id}",
         image=docker_image,
         status=ContainerStatus.RUNNING,
-        flow_id=flow_id
+        flow_id=flow_id,
     )
-    
+
     async def mock_create(*args, **kwargs):
         return mock_container
-        
+
     async def mock_update(*args, **kwargs):
         if len(args) > 3:
             mock_container.local_id = args[3]
@@ -79,10 +80,10 @@ async def test_run_scanner_e2e_hello_world(docker_client: DockerClient, monkeypa
         container_type=ContainerType.PRIMARY,
         flow_id=flow_id,
         image=docker_image,
-        host_config=None
+        host_config=None,
     )
     container_id = db_container.local_id
-    
+
     try:
         # Check for API keys
         if not os.getenv("OPENAI_API_KEY") and not os.getenv("ANTHROPIC_API_KEY"):
@@ -105,7 +106,7 @@ async def test_run_scanner_e2e_hello_world(docker_client: DockerClient, monkeypa
         assert isinstance(result, HackResult)
         assert "LusitAI" in result.result
         assert result.message != ""
-        
+
         # Additional verification: check if file actually exists via docker_client
         content = docker_client.read_file(container_id, "/tmp/lusitai.txt")
         assert content.strip() == "LusitAI"
