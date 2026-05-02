@@ -15,6 +15,12 @@ Testes end-to-end com LLM real, Docker e serviços reais. Nesta repo são execut
 |---|---|
 | `test_generator_llm_e2e.py` | `generate_subtasks` com LLM real provider-agnostic; valida contrato de saída (1-15 subtasks, title/description, pelo menos uma `fase`) |
 
+## Ficheiros de e2e do Searcher
+
+| Ficheiro | O que testa |
+|---|---|
+| `test_searcher_agent_e2e.py` | Round-trip real de `perform_search` e `create_searcher_tool` com provider LLM real; faz skip automático quando faltam API keys/provider válido ou motores de busca indisponíveis |
+
 ## Como correr
 
 ```bash
@@ -36,6 +42,7 @@ pytest tests/e2e/ -v -m e2e
 | `GENERATOR_PROVIDER` | Opcional | Provider específico do Generator (ex: `openai`, `anthropic`) |
 | `LLM_PROVIDER` | Opcional | Provider default global quando não há override por agente |
 | `TAVILY_API_KEY` | Para tools/e2e | Chave Tavily para search real |
+| `LANGSMITH_API_KEY` | Opcional | Necessária para upload em eval scripts quando `--upload` está activo |
 | `DATABASE_URL` | Para database/e2e | URL PostgreSQL (default: devcontainer) |
 | `GRAPHITI_REAL_E2E` | Opcional | `true` activa validação estrita do Graphiti |
 | `GRAPHITI_FORCE_VALIDATE` | Opcional | `true` força validação de materialização |
