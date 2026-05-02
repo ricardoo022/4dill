@@ -37,7 +37,9 @@ class TrajectoryCallbackHandler(AsyncCallbackHandler):
     def __init__(self):
         self.tool_calls: list[dict[str, Any]] = []
 
-    async def on_chat_model_start(self, serialized: dict[str, Any], messages: list[list[BaseMessage]], **kwargs: Any) -> None:
+    async def on_chat_model_start(
+        self, serialized: dict[str, Any], messages: list[list[BaseMessage]], **kwargs: Any
+    ) -> None:
         """Ignore chat model start."""
         pass
 

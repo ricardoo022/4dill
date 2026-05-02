@@ -145,23 +145,9 @@ A: Answer.
 
 End with related wiki links to nearby vault notes. This is mandatory and critical for Obsidian graph/backlink navigation:
 
-<<<<<<< Updated upstream
-End with related docs. Use Obsidian `[[wikilinks]]` for `.md` files (so the graph picks them up),
-and backtick paths for source files:
-
-=======
->>>>>>> Stashed changes
 ```markdown
 ## Related Notes
 
-<<<<<<< Updated upstream
-- [[US-XXX-SLUG-EXPLAINED]] — short description
-- **`src/pentest/.../file.py`** — implementation
-```
-
-**IMPORTANT:** Never use `**bold**` for doc references — Obsidian does not create graph edges from bold text,
-only from `[[wikilinks]]`. Omit the `.md` extension inside `[[...]]` so Obsidian resolves the link correctly.
-=======
 - [Docs Home](../../README.md)
 - [[AGENT-ARCHITECTURE]]
 - [[EXECUTION-FLOW]]
@@ -174,7 +160,6 @@ only from `[[wikilinks]]`. Omit the `.md` extension inside `[[...]]` so Obsidian
 - Use explicit Markdown links only when the name is ambiguous (e.g., `README.md` with multiple files).
 - Link to hub notes (`Epics/*/README.md`) and related Epics docs.
 - Always include `[Docs Home](../../README.md)` or similar for deep Epics paths.
->>>>>>> Stashed changes
 
 ---
 
