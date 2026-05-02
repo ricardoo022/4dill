@@ -92,8 +92,8 @@ pytest tests/ --ignore=tests/e2e/ --cov=src/pentest --cov-report=term-missing
 python tests/evals/run_agent_eval.py --agent generator --subset quick --no-upload
 # Evals (upload to LangSmith — also requires LANGSMITH_API_KEY)
 python tests/evals/run_agent_eval.py --agent generator --subset quick
-# Override model via env var (default: gpt-4.1-mini; use provider:model format)
-GENERATOR_MODEL=anthropic:claude-sonnet-4-6 python tests/evals/run_agent_eval.py --agent generator --subset quick --no-upload
+# Override model via env var (default: gpt-4.1-mini; model name only)
+GENERATOR_MODEL=gpt-4.1 python tests/evals/run_agent_eval.py --agent generator --subset quick --no-upload
 
 # Alembic migrations (run inside devcontainer where DATABASE_URL is set)
 alembic upgrade head        # apply all pending migrations
