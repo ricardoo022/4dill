@@ -21,6 +21,7 @@ pytest tests/agent/ -v -m agent
 - Detecção de barriers e extracção de resultado
 - Comportamento de Adviser quando `recursion_limit` é atingido
 - Reflection: LLM retorna texto em vez de tool_call → Reflector corrige
+- Searcher Agent: montagem dinâmica de tools, comportamento do barrier `search_result`, integração com Generator
 
 ## Ficheiros
 
@@ -28,6 +29,6 @@ pytest tests/agent/ -v -m agent
 |---|---|
 | `__init__.py` | Package init |
 | `test_generator_agent.py` | Testes do Generator em camada agent: plano realista, seleção de tools com/sem Docker, erro quando barrier não é atingido |
-| `test_searcher_agent.py` | Testes do Searcher e da integração com Generator: disponibilidade de motores de busca, erro sem barrier, tool async de delegação e wiring de `ComplexSearch` |
+| `test_searcher_agent.py` | Testes do Searcher em camada agent: sucesso/falha do barrier, inclusão condicional de tools (DDG/Tavily/search_answer), factory async da tool de delegação e integração com Generator |
 | `test_scanner_templates.py` | Testes do Scanner prompt rendering: system+user templates, injecção de FASE skill em runtime e integração com SKILL.md real do `lusitai-internal-scan` |
 | `test_placeholder.py` | Placeholder para smoke test da camada de agentes |

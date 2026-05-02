@@ -1,9 +1,10 @@
-"Agent-layer tests for the Searcher agent."
+"""Agent-layer tests for the Searcher agent."""
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain_core.messages import AIMessage
+from langchain_core.tools import tool
 
 from pentest.agents.generator import generate_subtasks
 from pentest.agents.searcher import SearcherError, create_searcher_tool, perform_search
@@ -117,6 +118,123 @@ async def test_create_searcher_tool_async():
 
 
 @pytest.mark.agent
+async def test_perform_search_includes_search_answer_with_db_session_and_openai_key():
+    mock_llm = MagicMock()
+    msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "search_result",
+                "args": {"result": "ok", "message": "done"},
+                "id": "call_result",
+                "type": "tool_call",
+            }
+        ],
+    )
+    mock_llm.bind_tools.return_value.invoke.return_value = msg
+
+    @tool
+    def search_answer(question: str) -> str:
+        """Search memorized answers."""
+        return f"answer for {question}"
+
+    with (
+        patch("pentest.agents.searcher.is_ddg_available", return_value=True),
+        patch("pentest.agents.searcher.is_tavily_available", return_value=False),
+        patch("pentest.agents.searcher.create_search_answer_tool") as mock_search_answer_tool,
+        patch.dict("os.environ", {"OPENAI_API_KEY": "test-key"}, clear=False),
+    ):
+        mock_search_answer_tool.return_value = search_answer
+        await perform_search(question="nginx cve", llm=mock_llm, db_session=MagicMock())
+
+    tools_called = mock_llm.bind_tools.call_args[0][0]
+    tool_names = [getattr(t, "name", "") for t in tools_called]
+    assert "search_answer" in tool_names
+
+
+@pytest.mark.agent
+async def test_perform_search_excludes_search_answer_without_db_session():
+    mock_llm = MagicMock()
+    msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "search_result",
+                "args": {"result": "ok", "message": "done"},
+                "id": "call_result",
+                "type": "tool_call",
+            }
+        ],
+    )
+    mock_llm.bind_tools.return_value.invoke.return_value = msg
+
+    with (
+        patch("pentest.agents.searcher.is_ddg_available", return_value=True),
+        patch("pentest.agents.searcher.is_tavily_available", return_value=False),
+        patch.dict("os.environ", {"OPENAI_API_KEY": "test-key"}, clear=False),
+    ):
+        await perform_search(question="nginx cve", llm=mock_llm, db_session=None)
+
+    tools_called = mock_llm.bind_tools.call_args[0][0]
+    tool_names = [getattr(t, "name", "") for t in tools_called]
+    assert "search_answer" not in tool_names
+
+
+@pytest.mark.agent
+async def test_perform_search_tavily_included_when_available():
+    mock_llm = MagicMock()
+    msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "search_result",
+                "args": {"result": "ok", "message": "done"},
+                "id": "call_result",
+                "type": "tool_call",
+            }
+        ],
+    )
+    mock_llm.bind_tools.return_value.invoke.return_value = msg
+
+    with (
+        patch("pentest.agents.searcher.is_ddg_available", return_value=False),
+        patch("pentest.agents.searcher.is_tavily_available", return_value=True),
+    ):
+        await perform_search(question="nginx cve", llm=mock_llm)
+
+    tools_called = mock_llm.bind_tools.call_args[0][0]
+    tool_names = [getattr(t, "name", "") for t in tools_called]
+    assert "tavily_search" in tool_names
+
+
+@pytest.mark.agent
+async def test_perform_search_tavily_excluded_when_unavailable():
+    mock_llm = MagicMock()
+    msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "search_result",
+                "args": {"result": "ok", "message": "done"},
+                "id": "call_result",
+                "type": "tool_call",
+            }
+        ],
+    )
+    mock_llm.bind_tools.return_value.invoke.return_value = msg
+
+    with (
+        patch("pentest.agents.searcher.is_ddg_available", return_value=True),
+        patch("pentest.agents.searcher.is_tavily_available", return_value=False),
+    ):
+        await perform_search(question="nginx cve", llm=mock_llm)
+
+    tools_called = mock_llm.bind_tools.call_args[0][0]
+    tool_names = [getattr(t, "name", "") for t in tools_called]
+    assert "tavily_search" not in tool_names
+
+
+@pytest.mark.agent
 async def test_generator_integration():
     """
     Tests: AC "agents/generator.py must use the new tool".
@@ -175,3 +293,61 @@ async def test_generator_integration():
     # Verify it's not the stub (which is named 'searcher' in stubs.py but we named it 'search' in Searcher tool factory)
     search_tool = next(t for t in tools_called if getattr(t, "name", "") == "search")
     assert search_tool.args_schema.__name__ == "ComplexSearch"
+
+
+@pytest.mark.agent
+async def test_perform_search_creates_llm_from_searcher_env_when_not_provided():
+    msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "search_result",
+                "args": {"result": "ok", "message": "done"},
+                "id": "call_result",
+                "type": "tool_call",
+            }
+        ],
+    )
+    mock_created_llm = MagicMock()
+    mock_created_llm.bind_tools.return_value.invoke.return_value = msg
+
+    with (
+        patch("pentest.agents.searcher.is_ddg_available", return_value=True),
+        patch("pentest.agents.searcher.is_tavily_available", return_value=False),
+        patch(
+            "pentest.agents.searcher.create_chat_model", return_value=mock_created_llm
+        ) as mock_factory,
+    ):
+        await perform_search(question="nginx cve", llm=None)
+
+    mock_factory.assert_called_once_with(provider=None, model=None, agent_name="searcher")
+
+
+@pytest.mark.agent
+async def test_perform_search_logs_tools_and_result_summary(caplog: pytest.LogCaptureFixture):
+    caplog.set_level("INFO", logger="pentest.agents.searcher")
+    mock_llm = MagicMock()
+    msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "search_result",
+                "args": {
+                    "result": "Found relevant findings in sources for nginx CVEs.",
+                    "message": "done",
+                },
+                "id": "call_result",
+                "type": "tool_call",
+            }
+        ],
+    )
+    mock_llm.bind_tools.return_value.invoke.return_value = msg
+
+    with (
+        patch("pentest.agents.searcher.is_ddg_available", return_value=True),
+        patch("pentest.agents.searcher.is_tavily_available", return_value=False),
+    ):
+        await perform_search(question="nginx cve", llm=mock_llm)
+
+    assert "available tools" in caplog.text.lower()
+    assert "result summary" in caplog.text.lower()
