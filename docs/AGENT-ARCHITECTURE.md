@@ -748,7 +748,7 @@ Refiner ajusta:
 
 **Tools:** Nenhum. O Reflector analisa o erro e dá instruções ao agente.
 
-**Limites:** Max 5 invocações por chain (`maxReflectorCallsPerChain`). Tem flag de recursão (`isReflectorRetry`) para evitar loops infinitos. Se falhar após o limite, a subtask falha.
+**Limites:** Max 3 invocações por chain (`maxReflectorCallsPerChain`). Tem flag de recursão (`isReflectorRetry`) para evitar loops infinitos. Se falhar após o limite, a subtask falha.
 
 **Nota de arquitectura — NÃO é um agente standalone:**
 
