@@ -10,7 +10,6 @@ from pentest.agents.searcher import SearcherError, create_searcher_tool, perform
 from pentest.models.recon import BackendProfile
 
 
-@pytest.mark.asyncio
 @pytest.mark.agent
 async def test_perform_search_success():
     """
@@ -62,7 +61,6 @@ async def test_perform_search_success():
     assert mock_llm.bind_tools.return_value.invoke.call_count == 2
 
 
-@pytest.mark.asyncio
 @pytest.mark.agent
 async def test_perform_search_no_engines():
     """
@@ -81,7 +79,6 @@ async def test_perform_search_no_engines():
     mock_llm.bind_tools.assert_not_called()
 
 
-@pytest.mark.asyncio
 @pytest.mark.agent
 async def test_perform_search_failure_no_barrier():
     """
@@ -100,7 +97,6 @@ async def test_perform_search_failure_no_barrier():
         await perform_search(question="Why is the sky blue?", llm=mock_llm)
 
 
-@pytest.mark.asyncio
 @pytest.mark.agent
 async def test_create_searcher_tool_async():
     """
@@ -120,7 +116,6 @@ async def test_create_searcher_tool_async():
     assert "Searcher error: Internal Network Error" in result
 
 
-@pytest.mark.asyncio
 @pytest.mark.agent
 async def test_generator_integration():
     """

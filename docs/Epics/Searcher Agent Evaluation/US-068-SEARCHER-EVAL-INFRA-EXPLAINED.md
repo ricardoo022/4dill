@@ -1,5 +1,5 @@
 ---
-tags: [evaluation, searcher, agent, langsmith, infrastructure]
+tags: [evaluation]
 ---
 
 # US-068: Searcher Agent Evaluation Infrastructure — Explicacao Detalhada

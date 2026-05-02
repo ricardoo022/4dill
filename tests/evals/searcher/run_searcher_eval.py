@@ -7,6 +7,7 @@ Usage:
 import argparse
 import asyncio
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -49,9 +50,18 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default=2,
         help="Evaluation level: 1=final answer, 2=fixtures, 3=controlled E2E (default: 2)",
     )
-    parser.add_argument(
-        "--no-upload",
+    upload_group = parser.add_mutually_exclusive_group()
+    upload_group.add_argument(
+        "--upload",
+        dest="upload",
         action="store_true",
+        default=True,
+        help="Upload results to LangSmith (default: enabled)",
+    )
+    upload_group.add_argument(
+        "--no-upload",
+        dest="upload",
+        action="store_false",
         help="Run locally without uploading results to LangSmith",
     )
     parser.add_argument(
@@ -67,7 +77,7 @@ async def run_eval(args: argparse.Namespace) -> None:
     if not dataset_path.exists():
         print(f"Dataset not found: {dataset_path}")
         # Create a placeholder dataset if it doesn't exist
-        if args.no_upload:
+        if not args.upload:
             print("Creating placeholder dataset for local run...")
             dataset_path.parent.mkdir(parents=True, exist_ok=True)
             placeholder = {
@@ -88,6 +98,10 @@ async def run_eval(args: argparse.Namespace) -> None:
 
     scenarios = dataset.get("scenarios", [])
     print(f"Loaded {len(scenarios)} scenarios from {dataset_path}")
+
+    if args.upload and not (os.getenv("LANGSMITH_API_KEY") or os.getenv("LANGCHAIN_API_KEY")):
+        print("Upload mode requires LANGSMITH_API_KEY or LANGCHAIN_API_KEY")
+        sys.exit(1)
 
     llm = create_chat_model(agent_name="searcher")
     if args.model:

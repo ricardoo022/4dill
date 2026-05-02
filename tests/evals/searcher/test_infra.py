@@ -65,6 +65,22 @@ def test_run_searcher_eval_no_upload():
     assert dataset_path.exists()
 
 
+def test_run_searcher_eval_help_includes_upload_flag():
+    """Verify run_searcher_eval.py exposes --upload/--no-upload flags."""
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(Path("src").absolute())
+
+    result = subprocess.run(
+        [sys.executable, "tests/evals/searcher/run_searcher_eval.py", "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+        env=env,
+    )
+    assert "--upload" in result.stdout
+    assert "--no-upload" in result.stdout
+
+
 def test_record_search_run_produces_json(tmp_path, mocker):
     """Verify record_search_run.py produces a valid JSON with tool calls."""
     output_file = tmp_path / "test_run.json"
@@ -90,3 +106,41 @@ def test_record_search_run_produces_json(tmp_path, mocker):
         assert data["output"] == "Mocked search result"
         assert "run_id" in data
         assert "tool_calls" in data
+
+
+def test_record_search_run_use_fixtures_skips_network(tmp_path, mocker):
+    """Verify --use-fixtures reads fixtures and bypasses perform_search."""
+    output_file = tmp_path / "fixture_run.json"
+    fixture_file = tmp_path / "fixture_input.json"
+    fixture_file.write_text(
+        json.dumps(
+            {
+                "output": "Fixture answer",
+                "tool_calls": [{"name": "duckduckgo", "input": "q", "output": "ok"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    from tests.evals.searcher.record_search_run import record_run
+
+    mock_perform = mocker.patch(
+        "tests.evals.searcher.record_search_run.perform_search", autospec=True
+    )
+
+    import asyncio
+
+    asyncio.run(
+        record_run(
+            question="fixture question",
+            output_path=output_file,
+            use_fixtures=True,
+            fixture_path=fixture_file,
+        )
+    )
+
+    mock_perform.assert_not_called()
+    with open(output_file, encoding="utf-8") as f:
+        data = json.load(f)
+    assert data["output"] == "Fixture answer"
+    assert data["tool_calls"][0]["name"] == "duckduckgo"

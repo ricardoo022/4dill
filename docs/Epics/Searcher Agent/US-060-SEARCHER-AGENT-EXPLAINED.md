@@ -1,5 +1,5 @@
 ---
-tags: [agent, searcher, delegation, langgraph]
+tags: [agents]
 ---
 
 # US-060: Searcher Agent Completo + Delegation Handler — Explicacao Detalhada

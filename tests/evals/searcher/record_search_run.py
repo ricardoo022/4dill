@@ -86,6 +86,7 @@ async def record_run(
     runs: int = 1,
     context: str = "",
     use_fixtures: bool = False,
+    fixture_path: Path | None = None,
 ) -> None:
     """Run the searcher and record the execution."""
     llm = create_chat_model(agent_name="searcher")
@@ -100,14 +101,31 @@ async def record_run(
         try:
             from langchain_core.tracers.context import collect_runs
 
-            with collect_runs() as cb:
-                result = await perform_search(
-                    question=question,
-                    llm=llm,
-                    execution_context=context,
-                    callbacks=[handler],
-                )
-                run = cb.traced_runs[0] if cb.traced_runs else None
+            run = None
+            if use_fixtures:
+                fixture_candidate = fixture_path
+                if fixture_candidate is None:
+                    fixture_candidate = (
+                        REPO_ROOT / "tests" / "evals" / "searcher" / "fixtures" / "run.json"
+                    )
+
+                if not fixture_candidate.exists():
+                    raise FileNotFoundError(f"Fixture file not found: {fixture_candidate}")
+
+                with open(fixture_candidate, encoding="utf-8") as f:
+                    fixture_data = json.load(f)
+
+                result = str(fixture_data.get("output", ""))
+                handler.tool_calls = list(fixture_data.get("tool_calls", []))
+            else:
+                with collect_runs() as cb:
+                    result = await perform_search(
+                        question=question,
+                        llm=llm,
+                        execution_context=context,
+                        callbacks=[handler],
+                    )
+                    run = cb.traced_runs[0] if cb.traced_runs else None
 
             end_time = datetime.now()
 
@@ -161,6 +179,10 @@ def main():
     parser.add_argument(
         "--use-fixtures", action="store_true", help="Use fixtures instead of real network."
     )
+    parser.add_argument(
+        "--fixture-path",
+        help="Path to a fixture JSON file used when --use-fixtures is set.",
+    )
 
     args = parser.parse_args()
 
@@ -171,6 +193,7 @@ def main():
             runs=args.runs,
             context=args.context,
             use_fixtures=args.use_fixtures,
+            fixture_path=Path(args.fixture_path) if args.fixture_path else None,
         )
     )
 
