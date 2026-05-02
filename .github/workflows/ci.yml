@@ -296,6 +296,9 @@ jobs:
       - name: Add venv to PATH
         run: echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
 
+      - name: Install Playwright Chromium
+        run: playwright install chromium --with-deps
+
       - name: Wait for Neo4j Bolt
         run: |
           python - <<'PY'
