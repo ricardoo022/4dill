@@ -115,6 +115,7 @@ Hub note: [[Epics/Docker Sandbox/README|Docker Sandbox]]
 |---|---|
 | [US-061 HackResult Model](Epics/Scanner%20Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md) | `models/hack.py`, `tools/barriers.py` — contrato de dados Scanner → Orchestrator |
 | [US-062 Sploitus Search Tool](Epics/Scanner%20Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md) | `tools/sploitus.py` — pesquisa de exploits no Sploitus.com |
+| [US-063 Guide Tools](Epics/Scanner%20Agent/US-063-GUIDE-TOOLS-EXPLAINED.md) | `tools/guide.py` — armazenamento e busca semantica de playbooks com redacao de dados sensiveis |
 
 ### Avaliação de Agentes
 
@@ -125,6 +126,7 @@ Hub note: [[Epics/Agent Evaluation/README|Agent Evaluation]]
 | [EVAL-TARGETS](Epics/Agent%20Evaluation/EVAL-TARGETS.md) | Targets vulneráveis, setup, vulnerabilidades documentadas |
 | [US-045 PortSwigger MVP Dataset](Epics/Agent%20Evaluation/US-045-PORTSWIGGER-MVP-DATASET-EXPLAINED.md) | Dataset MVP com 4 labs curados, subsets, ground truth |
 | [US-046 PortSwigger Spinup](Epics/Agent%20Evaluation/US-046-PORTSWIGGER-SPINUP-EXPLAINED.md) | Automacao de spinup: excecoes tipadas, sessao persistida, batch mode, testes unit + e2e |
+| [US-047 Generator Eval Runner](Epics/Agent%20Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md) | Runner de evaluacao do Generator com metricas de cobertura de plano e validacao de output estruturado |
 
 ## Related Notes
 

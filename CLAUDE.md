@@ -231,6 +231,7 @@ Detailed architecture docs (Portuguese) in `docs/`:
 - `Epics/Agent Evaluation/EVAL-TARGETS.md` — vulnerable test targets by backend type
 - `Epics/Agent Evaluation/US-045-PORTSWIGGER-MVP-DATASET-EXPLAINED.md` — PortSwigger MVP dataset design and lab selection
 - `Epics/Agent Evaluation/US-046-PORTSWIGGER-SPINUP-EXPLAINED.md` — PortSwigger lab spinup automation and eval harness
+- `Epics/Agent Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md` — Generator evaluation runner for plan quality and structured output validation
 - `Epics/Searcher Agent/US-054-SEARCH-MODELS-EXPLAINED.md` — SearchResult, SearchAction, ComplexSearch, SearchAnswerAction Pydantic models
 - `Epics/Searcher Agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md` — search_result barrier tool, coexistence with subtask_list, graph integration
 - `Epics/Searcher Agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md` — DuckDuckGo web search tool and availability checks
@@ -239,6 +240,7 @@ Detailed architecture docs (Portuguese) in `docs/`:
 - `Epics/Searcher Agent/US-059-Searcher-prompt-templates-EXPLAINED.md` — render_searcher_prompt(), searcher_system.md.j2 / searcher_user.md.j2
 - `Epics/Scanner Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md` — HackResult Pydantic model for Scanner agent output
 - `Epics/Scanner Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md` — Sploitus.com exploit search tool, result formatting, truncation
+- `Epics/Scanner Agent/US-063-GUIDE-TOOLS-EXPLAINED.md` — Guide tools for semantic search and storage of reusable Scanner playbooks
 
 ## Development Notes
 

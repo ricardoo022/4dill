@@ -1,5 +1,5 @@
 ---
-tags: [planning, scanner-agent, memory]
+tags: [agents, planning]
 ---
 
 # Deep Dive: US-063 - Guide Tools (Search & Store)
@@ -50,3 +50,11 @@ Para validar a tipagem e o linting:
 mypy src/pentest/tools/guide.py
 ruff check src/pentest/tools/guide.py
 ```
+
+## Related Notes
+
+- [[Epics/Scanner Agent/US-061-HACK-RESULT-MODEL-EXPLAINED]]
+- [[Epics/Scanner Agent/US-062-SPLOITUS-TOOL-EXPLAINED]]
+- [[Epics/Searcher Agent/US-058-SEARCH-ANSWER-TOOL-EXPLAINED]]
+- [[DATABASE-SCHEMA]]
+- [[AGENT-ARCHITECTURE]]
