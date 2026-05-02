@@ -88,6 +88,13 @@ pytest tests/unit/database/test_models.py::TestFlowModel::test_flow_tablename -v
 # Coverage
 pytest tests/ --ignore=tests/e2e/ --cov=src/pentest --cov-report=term-missing
 
+# Evals (local mode, no LangSmith — requires ANTHROPIC_API_KEY or OPENAI_API_KEY)
+python tests/evals/run_agent_eval.py --agent generator --subset quick --no-upload
+# Evals (upload to LangSmith — also requires LANGSMITH_API_KEY)
+python tests/evals/run_agent_eval.py --agent generator --subset quick
+# Override model via env var (default: gpt-4.1-mini; use provider:model format)
+GENERATOR_MODEL=anthropic:claude-sonnet-4-6 python tests/evals/run_agent_eval.py --agent generator --subset quick --no-upload
+
 # Alembic migrations (run inside devcontainer where DATABASE_URL is set)
 alembic upgrade head        # apply all pending migrations
 alembic downgrade base      # roll back everything
@@ -231,7 +238,7 @@ Detailed architecture docs (Portuguese) in `docs/`:
 - `Epics/Agent Evaluation/EVAL-TARGETS.md` — vulnerable test targets by backend type
 - `Epics/Agent Evaluation/US-045-PORTSWIGGER-MVP-DATASET-EXPLAINED.md` — PortSwigger MVP dataset design and lab selection
 - `Epics/Agent Evaluation/US-046-PORTSWIGGER-SPINUP-EXPLAINED.md` — PortSwigger lab spinup automation and eval harness
-- `Epics/Agent Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md` — Generator evaluation runner for plan quality and structured output validation
+- `Epics/Agent Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md` — Generator eval CLI runner: local mode, LangSmith upload, subtask_plan_valid evaluator
 - `Epics/Searcher Agent/US-054-SEARCH-MODELS-EXPLAINED.md` — SearchResult, SearchAction, ComplexSearch, SearchAnswerAction Pydantic models
 - `Epics/Searcher Agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md` — search_result barrier tool, coexistence with subtask_list, graph integration
 - `Epics/Searcher Agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md` — DuckDuckGo web search tool and availability checks
@@ -244,13 +251,14 @@ Detailed architecture docs (Portuguese) in `docs/`:
 
 ## Development Notes
 
-- Project is in early implementation — several `src/pentest/` modules are still `__init__.py` stubs (`controller/`, `mcp/`, `providers/` except factory.py, `agents/` except base.py + generator.py)
+- Project is in early implementation — several `src/pentest/` modules are still `__init__.py` stubs (`controller/`, `mcp/`, `providers/` except factory.py, `agents/` except base.py + generator.py + exceptions.py)
 - **Implemented modules:**
   - `config.py` — `LLMConfig` Pydantic model; reads provider + model from env vars (`LLM_PROVIDER`, `LLM_MODEL`, per-agent overrides like `GENERATOR_LLM_MODEL`); used by `providers/factory.py`
   - `providers/factory.py` — `create_chat_model()` factory + `resolve_provider_config()`; supports Anthropic and OpenAI; selects provider and model per agent via `LLMConfig`
   - `recon/` — backend detection (supabase, firebase, custom_api, subdomains, orchestrator)
   - `agents/base.py` — LangGraph base graph pattern (BarrierAwareToolNode, AgentState, create_agent_graph)
-  - `agents/generator.py` — full Generator agent: resolves LLM via `providers/factory.py`, loads FASE skill index, renders prompt via `templates/renderer.py`, builds tool list, calls `create_agent_graph()`
+  - `agents/exceptions.py` — `GeneratorError` typed exception for Generator failures
+  - `agents/generator.py` — full Generator agent: `generate_subtasks(input, backend_profile, skills_dir, docker_client=None)` is the **async** public entry point; resolves LLM via `providers/factory.py`, loads FASE skill index, renders prompt via `templates/renderer.py`, builds tool list, calls `create_agent_graph()`; also defines `GeneratorError` inline
   - `models/` — subtask.py, recon.py, tool_args.py, search.py (Pydantic schemas; search.py has `SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction`), hack.py (`HackResult` with `result` + `message` fields for Scanner output)
   - `tools/` — barriers.py (`subtask_list` + `search_result`), terminal.py, file.py (Docker execution via factory closures), browser.py (HTTP content fetching), stubs.py (memorist/searcher placeholders), graphiti_search.py (Graphiti knowledge graph search), duckduckgo.py (DuckDuckGo web search), tavily.py (Tavily web search), search_memory.py (`create_search_answer_tool()` pgvector semantic search for Memorist), sploitus.py (Sploitus.com exploit search with result formatting/truncation), registry.py (tool registry dataclasses)
   - `skills/loader.py` — `load_fase_index()` parses SKILL.md frontmatter for Generator prompt injection; `load_fase_skill()` loads full SKILL.md for Scanner

@@ -672,9 +672,13 @@ Mentor: "Cloudflare bloqueia requests rápidos do mesmo IP. Tenta:
 **Output:** Resultado via `enricher_result`.
 
 **Tools:**
-- `search_in_memory` — pesquisa semântica no vector DB
-- `graphiti_search` — pesquisa no knowledge graph
+- `terminal` — executar comandos no Docker container para recolher contexto activo
+- `file` — ler ficheiros no container (ex: outputs de scans anteriores no volume)
+- `search_in_memory` — pesquisa semântica no vector DB (opcional, se disponível)
+- `graphiti_search` — pesquisa no knowledge graph (opcional, se disponível)
 - `enricher_result` (barrier) — entregar contexto enriquecido
+
+**Nota PentAGI (`EnricherExecutorConfig`):** Confirmado no Go — o Enricher tem `terminal` + `file` para poder recolher contexto activo do container além de consultar memória. As tools de memória são condicionais (só incluídas se os clientes estiverem disponíveis).
 
 **Prompt inclui:** Como encontrar contexto relevante. Que tipo de informação o Adviser precisa para dar bons conselhos.
 
@@ -685,8 +689,9 @@ Mentor: "Cloudflare bloqueia requests rápidos do mesmo IP. Tenta:
 Scanner pede advice: "Target retorna 403 em /api/users, como contornar?"
 
 Enricher pesquisa:
-  - Vector DB: encontra guia sobre bypass de 403 em Cloudflare
-  - Graphiti: encontra que em scan anterior, mudar User-Agent funcionou
+  - terminal("curl -sI https://target.com/api/users") → lê headers actuais
+  - search_in_memory("403 bypass techniques") → guia sobre bypass de 403 em Cloudflare
+  - graphiti_search(recent_context) → mudar User-Agent funcionou em scan anterior
 
 Enricher entrega contexto enriquecido ao Adviser.
 Adviser responde com orientação informada por experiência real.
@@ -705,7 +710,14 @@ Adviser responde com orientação informada por experiência real.
 **Output:** Lista atualizada de subtasks via `subtask_patch`.
 
 **Tools:**
-- `subtask_patch` (barrier) — add/remove/modify subtasks
+- `terminal` — executar comandos de reconhecimento rápido no container para informar ajustes ao plano
+- `file` — ler ficheiros no container (ex: outputs de scans já executados)
+- `browser` — fetch de páginas (opcional, se disponível)
+- `memorist` (delegação) — consultar histórico de scans similares para decidir se adicionar/remover subtasks
+- `searcher` (delegação) — pesquisar contexto externo para validar se vale a pena expandir o plano
+- `subtask_patch` (barrier) — entregar lista de patches ao plano (add/remove/modify)
+
+**Nota PentAGI (`RefinerExecutorConfig`):** Confirmado no Go — o Refiner tem `terminal` + `file` + `browser` + `memorist` + `searcher`, não apenas `subtask_patch`. É mais capaz do que o documentado anteriormente: pode fazer recon adicional antes de decidir ajustes ao plano.
 
 **Prompt inclui:** O plano original. Resultados até agora. Critérios para quando expandir (findings críticos) vs quando skip (target não tem a feature).
 
@@ -736,7 +748,16 @@ Refiner ajusta:
 
 **Tools:** Nenhum. O Reflector analisa o erro e dá instruções ao agente.
 
-**Limites:** Max 3 tentativas recursivas. Se falhar 3x, subtask falha.
+**Limites:** Max 5 invocações por chain (`maxReflectorCallsPerChain`). Tem flag de recursão (`isReflectorRetry`) para evitar loops infinitos. Se falhar após o limite, a subtask falha.
+
+**Nota de arquitectura — NÃO é um agente standalone:**
+
+Confirmado no PentAGI (`performer.go`): o Reflector **não tem executor registado** nem é instanciado como agente independente. É um **mecanismo de recovery embutido no loop principal** do `providers/performer.py`. É invocado em dois cenários:
+
+1. **Recovery interno** — quando o LLM devolve prosa em vez de tool calls, o performer chama `performReflector()` que corre um `performSimpleChain()` e injeta a resposta corretiva como human message na chain do agente
+2. **Recovery de caller** — quando se esgotam as retries de tool call, `performCallerReflector()` agrega os erros e tenta uma última correcção
+
+**Implicação para implementação:** O Reflector não vai ser uma US de agente separado no Epic 15. A sua lógica faz parte da US do `providers/performer.py` (core execution loop).
 
 **Exemplo:**
 ```
@@ -807,10 +828,10 @@ Após validar finding "RLS disabled na tabela users":
 | **Installer** | ✅ | ✅ | ✅ | — | guide | — | searcher, memorist, adviser | maintenance_result |
 | **Searcher** | — | — | ✅ | ✅ | answer (read) | — | memorist | search_result |
 | **Memorist** | — | — | — | — | ✅ (all) | ✅ | — | memorist_result |
-| **Enricher** | — | — | — | — | ✅ | ✅ | — | enricher_result |
+| **Enricher** | ✅ | ✅ | — | — | ✅ (opt) | ✅ (opt) | — | enricher_result |
 | **Adviser** | — | — | — | — | — | — | — | *(simple chain)* |
-| **Refiner** | — | — | — | — | — | — | memorist, searcher | subtask_patch |
-| **Reflector** | — | — | — | — | — | — | — | *(simple chain)* |
+| **Refiner** | ✅ | ✅ | ✅ (opt) | — | — | — | memorist, searcher | subtask_patch |
+| **Reflector** | — | — | — | — | — | — | — | *(recovery no performer, não é agente standalone)* |
 | **Reporter** | — | — | — | — | answer (write) | — | — | report_result |
 
 **Nota vector DB:** Cada agente tem acesso ao seu próprio par search/store:
@@ -825,9 +846,9 @@ Após validar finding "RLS disabled na tabela users":
 - Agentes que **coordenam** (Orchestrator) → só delegação, zero execução directa
 - Agentes que **geram código** (Coder) → sem terminal, delega execução ao Installer
 - Agentes que **pesquisam** (Searcher) → browser + search engines, sem terminal
-- Agentes que **enriquecem** (Enricher) → vector DB + graphiti, sem tools activos
-- Agentes que **pensam** (Adviser, Reflector) → zero tools, só texto
-- Agentes que **planeiam** (Generator, Refiner) → só tools de controlo + delegação
+- Agentes que **enriquecem** (Enricher) → terminal + file + vector DB + graphiti (condicionais)
+- Agentes que **pensam** (Adviser) → zero tools, só texto; Reflector idem mas não é agente standalone
+- Agentes que **planeiam** (Generator, Refiner) → terminal + file + browser + delegação + barrier de controlo
 - Agentes que **lembram** (Memorist) → vector DB + graphiti
 - Agentes que **reportam** (Reporter) → só report_result
 

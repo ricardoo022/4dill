@@ -94,6 +94,7 @@ To do this: use Grep to find all references to the sibling values (e.g., grep fo
 - 0-indexed lists in prompts (LLMs reliably return 1-indexed)
 - Prompt text listing available tools/capabilities that don't match what's actually wired up in the `tool_classes`/`tools` array
 - Word/token limits stated in multiple places that could drift
+- New Jinja2 prompt templates not placed in `src/pentest/templates/prompts/` or not using `.md.j2` extension — template renderer must point `template_dir` to `Path(__file__).parent / "prompts"` and call `env.get_template("name.md.j2")`. Wrong path/extension causes silent `TemplateNotFound` at runtime.
 
 #### Test Gaps
 - Negative-path tests that assert type/status but not the side effects (URL attached? field populated? callback fired?)

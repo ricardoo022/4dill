@@ -175,6 +175,7 @@ For each file, evaluate:
 - Are Pydantic v2 models used for all data structures at boundaries?
 - New tools: do they use factory closures matching `tools/terminal.py` or `tools/browser.py`?
 - New barriers: are they registered in `BarrierAwareToolNode` and do they extract the right args?
+- New Jinja2 templates: are they in `src/pentest/templates/prompts/` with `.md.j2` extension? Does the renderer set `template_dir = Path(__file__).parent / "prompts"` and call `env.get_template("name.md.j2")`?
 - No REST endpoints — external interface is MCP only
 - Doc files must have Obsidian frontmatter `tags: [...]`
 
@@ -312,6 +313,7 @@ Then fill in this table based on what was observed in Phases 3 and 4:
 | 10 | Doc files (if any) have correct Obsidian frontmatter tags | |
 | 11 | Changed files with sibling `README.md` include a README update in this PR | |
 | 12 | E2E tests included when PR introduces user-facing or end-to-end testable behavior | |
+| 13 | New Jinja2 templates are in `templates/prompts/` with `.md.j2` extension; renderer uses `Path(__file__).parent / "prompts"` as `template_dir` | |
 
 Use YES / NO / N/A for each row, with a one-line justification.
 
