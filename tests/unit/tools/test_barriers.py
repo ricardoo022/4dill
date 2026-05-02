@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from pentest.agents.base import create_agent_graph
 from pentest.models.search import SearchResult
 from pentest.models.subtask import SubtaskInfo, SubtaskList
-from pentest.tools.barriers import memorist_result, search_result, subtask_list
+from pentest.tools.barriers import hack_result, memorist_result, search_result, subtask_list
 
 
 def test_subtask_info_validation():
@@ -195,3 +195,29 @@ def test_graph_integration_with_memorist_result():
     assert result.get("barrier_hit") is True
     assert result["barrier_result"]["result"] == "Detailed memory report"
     assert result["barrier_result"]["message"] == "Resumo da memória"
+
+
+def test_graph_integration_with_hack_result():
+    mock_llm = RunnableLambda(
+        lambda x: AIMessage(
+            content="",
+            tool_calls=[
+                {
+                    "name": "hack_result",
+                    "args": {
+                        "result": "Detailed report about SQLi found",
+                        "message": "Vulnerability discovered",
+                    },
+                    "id": "call_hack_result",
+                }
+            ],
+        )
+    )
+    mock_llm.bind_tools = lambda tools: mock_llm
+
+    graph = create_agent_graph(mock_llm, [hack_result], barrier_names=["hack_result"])
+    result = graph.invoke({"messages": [HumanMessage(content="Perform full scan")]})
+
+    assert result.get("barrier_hit") is True
+    assert result["barrier_result"]["result"] == "Detailed report about SQLi found"
+    assert result["barrier_result"]["message"] == "Vulnerability discovered"
