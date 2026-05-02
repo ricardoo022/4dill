@@ -161,6 +161,9 @@ jobs:
       - name: Add venv to PATH
         run: echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
 
+      - name: Install Playwright Browsers
+        run: playwright install chromium --with-deps
+
       - name: Apply migrations and verify schema
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/testdb
