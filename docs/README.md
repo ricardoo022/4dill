@@ -114,6 +114,7 @@ Hub note: [[Epics/Docker Sandbox/README|Docker Sandbox]]
 ### Scanner Agent
 
 | Doc | Módulo |
+| [US-064 Scanner Templates](Epics/Scanner%20Agent/US-064-SCANNER-TEMPLATES-EXPLAINED.md) | `templates/scanner_system.md`, `templates/scanner_user.md`, `templates/__init__.py` |
 |---|---|
 | [US-061 HackResult Model](Epics/Scanner%20Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md) | `models/hack.py`, `tools/barriers.py` — contrato de dados Scanner → Orchestrator |
 | [US-062 Sploitus Search Tool](Epics/Scanner%20Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md) | `tools/sploitus.py` — pesquisa de exploits no Sploitus.com |

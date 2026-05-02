@@ -3055,7 +3055,7 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 
 ---
 
-### US-064: Scanner prompt templates + FASE skill injection
+### US-064: Scanner prompt templates + FASE skill injection (DONE)
 
 **Epic:** Scanner Agent
 
