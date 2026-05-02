@@ -23,7 +23,7 @@ class _FakeLLM:
     def __init__(self, **kwargs: Any):
         self.kwargs = kwargs
 
-    def bind_tools(self, tools: list[Any]) -> "_FakeLLM":
+    def bind_tools(self, tools: list[Any]) -> _FakeLLM:
         return self
 
     def invoke(self, messages: list[Any]) -> Any:
@@ -199,16 +199,11 @@ async def test_generate_subtasks_model_resolution_param_over_env_and_default(
     )
 
     # Mock _resolve_generator_llm to capture what's passed to create_chat_model
-    original_resolve = None
-    from pentest.agents.generator import _resolve_generator_llm as _orig
-
     def _fake_resolve_llm(**kwargs: Any) -> _FakeLLM:
         captured_resolutions.append((kwargs.get("provider"), kwargs.get("model")))
         return _FakeLLM(**kwargs)
 
-    monkeypatch.setattr(
-        "pentest.agents.generator._resolve_generator_llm", _fake_resolve_llm
-    )
+    monkeypatch.setattr("pentest.agents.generator._resolve_generator_llm", _fake_resolve_llm)
     monkeypatch.setattr(
         "pentest.agents.generator.create_agent_graph",
         lambda llm, tools, barrier_names, max_iterations: _FakeGraph(
@@ -224,12 +219,17 @@ async def test_generate_subtasks_model_resolution_param_over_env_and_default(
     # Test 1: Explicit params passed to _resolve_generator_llm
     monkeypatch.setenv("GENERATOR_MODEL", "env-model")
     monkeypatch.setenv("GENERATOR_PROVIDER", "openai")
-    await generate_subtasks("scan", backend_profile, "/skills", model="param-model", provider="anthropic")
+    await generate_subtasks(
+        "scan", backend_profile, "/skills", model="param-model", provider="anthropic"
+    )
     assert captured_resolutions[0] == ("anthropic", "param-model")
 
     # Test 2: No explicit params → _resolve_generator_llm receives None, uses env vars internally
     await generate_subtasks("scan", backend_profile, "/skills")
-    assert captured_resolutions[1] == (None, None)  # _resolve_generator_llm receives None, resolves via config
+    assert captured_resolutions[1] == (
+        None,
+        None,
+    )  # _resolve_generator_llm receives None, resolves via config
 
     # Test 3: No env vars → falls back to config defaults
     monkeypatch.delenv("GENERATOR_MODEL")

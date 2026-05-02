@@ -24,7 +24,7 @@ class _FakeGraph:
 class _FakeLLM(BaseChatModel):
     """Provider-agnostic fake LLM for agent-layer tests."""
 
-    def bind_tools(self, tools: list[Any]) -> "_FakeLLM":
+    def bind_tools(self, tools: list[Any]) -> _FakeLLM:
         return self
 
     def _generate(self, messages: list[Any], stop: list[str] | None = None, **kwargs: Any) -> Any:
@@ -61,7 +61,9 @@ class _FakeLLM(BaseChatModel):
             ]
         )
 
-    async def _agenerate(self, messages: list[Any], stop: list[str] | None = None, **kwargs: Any) -> Any:
+    async def _agenerate(
+        self, messages: list[Any], stop: list[str] | None = None, **kwargs: Any
+    ) -> Any:
         return self._generate(messages, stop, **kwargs)
 
     @property
