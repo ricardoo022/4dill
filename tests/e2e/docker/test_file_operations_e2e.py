@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
 import uuid
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
@@ -35,6 +36,7 @@ _CANDIDATE_IMAGES = [
     "kalilinux/kali-rolling",
     "debian:bullseye-slim",
     "alpine:3.20",
+    "python:3.12-slim",
 ]
 
 
@@ -51,7 +53,9 @@ def docker_api_e2e() -> docker.DockerClient:
 @pytest.fixture(scope="module")
 def pentest_image(docker_api_e2e: docker.DockerClient) -> str:
     """Return the best available pentest image, preferring Kali Linux."""
-    for image in _CANDIDATE_IMAGES:
+    preferred = os.getenv("PENTEST_E2E_IMAGE", "").strip()
+    candidates = [preferred, *_CANDIDATE_IMAGES] if preferred else list(_CANDIDATE_IMAGES)
+    for image in candidates:
         try:
             docker_api_e2e.images.get(image)
             return image
