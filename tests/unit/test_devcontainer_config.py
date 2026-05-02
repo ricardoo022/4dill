@@ -173,7 +173,7 @@ def test_docker_compose_has_neo4j_service():
     assert "neo4j" in services, "Missing 'neo4j' service"
 
     neo4j = services["neo4j"]
-    assert neo4j.get("image") == "neo4j:community"
+    assert neo4j.get("image") == "neo4j:5.26.2"
     ports = neo4j.get("ports", [])
     assert "7474:7474" in ports
     assert "7687:7687" in ports
