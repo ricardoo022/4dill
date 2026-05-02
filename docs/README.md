@@ -117,6 +117,7 @@ Hub note: [[Epics/Docker Sandbox/README|Docker Sandbox]]
 | [US-061 HackResult Model](Epics/Scanner%20Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md) | `models/hack.py`, `tools/barriers.py` — contrato de dados Scanner → Orchestrator |
 | [US-062 Sploitus Search Tool](Epics/Scanner%20Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md) | `tools/sploitus.py` — pesquisa de exploits no Sploitus.com |
 | [US-063 Guide Tools](Epics/Scanner%20Agent/US-063-GUIDE-TOOLS-EXPLAINED.md) | `tools/guide.py` — armazenamento e busca semantica de playbooks com redacao de dados sensiveis |
+| [US-066 Browser Upgrade](Epics/Scanner%20Agent/US-066-BROWSER-IMPROVEMENT-EXPLAINED.md) | `tools/browser.py` — Upgrade para Playwright (JS rendering + screenshots) |
 
 ### Avaliação de Agentes
 

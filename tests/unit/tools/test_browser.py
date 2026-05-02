@@ -11,22 +11,30 @@ from pentest.tools.browser import create_browser_tool, create_mock_browser_tool
 
 def test_browser_action_validation():
     """Test that BrowserAction validates correctly."""
-    # Missing required fields
+    # Missing required fields (message is required)
     with pytest.raises(ValidationError):
         BrowserAction(url="http://example.com")
 
     # Valid minimal
     ba = BrowserAction(url="http://example.com", message="test")
     assert ba.url == "http://example.com"
+    assert ba.mode == "light"
     assert ba.action == "markdown"
 
-    # Valid with custom action
-    ba2 = BrowserAction(url="http://example.com", action="links", message="test")
-    assert ba2.action == "links"
+    # Valid with custom mode and action
+    ba2 = BrowserAction(
+        url="http://example.com", mode="advanced", action="screenshot", message="test"
+    )
+    assert ba2.mode == "advanced"
+    assert ba2.action == "screenshot"
 
     # Invalid action should fail
     with pytest.raises(ValidationError):
         BrowserAction(url="http://example.com", action="invalid", message="test")
+
+    # Invalid mode should fail
+    with pytest.raises(ValidationError):
+        BrowserAction(url="http://example.com", mode="invalid", message="test")
 
 
 @pytest.mark.asyncio
@@ -130,20 +138,52 @@ async def test_browser_tool_timeout():
         assert "request timeout after 30 seconds" in result
 
 
+@pytest.mark.asyncio
+async def test_browser_tool_light_mode_screenshot_error():
+    """Test that screenshot action fails in light mode."""
+    tool = create_browser_tool()
+    with respx.mock:
+        respx.get("http://example.com").mock(return_value=httpx.Response(200, text="<html></html>"))
+        result = await tool.arun(
+            {
+                "url": "http://example.com",
+                "action": "screenshot",
+                "mode": "light",
+                "message": "test",
+            }
+        )
+        assert "screenshot action is only supported in 'advanced' mode" in result
+
+
 def test_mock_browser_tool():
     """Test that mock browser tool executes without network."""
     tool = create_mock_browser_tool()
     # Mock tools are async, so we run them in an event loop
     result = asyncio.run(
-        tool.arun({"url": "http://example.com", "action": "markdown", "message": "test"})
+        tool.arun(
+            {
+                "url": "http://example.com",
+                "action": "markdown",
+                "mode": "advanced",
+                "message": "test",
+            }
+        )
     )
     assert "Mock markdown content" in result
+    assert "mode=advanced" in result
 
 
-def test_mock_browser_tool_links():
-    """Test mock browser tool with links action."""
+def test_mock_browser_tool_screenshot():
+    """Test mock browser tool with screenshot action."""
     tool = create_mock_browser_tool()
     result = asyncio.run(
-        tool.arun({"url": "http://example.com", "action": "links", "message": "test"})
+        tool.arun(
+            {
+                "url": "http://example.com",
+                "action": "screenshot",
+                "mode": "advanced",
+                "message": "test",
+            }
+        )
     )
-    assert "https://example.com" in result
+    assert "Mock screenshot saved" in result

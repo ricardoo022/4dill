@@ -3220,7 +3220,7 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 
 ---
 
-### US-066: Browser tool improvement for Scanner workflows
+### US-066: Browser tool improvement for Scanner workflows (DONE)
 
 **Epic:** Scanner Agent
 
