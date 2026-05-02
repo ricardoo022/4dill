@@ -13,6 +13,7 @@ Hub para as notas de Neo4j, Graphiti e pesquisa semântica no projeto.
 | [US-034 Neo4j + Graphiti Devcontainer](US-034-NEO4J-GRAPHITI-DEVCONTAINER-EXPLAINED.md) | setup do ambiente local |
 | [US-035 Graphiti Client](US-035-GRAPHITI-CLIENT-EXPLAINED.md) | `graphiti/client.py` |
 | [US-036 Graphiti Search Tool](US-036-GRAPHITI-SEARCH-TOOL-EXPLAINED.md) | `tools/graphiti_search.py` |
+| [Graphiti Troubleshooting](GRAPHITI-TROUBLESHOOTING.md) | erros comuns de runtime/e2e e resolucao |
 
 ## Related Notes
 

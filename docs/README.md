@@ -69,6 +69,7 @@ Hub note: [[Epics/Knowledge Graph/README|Knowledge Graph]]
 | [US-034 Neo4j + Graphiti Devcontainer](Epics/Knowledge%20Graph/US-034-NEO4J-GRAPHITI-DEVCONTAINER-EXPLAINED.md) | Devcontainer setup |
 | [US-035 Graphiti Client](Epics/Knowledge%20Graph/US-035-GRAPHITI-CLIENT-EXPLAINED.md) | `graphiti/client.py` |
 | [US-036 Graphiti Search Tool](Epics/Knowledge%20Graph/US-036-GRAPHITI-SEARCH-TOOL-EXPLAINED.md) | `tools/graphiti_search.py` |
+| [Graphiti Troubleshooting](Epics/Knowledge%20Graph/GRAPHITI-TROUBLESHOOTING.md) | diagnóstico de 500 no `/search`, healthcheck e DNS entre containers |
 
 ### Base de Dados
 
