@@ -148,9 +148,9 @@ class TestLoadExamples:
             inp = ex["inputs"]
             for field in required:
                 assert field in inp, f"Missing '{field}' in inputs for {inp.get('lab_id')}"
-            assert inp["lab_url"].startswith(
-                "https://portswigger.net"
-            ), f"Unexpected lab_url: {inp['lab_url']}"
+            assert inp["lab_url"].startswith("https://portswigger.net"), (
+                f"Unexpected lab_url: {inp['lab_url']}"
+            )
 
     def test_load_examples_unknown_subset_exits(self):
         """Failure path: unknown subset must raise SystemExit(1)."""
@@ -173,9 +173,9 @@ class TestRunLocal:
         assert len(results) == len(examples)
         for r in results:
             assert r["error"] is None, f"Unexpected error for {r['lab_id']}: {r['error']}"
-            assert (
-                r["scores"].get("subtask_plan_valid") == 1.0
-            ), f"Expected score 1.0 for {r['lab_id']}, got {r['scores']}"
+            assert r["scores"].get("subtask_plan_valid") == 1.0, (
+                f"Expected score 1.0 for {r['lab_id']}, got {r['scores']}"
+            )
 
     def test_run_local_multiple_runs(self):
         """runs=2 produces 2 × len(examples) result records."""
@@ -269,12 +269,12 @@ class TestRunnerE2E:
             f"Runner exited {result.returncode}.\n"
             f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         )
-        assert (
-            "Final score" in result.stdout
-        ), f"'Final score' not in output.\nSTDOUT:\n{result.stdout}"
-        assert (
-            "subtask_plan_valid" in result.stdout
-        ), f"Evaluator metric missing.\nSTDOUT:\n{result.stdout}"
-        assert (
-            "sqli-login-bypass" in result.stdout
-        ), f"Expected lab ID 'sqli-login-bypass' in output.\nSTDOUT:\n{result.stdout}"
+        assert "Final score" in result.stdout, (
+            f"'Final score' not in output.\nSTDOUT:\n{result.stdout}"
+        )
+        assert "subtask_plan_valid" in result.stdout, (
+            f"Evaluator metric missing.\nSTDOUT:\n{result.stdout}"
+        )
+        assert "sqli-login-bypass" in result.stdout, (
+            f"Expected lab ID 'sqli-login-bypass' in output.\nSTDOUT:\n{result.stdout}"
+        )
