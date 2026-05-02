@@ -1,0 +1,14 @@
+{
+  "scenarios": [
+    {
+      "inputs": {
+        "question": "What is the latest CVE for nginx?"
+      },
+      "reference_outputs": {
+        "required_facts": [
+          "CVE-2024-"
+        ]
+      }
+    }
+  ]
+}

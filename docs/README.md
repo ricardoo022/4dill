@@ -130,6 +130,12 @@ Hub note: [[Epics/Agent Evaluation/README|Agent Evaluation]]
 | [US-046 PortSwigger Spinup](Epics/Agent%20Evaluation/US-046-PORTSWIGGER-SPINUP-EXPLAINED.md) | Automacao de spinup: excecoes tipadas, sessao persistida, batch mode, testes unit + e2e |
 | [US-047 Generator Eval Runner](Epics/Agent%20Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md) | Runner de evaluacao do Generator com metricas de cobertura de plano e validacao de output estruturado |
 
+### Searcher Agent Evaluation
+
+| Doc | Descrição |
+|---|---|
+| [US-068 Searcher Eval Infra](Epics/Searcher%20Agent%20Evaluation/US-068-SEARCHER-EVAL-INFRA-EXPLAINED.md) | Infraestrutura base de avaliações, gravação de trajectories |
+
 ## Related Notes
 
 - [[AGENT-ARCHITECTURE]]
