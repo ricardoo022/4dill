@@ -42,7 +42,7 @@ Para novas notas técnicas no vault:
 
 ### Agentes
 
-Hub notes: [[Epics/Generator agent/README|Generator agent]], [[Epics/Searcher agent/README|Searcher agent]]
+Hub notes: [[Epics/Generator agent/README|Generator agent]], [[Epics/Searcher Agent/README|Searcher agent]]
 
 | Doc | Módulo |
 |---|---|
@@ -54,14 +54,12 @@ Hub notes: [[Epics/Generator agent/README|Generator agent]], [[Epics/Searcher ag
 | [US-042 Skill Loader](Epics/Generator%20agent/US-042-SKILL-LOADER-EXPLAINED.md) | `skills/loader.py` |
 | [US-043 Prompt Templates](Epics/Generator%20agent/US-043-GENERATOR-PROMPTS-EXPLAINED.md) | `templates/renderer.py`, templates Jinja2 |
 | [US-044 Generator Agent](Epics/Generator%20agent/US-044-GENERATOR-AGENT-EXPLAINED.md) | `agents/generator.py` — entry point funcional, integra graph + tools + skills + prompts |
-| [US-054 Search Models](Epics/Searcher%20agent/US-054-SEARCH-MODELS-EXPLAINED.md) | `models/search.py` |
-| [US-055 Search Result Barrier](Epics/Searcher%20agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md) | `tools/barriers.py` — search_result barrier |
-| [US-056 DuckDuckGo Search Tool](Epics/Searcher%20agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md) | `tools/duckduckgo.py` |
-| [US-057 Tavily Search Tool](Epics/Searcher%20agent/US-057-TAVILY-SEARCH-TOOL-EXPLAINED.md) | `tools/tavily.py` |
-| [US-058 search_answer Tool](Epics/Searcher%20agent/US-058-SEARCH-ANSWER-TOOL-EXPLAINED.md) | `tools/search_memory.py` — pgvector semantic search |
+| [US-054 Search Models](Epics/Searcher%20Agent/US-054-SEARCH-MODELS-EXPLAINED.md) | `models/search.py` |
+| [US-055 Search Result Barrier](Epics/Searcher%20Agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md) | `tools/barriers.py` — search_result barrier |
+| [US-056 DuckDuckGo Search Tool](Epics/Searcher%20Agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md) | `tools/duckduckgo.py` |
+| [US-057 Tavily Search Tool](Epics/Searcher%20Agent/US-057-TAVILY-SEARCH-TOOL-EXPLAINED.md) | `tools/tavily.py` |
+| [US-058 search_answer Tool](Epics/Searcher%20Agent/US-058-SEARCH-ANSWER-TOOL-EXPLAINED.md) | `tools/search_memory.py` — pgvector semantic search |
 | [US-059 Searcher Prompt Templates](Epics/Searcher%20Agent/US-059-Searcher-prompt-templates-EXPLAINED.md) | `templates/searcher.py`, `searcher_system.md`, `searcher_user.md` |
-| [US-060 Searcher Agent](Epics/Searcher%20Agent/US-060-SEARCHER-AGENT-EXPLAINED.md) | `agents/searcher.py` — complete Searcher agent & tool delegation |
-
 
 ### Memorist Agent
 

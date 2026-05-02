@@ -22,4 +22,4 @@ Testes de integração de `tools/` que requerem acesso à rede ou serviços exte
 
 ## Módulo de produção
 
-`src/pentest/tools/duckduckgo.py` — ver `docs/Epics/Searcher agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md`
+`src/pentest/tools/duckduckgo.py` — ver `docs/Epics/Searcher Agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md`

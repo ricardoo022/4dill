@@ -27,4 +27,4 @@ Testes unitários de `tools/` — todas as tool factories e handlers com depend�
 
 ## Módulo de produção
 
-`src/pentest/tools/` — ver `docs/Epics/Generator agent/` e `docs/Epics/Searcher agent/`
+`src/pentest/tools/` — ver `docs/Epics/Generator agent/` e `docs/Epics/Searcher Agent/`

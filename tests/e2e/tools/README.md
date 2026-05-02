@@ -27,4 +27,4 @@ Testes E2E de `tools/` com serviços externos reais.
 
 ## Módulo de produção
 
-`src/pentest/tools/tavily.py`, `src/pentest/tools/barriers.py`, `src/pentest/tools/stubs.py`
+`src/pentest/tools/tavily.py`, `src/pentest/tools/barriers.py`, `src/pentest/tools/stubs.py` — ver `docs/Epics/Searcher Agent/US-057-TAVILY-SEARCH-TOOL-EXPLAINED.md`

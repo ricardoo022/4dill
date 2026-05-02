@@ -23,4 +23,4 @@ Testes unitários de `models/` — validação dos schemas Pydantic partilhados.
 
 ## Módulo de produção
 
-`src/pentest/models/search.py` — ver `docs/Epics/Searcher agent/US-054-SEARCH-MODELS-EXPLAINED.md`
+`src/pentest/models/search.py` — ver `docs/Epics/Searcher Agent/US-054-SEARCH-MODELS-EXPLAINED.md`
