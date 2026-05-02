@@ -3133,7 +3133,7 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 
 ---
 
-### US-065: Scanner Agent Completo
+### US-065: Scanner Agent Completo (DONE)
 
 **Epic:** Scanner Agent
 
@@ -3144,16 +3144,16 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/agents/scanner.py`, `src/pentest/agents/__init__.py`, `src/pentest/models/tool_args.py` (ou módulo partilhado equivalente para contracts de tools)
 
 **Acceptance Criteria:**
-- [ ] `ScannerAction` contract de entrada alinhado com o `PentesterAction` do PentAGI, definido num módulo **partilhado** de tool args (não local apenas ao Scanner):
+- [x] `ScannerAction` contract de entrada alinhado com o `PentesterAction` do PentAGI, definido num módulo **partilhado** de tool args (não local apenas ao Scanner):
   - `question: str` (required) — tarefa detalhada em inglês para o Scanner
   - `message: str` (required) — resumo curto interno
-- [ ] `create_scanner_graph(...)` ou equivalente que monta o Scanner com:
+- [x] `create_scanner_graph(...)` ou equivalente que monta o Scanner com:
   - barrier `hack_result`
   - max iterations `100`
   - LLM configurável
   - `create_agent_graph(...)` como base
-- [ ] O Scanner aceita handlers reais **ou stubs compatíveis** para agentes ainda não implementados, desde que respeitem o contract esperado da tool e permitam ao loop continuar
-- [ ] O Scanner inclui as tools core do `pentester` / arquitectura actual quando disponíveis:
+- [x] O Scanner aceita handlers reais **ou stubs compatíveis** para agentes ainda não implementados, desde que respeitem o contract esperado da tool e permitam ao loop continuar
+- [x] O Scanner inclui as tools core do `pentester` / arquitectura actual quando disponíveis:
   - `hack_result`
   - `terminal`
   - `file`
@@ -3166,23 +3166,23 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
   - `search_guide` / `store_guide` (condicionais)
   - `graphiti_search` (condicional)
   - `sploitus` (condicional)
-- [ ] O Scanner falha cedo com erro claro se faltarem handlers obrigatórios de delegação/barrier necessários para a montagem do agente
-- [ ] Para esta US, agentes downstream ainda não implementados (ex: `coder`, `installer`, `adviser`, `memorist`) podem ser ligados via handlers placeholder/stub, desde que a interface final fique preservada e a substituição futura por handlers reais seja transparente
-- [ ] A montagem do Scanner usa o prompt definido na US-064:
+- [x] O Scanner falha cedo com erro claro se faltarem handlers obrigatórios de delegação/barrier necessários para a montagem do agente
+- [x] Para esta US, agentes downstream ainda não implementados (ex: `coder`, `installer`, `adviser`, `memorist`) podem ser ligados via handlers placeholder/stub, desde que a interface final fique preservada e a substituição futura por handlers reais seja transparente
+- [x] A montagem do Scanner usa o prompt definido na US-064:
   1. recebe `question` e contexto
   2. carrega `fase_skill` com `load_fase_skill(...)` quando a subtask tiver `fase`
   3. renderiza `scanner_system.md` e `scanner_user.md`
   4. invoca o graph com essas mensagens
-- [ ] O Scanner usa `hack_result` como único barrier oficial; se o LLM não chamar `hack_result` antes do limite, retorna erro claro de falha do agente
-- [ ] O resultado final exposto pelo Scanner é o payload estruturado de `HackResult` extraído do barrier:
+- [x] O Scanner usa `hack_result` como único barrier oficial; se o LLM não chamar `hack_result` antes do limite, retorna erro claro de falha do agente
+- [x] O resultado final exposto pelo Scanner é o payload estruturado de `HackResult` extraído do barrier:
   - `result`
   - `message`
-- [ ] O Scanner mantém o papel correcto:
+- [x] O Scanner mantém o papel correcto:
   - executa testes
   - interpreta outputs
   - pode delegar
   - não faz validação final cross-scan (isso continua no Reporter)
-- [ ] `src/pentest/agents/__init__.py` re-exporta a factory/entry point principal do Scanner quando apropriado
+- [x] `src/pentest/agents/__init__.py` re-exporta a factory/entry point principal do Scanner quando apropriado
 
 **Technical Notes:**
 - PentAGI reference:
@@ -3199,28 +3199,28 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - A injecção de `fase_skill` é a principal diferença funcional face ao PentAGI
 
 **Tests Required:**
-- [ ] Scanner monta com sucesso quando todos os handlers/tools obrigatórios são fornecidos
-- [ ] Scanner monta com sucesso quando todos os handlers/tools obrigatórios são fornecidos, incluindo combinações mistas de handlers reais + stubs compatíveis
-- [ ] Scanner falha com erro claro quando falta `hack_result` ou outro handler obrigatório
-- [ ] Tool list do Scanner contém as tools base esperadas e adiciona as condicionais quando disponíveis
-- [ ] Com subtask que tem `fase`, o Scanner carrega a skill correcta e injecta-a no prompt antes da execução
-- [ ] Quando o LLM chama `hack_result`, o Scanner retorna `HackResult` estruturado com `result` e `message`
-- [ ] Quando o LLM não chama `hack_result` até ao limite, o Scanner retorna erro claro
-- [ ] Scanner pode chamar uma tool normal e continuar o loop antes de terminar no barrier
-- [ ] Scanner pode chamar uma tool de delegação stub/placeholder e continuar o loop normalmente antes de terminar no barrier
-- [ ] E2E / real-data test: com Docker/container real e uma subtask real com `fase`, o Scanner corre um fluxo simples end-to-end, usa pelo menos uma tool real, e termina com `hack_result` válido
+- [x] Scanner monta com sucesso quando todos os handlers/tools obrigatórios são fornecidos
+- [x] Scanner monta com sucesso quando todos os handlers/tools obrigatórios são fornecidos, incluindo combinações mistas de handlers reais + stubs compatíveis
+- [x] Scanner falha com erro claro quando falta `hack_result` ou outro handler obrigatório
+- [x] Tool list do Scanner contém as tools base esperadas e adiciona as condicionais quando disponíveis
+- [x] Com subtask que tem `fase`, o Scanner carrega a skill correcta e injecta-a no prompt antes da execução
+- [x] Quando o LLM chama `hack_result`, o Scanner retorna `HackResult` estruturado com `result` e `message`
+- [x] Quando o LLM não chama `hack_result` até ao limite, o Scanner retorna erro claro
+- [x] Scanner pode chamar uma tool normal e continuar o loop antes de terminar no barrier
+- [x] Scanner pode chamar uma tool de delegação stub/placeholder e continuar o loop normalmente antes de terminar no barrier
+- [x] E2E / real-data test: com Docker/container real e uma subtask real com `fase`, o Scanner corre um fluxo simples end-to-end, usa pelo menos uma tool real, e termina com `hack_result` válido
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O projecto passa a ter o equivalente funcional do `pentester` do PentAGI, adaptado à nossa arquitectura com FASE skills
+- [x] Code written and passing all tests
+- [x] Code reviewed
+- [x] O projecto passa a ter o equivalente funcional do `pentester` do PentAGI, adaptado à nossa arquitectura com FASE skills
 
 **Dependencies:** US-037, US-039, US-040, US-042, US-061, US-062, US-063, US-064
 **Estimated Complexity:** L
 
 ---
 
-### US-066: Browser tool improvement for Scanner workflows (DONE)
+### US-066: Browser tool improvement for Scanner workflows
 
 **Epic:** Scanner Agent
 
@@ -3231,13 +3231,13 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/tools/browser.py`, `src/pentest/tools/README.md`, documentação relevante do epic quando implementado
 
 **Acceptance Criteria:**
-- [x] O `browser` passa a suportar navegação/renderização real adequada para SPAs e apps modernas
-- [x] O `browser` consegue produzir screenshots quando pedido
-- [x] O `browser` consegue extrair conteúdo já renderizado pelo browser, não apenas HTML bruto da resposta inicial
-- [x] O `browser` consegue interagir com a página em operações básicas quando fizer sentido (ex: abrir URL, esperar renderização, seguir links, interagir com elementos simples)
-- [x] O output continua utilizável pelo agente e com limites de tamanho razoáveis
-- [x] A tool mantém uma interface clara entre modos simples de leitura e modos mais pesados de browser real
-- [x] O Scanner pode continuar a usar o browser de forma não interactiva para casos simples sem pagar sempre o custo do modo avançado
+- [ ] O `browser` passa a suportar navegação/renderização real adequada para SPAs e apps modernas
+- [ ] O `browser` consegue produzir screenshots quando pedido
+- [ ] O `browser` consegue extrair conteúdo já renderizado pelo browser, não apenas HTML bruto da resposta inicial
+- [ ] O `browser` consegue interagir com a página em operações básicas quando fizer sentido (ex: abrir URL, esperar renderização, seguir links, interagir com elementos simples)
+- [ ] O output continua utilizável pelo agente e com limites de tamanho razoáveis
+- [ ] A tool mantém uma interface clara entre modos simples de leitura e modos mais pesados de browser real
+- [ ] O Scanner pode continuar a usar o browser de forma não interactiva para casos simples sem pagar sempre o custo do modo avançado
 
 **Technical Notes:**
 - Esta US é uma melhoria explícita face à US-040
@@ -3246,16 +3246,16 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - Deve preservar um modo leve para páginas simples e um modo avançado para renderização/interacção
 
 **Tests Required:**
-- [x] Página simples continua a funcionar no modo actual de leitura
-- [x] Página com conteúdo renderizado por JavaScript devolve conteúdo útil após renderização
-- [x] Screenshot é gerada com sucesso quando pedida
-- [x] Interacção básica com página funciona em pelo menos um cenário representativo
-- [x] E2E / real-data test: contra uma app real com frontend moderno, o Scanner consegue usar o browser melhorado para observar conteúdo que não aparecia no fetch HTTP simples
+- [ ] Página simples continua a funcionar no modo actual de leitura
+- [ ] Página com conteúdo renderizado por JavaScript devolve conteúdo útil após renderização
+- [ ] Screenshot é gerada com sucesso quando pedida
+- [ ] Interacção básica com página funciona em pelo menos um cenário representativo
+- [ ] E2E / real-data test: contra uma app real com frontend moderno, o Scanner consegue usar o browser melhorado para observar conteúdo que não aparecia no fetch HTTP simples
 
 **Definition of Done:**
-- [x] Code written and passing all tests
-- [x] Code reviewed
-- [x] O `browser` deixa de ser apenas um HTTP fetcher e passa a cobrir casos reais necessários ao Scanner
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+- [ ] O `browser` deixa de ser apenas um HTTP fetcher e passa a cobrir casos reais necessários ao Scanner
 
 **Dependencies:** US-040
 **Estimated Complexity:** L

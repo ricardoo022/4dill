@@ -54,12 +54,13 @@ Hub notes: [[Epics/Generator agent/README|Generator agent]], [[Epics/Searcher Ag
 | [US-042 Skill Loader](Epics/Generator%20agent/US-042-SKILL-LOADER-EXPLAINED.md) | `skills/loader.py` |
 | [US-043 Prompt Templates](Epics/Generator%20agent/US-043-GENERATOR-PROMPTS-EXPLAINED.md) | `templates/renderer.py`, templates Jinja2 |
 | [US-044 Generator Agent](Epics/Generator%20agent/US-044-GENERATOR-AGENT-EXPLAINED.md) | `agents/generator.py` — entry point funcional, integra graph + tools + skills + prompts |
-| [US-054 Search Models](Epics/Searcher%20Agent/US-054-SEARCH-MODELS-EXPLAINED.md) | `models/search.py` |
-| [US-055 Search Result Barrier](Epics/Searcher%20Agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md) | `tools/barriers.py` — search_result barrier |
-| [US-056 DuckDuckGo Search Tool](Epics/Searcher%20Agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md) | `tools/duckduckgo.py` |
-| [US-057 Tavily Search Tool](Epics/Searcher%20Agent/US-057-TAVILY-SEARCH-TOOL-EXPLAINED.md) | `tools/tavily.py` |
-| [US-058 search_answer Tool](Epics/Searcher%20Agent/US-058-SEARCH-ANSWER-TOOL-EXPLAINED.md) | `tools/search_memory.py` — pgvector semantic search |
+| [US-054 Search Models](Epics/Searcher%20agent/US-054-SEARCH-MODELS-EXPLAINED.md) | `models/search.py` |
+| [US-055 Search Result Barrier](Epics/Searcher%20agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md) | `tools/barriers.py` — search_result barrier |
+| [US-056 DuckDuckGo Search Tool](Epics/Searcher%20agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md) | `tools/duckduckgo.py` |
+| [US-057 Tavily Search Tool](Epics/Searcher%20agent/US-057-TAVILY-SEARCH-TOOL-EXPLAINED.md) | `tools/tavily.py` |
+| [US-058 search_answer Tool](Epics/Searcher%20agent/US-058-SEARCH-ANSWER-TOOL-EXPLAINED.md) | `tools/search_memory.py` — pgvector semantic search |
 | [US-059 Searcher Prompt Templates](Epics/Searcher%20Agent/US-059-Searcher-prompt-templates-EXPLAINED.md) | `templates/searcher.py`, `searcher_system.md`, `searcher_user.md` |
+| [US-060 Searcher Agent](Epics/Searcher%20Agent/US-060-SEARCHER-AGENT-EXPLAINED.md) | `agents/searcher.py` — complete Searcher agent & tool delegation |
 
 ### Memorist Agent
 
@@ -117,7 +118,6 @@ Hub note: [[Epics/Docker Sandbox/README|Docker Sandbox]]
 | [US-061 HackResult Model](Epics/Scanner%20Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md) | `models/hack.py`, `tools/barriers.py` — contrato de dados Scanner → Orchestrator |
 | [US-062 Sploitus Search Tool](Epics/Scanner%20Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md) | `tools/sploitus.py` — pesquisa de exploits no Sploitus.com |
 | [US-063 Guide Tools](Epics/Scanner%20Agent/US-063-GUIDE-TOOLS-EXPLAINED.md) | `tools/guide.py` — armazenamento e busca semantica de playbooks com redacao de dados sensiveis |
-| [US-066 Browser Upgrade](Epics/Scanner%20Agent/US-066-BROWSER-IMPROVEMENT-EXPLAINED.md) | `tools/browser.py` — Upgrade para Playwright (JS rendering + screenshots) |
 
 ### Avaliação de Agentes
 
@@ -135,7 +135,6 @@ Hub note: [[Epics/Agent Evaluation/README|Agent Evaluation]]
 | Doc | Descrição |
 |---|---|
 | [US-068 Searcher Eval Infra](Epics/Searcher%20Agent%20Evaluation/US-068-SEARCHER-EVAL-INFRA-EXPLAINED.md) | Infraestrutura base de avaliações, gravação de trajectories |
-| [US-069 Searcher Dataset](Epics/Searcher%20Agent%20Evaluation/US-069-SEARCHER-DATASET-EXPLAINED.md) | Ground truth dataset e testes de avaliação para o agente Searcher |
 
 ## Related Notes
 
