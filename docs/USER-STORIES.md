@@ -2749,7 +2749,7 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 
 ---
 
-### US-060: Searcher Agent Completo + Delegation Handler
+### US-060: Searcher Agent Completo + Delegation Handler (DONE)
 
 **Epic:** Searcher Agent
 
