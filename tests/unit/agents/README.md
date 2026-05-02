@@ -8,6 +8,7 @@ Testes unitários de `agents/base.py` — o padrão base reutilizável por todos
 |---|---|
 | `__init__.py` | Package init |
 | `test_base.py` | Testa `AgentState`, `BarrierAwareToolNode`, `create_agent_graph` |
+| `test_generator.py` | Testa `generate_subtasks`: validação de saída, toolset condicional com/sem Docker, fallback de provider/model e erros de barrier/contagem |
 
 ## O que é testado
 
@@ -18,4 +19,5 @@ Testes unitários de `agents/base.py` — o padrão base reutilizável por todos
 
 ## Módulo de produção
 
-`src/pentest/agents/base.py` — ver `docs/Epics/Generator agent/US-037-BASE-GRAPH-EXPLAINED.md`
+- `src/pentest/agents/base.py` — ver `docs/Epics/Generator agent/US-037-BASE-GRAPH-EXPLAINED.md`
+- `src/pentest/agents/generator.py` — ver `docs/Epics/Generator agent/US-044-GENERATOR-AGENT-EXPLAINED.md`

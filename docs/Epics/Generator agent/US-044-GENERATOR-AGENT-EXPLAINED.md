@@ -4,7 +4,7 @@ tags: [agents]
 
 # US-044: Generator Agent Completo — Explicacao Detalhada
 
-Este documento explica a implementacao do Generator agent funcional, que integra o base graph (US-037), as tools (US-038 a US-041), o skill index (US-042) e o prompt renderer (US-043) num unico entry point chamavel pelo controller. Os ficheiros explicados sao `src/pentest/agents/generator.py`, `src/pentest/agents/__init__.py`, `tests/agent/test_generator_agent.py`, `tests/unit/agents/test_generator.py` e `tests/e2e/test_generator_claude_e2e.py`.
+Este documento explica a implementacao do Generator agent funcional, que integra o base graph (US-037), as tools (US-038 a US-041), o skill index (US-042) e o prompt renderer (US-043) num unico entry point chamavel pelo controller. Os ficheiros explicados sao `src/pentest/agents/generator.py`, `src/pentest/agents/__init__.py`, `tests/agent/test_generator_agent.py`, `tests/unit/agents/test_generator.py` e `tests/e2e/test_generator_llm_e2e.py`.
 
 ---
 

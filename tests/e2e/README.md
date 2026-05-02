@@ -1,6 +1,6 @@
 # tests/e2e/
 
-Testes end-to-end com LLM real, Docker e serviços reais. Correm automaticamente no push para `main` no CI. Requerem `OPENAI_API_KEY` e `TAVILY_API_KEY`.
+Testes end-to-end com LLM real, Docker e serviços reais. Nesta repo são executados manualmente (`workflow_dispatch`) no CI. Requerem chaves de provider LLM e, conforme cenário, `TAVILY_API_KEY`.
 
 ## Subdirectórios
 
@@ -9,11 +9,19 @@ Testes end-to-end com LLM real, Docker e serviços reais. Correm automaticamente
 | `database/` | Migrations e modelos contra PostgreSQL real |
 | `tools/` | Tavily search com API key real |
 
+## Ficheiros de e2e do Generator
+
+| Ficheiro | O que testa |
+|---|---|
+| `test_generator_llm_e2e.py` | `generate_subtasks` com LLM real provider-agnostic; valida contrato de saída (1-15 subtasks, title/description, pelo menos uma `fase`) |
+
 ## Como correr
 
 ```bash
-# Necessita variáveis de ambiente
+# Necessita variáveis de ambiente (exemplos)
 export OPENAI_API_KEY=sk-...
+# ou
+export ANTHROPIC_API_KEY=sk-ant-...
 export TAVILY_API_KEY=tvly-...
 
 pytest tests/e2e/ -v -m e2e
@@ -23,7 +31,10 @@ pytest tests/e2e/ -v -m e2e
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
-| `OPENAI_API_KEY` | Sim | Chave OpenAI para LLM real |
+| `OPENAI_API_KEY` | Sim (se provider OpenAI) | Chave OpenAI para LLM real |
+| `ANTHROPIC_API_KEY` | Sim (se provider Anthropic) | Chave Anthropic para LLM real |
+| `GENERATOR_PROVIDER` | Opcional | Provider específico do Generator (ex: `openai`, `anthropic`) |
+| `LLM_PROVIDER` | Opcional | Provider default global quando não há override por agente |
 | `TAVILY_API_KEY` | Para tools/e2e | Chave Tavily para search real |
 | `DATABASE_URL` | Para database/e2e | URL PostgreSQL (default: devcontainer) |
 | `GRAPHITI_REAL_E2E` | Opcional | `true` activa validação estrita do Graphiti |

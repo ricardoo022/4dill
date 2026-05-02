@@ -24,15 +24,35 @@ def _load_provider_key_from_dotenv() -> str:
     """
     from pentest.config import get_default_provider
 
-    # Check providers in order: explicit GENERATOR_PROVIDER, then default
-    providers_to_try = []
+    # Check providers in order:
+    # 1) explicit GENERATOR_PROVIDER / LLM_PROVIDER
+    # 2) key-driven preference (OPENAI first, then Anthropic)
+    # 3) default provider and remaining known providers.
+    providers_to_try: list[str] = []
     if os.getenv("GENERATOR_PROVIDER"):
         providers_to_try.append(os.getenv("GENERATOR_PROVIDER").lower())
-    providers_to_try.append(get_default_provider())
+    if os.getenv("LLM_PROVIDER"):
+        llm_provider = os.getenv("LLM_PROVIDER").lower()
+        if llm_provider not in providers_to_try:
+            providers_to_try.append(llm_provider)
+
+    if os.getenv("OPENAI_API_KEY") and "openai" not in providers_to_try:
+        providers_to_try.append("openai")
+    if os.getenv("ANTHROPIC_API_KEY") and "anthropic" not in providers_to_try:
+        providers_to_try.append("anthropic")
+
+    default_provider = get_default_provider()
+    if default_provider not in providers_to_try:
+        providers_to_try.append(default_provider)
+
+    for fallback_provider in ("anthropic", "openai"):
+        if fallback_provider not in providers_to_try:
+            providers_to_try.append(fallback_provider)
 
     for provider in providers_to_try:
         key_env_var = f"{provider.upper()}_API_KEY"
         if os.getenv(key_env_var):
+            os.environ["GENERATOR_PROVIDER"] = provider
             return provider
 
     # Try loading from .env file
@@ -58,6 +78,7 @@ def _load_provider_key_from_dotenv() -> str:
         key_env_var = f"{provider.upper()}_API_KEY"
         if key_env_var in env_vars:
             os.environ[key_env_var] = env_vars[key_env_var]
+            os.environ["GENERATOR_PROVIDER"] = provider
             return provider
 
     return providers_to_try[-1]
@@ -104,9 +125,8 @@ async def test_generate_subtasks_with_real_llm(
             f"Supported providers: anthropic, openai"
         )
 
-    # Clear any explicit model/provider overrides so config resolution works
+    # Clear explicit model override so provider resolution still follows env/config.
     monkeypatch.delenv("GENERATOR_MODEL", raising=False)
-    monkeypatch.delenv("GENERATOR_PROVIDER", raising=False)
 
     profile = BackendProfile(
         primary_target="https://example.com",

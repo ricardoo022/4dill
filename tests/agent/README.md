@@ -27,4 +27,5 @@ pytest tests/agent/ -v -m agent
 | Ficheiro | Descricao |
 |---|---|
 | `__init__.py` | Package init |
+| `test_generator_agent.py` | Testes do Generator em camada agent: plano realista, seleção de tools com/sem Docker, erro quando barrier não é atingido |
 | `test_placeholder.py` | Placeholder para smoke test da camada de agentes |
