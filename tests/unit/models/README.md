@@ -6,10 +6,13 @@ Testes unitários de `models/` — validação dos schemas Pydantic partilhados.
 
 | Ficheiro | Descricao |
 |---|---|
+| `test_hack.py` | Testa `ExploitInfo` e `PayloadConfig` — validação de payloads e exploits |
 | `test_search_us054.py` | Testa `SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction` (US-054) |
 
 ## O que é testado
 
+- `ExploitInfo`: validação de campos de exploit (CVE, target, etc.)
+- `PayloadConfig`: validação de payloads complexos
 - `SearchResult`: campos obrigatórios e opcionais, validação de URL
 - `SearchAction`: criação com queries simples e compostas
 - `ComplexSearch`: lista de `SearchAction`, validação de estrutura

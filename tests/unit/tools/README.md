@@ -10,6 +10,8 @@ Testes unitários de `tools/` — todas as tool factories e handlers com depend�
 | `test_browser.py` | Testa `BrowserTool`: fetch HTTP mockado, parse markdown/HTML, fallback parsers |
 | `test_duckduckgo.py` | Testa tool DuckDuckGo: resultados formatados, truncation, availability check |
 | `test_graphiti_search.py` | Testa `create_graphiti_search_tool()` e `create_mock_graphiti_search_tool()` |
+| `test_guide.py` | Testa `search_guide` e `store_guide` — anonimização, deduplicação e threshold filtering |
+| `test_sploitus.py` | Testa `sploitus_search` — integração mockada com Sploitus API |
 | `test_stubs.py` | Testa `memorist` e `searcher` stubs — retornam mensagens graciosas |
 | `test_tavily.py` | Testa tool Tavily: answer, fontes rankeadas, API key check |
 | `test_terminal_file.py` | Testa `create_terminal_tool()` e `create_file_tool()` — closures com docker_client mockado |

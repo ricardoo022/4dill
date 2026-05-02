@@ -1,7 +1,10 @@
 import os
+import re
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from pentest.database.connection import close_db, get_session, init_db
 from pentest.database.models import Base, create_vector_extension
@@ -15,9 +18,36 @@ TEST_DATABASE_URL = os.getenv(
 )
 
 
+async def ensure_test_db_exists(url: str):
+    """Ensure the test database exists by creating it if necessary.
+
+    Connects to the default 'postgres' database and runs CREATE DATABASE.
+    """
+    match = re.search(r"/([^/]+)$", url)
+    if not match:
+        return
+    dbname = match.group(1)
+
+    # Reconstruct URL to connect to the default 'postgres' database
+    postgres_url = url.replace(f"/{dbname}", "/postgres")
+
+    # Use isolation_level="AUTOCOMMIT" to run CREATE DATABASE
+    engine = create_async_engine(postgres_url, isolation_level="AUTOCOMMIT")
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(text(f"SELECT 1 FROM pg_database WHERE datname='{dbname}'"))
+            if not result.scalar():
+                await conn.execute(text(f"CREATE DATABASE {dbname}"))
+    finally:
+        await engine.dispose()
+
+
 @pytest.fixture()
 async def db_schema():
     """Initialize schema for E2E tests."""
+    # Ensure database exists first
+    await ensure_test_db_exists(TEST_DATABASE_URL)
+
     await init_db(TEST_DATABASE_URL, echo=False)
 
     async with get_session() as session:
@@ -55,7 +85,10 @@ def openai_api_key():
 @pytest.fixture
 def guide_tools_available(openai_api_key):
     """Ensure Guide tools are available before running E2E tests."""
-    if not is_available() or openai_api_key.startswith("sk-"):
+    # We pass None for db_session just to check the API key part of is_available
+    # or we can check is_available implementation details if needed.
+    # Since we are in E2E, we know we have a DB session in the test itself.
+    if not is_available(db_session=MagicMock()) or openai_api_key == "sk-xxx":
         pytest.skip("Guide tools not available or placeholder OPENAI_API_KEY - skipping E2E tests")
 
 
@@ -113,5 +146,7 @@ async def test_search_guide_fallback_e2e(db_session, guide_tools_available):
             "message": "Searching non-existent guide",
         }
         result = await search_tool.arun(search_args)
-        assert "nothing found in guide store" in result
-        assert "category 'other'" in result
+        assert (
+            result
+            == "nothing found in guide store and you need to store it after figure out this case"
+        )

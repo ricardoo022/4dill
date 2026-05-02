@@ -1,3 +1,7 @@
+---
+tags: [planning, scanner-agent, memory]
+---
+
 # Deep Dive: US-063 - Guide Tools (Search & Store)
 
 Esta User Story implementa a memória de metodologias (Guides) para o **Scanner Agent**. Diferente do histórico de execução, os Guides são playbooks reutilizáveis que auxiliam o agente a executar ataques, bypasses e reconhecimentos complexos.
@@ -8,8 +12,9 @@ Esta User Story implementa a memória de metodologias (Guides) para o **Scanner 
 2.  **Categorias Estritas (Enums)**: As ferramentas utilizam um Enum estrito para categorias, garantindo conformidade com os playbooks do sistema: `["install", "configure", "use", "pentest", "development", "other"]`.
 3.  **Rastreabilidade (Metadados)**: A ferramenta `store_guide` captura metadados essenciais para orquestração, incluindo `flow_id`, `task_id`, `subtask_id`, e informações de particionamento (`part_size`, `total_size`).
 4.  **Limiares e Filtros**:
-    *   **Threshold**: Apenas resultados com distância de cosseno <= 0.2 (Score >= 0.8) são considerados.
-    *   **Filtro**: A busca é restrita a documentos com `doc_type="guide"` e uma categoria específica (`guide_type`).
+    11:     *   **Threshold**: Apenas resultados com distância de cosseno <= 0.4 (Score >= 0.6) são considerados.
+    12:     *   **Filtro**: A busca é restrita a documentos com `doc_type="guide"` e uma categoria específica (`guide_type`).
+
 5.  **Anonimização Automática**: Antes de armazenar um guia via `store_guide`, o conteúdo passa por um processo de limpeza que mascara:
     *   Endereços IPv4.
     *   Credenciais em URLs (`http://user:pass@host`).

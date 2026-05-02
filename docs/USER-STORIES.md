@@ -2975,19 +2975,19 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/tools/guide.py`, `src/pentest/models/tool_args.py`, `src/pentest/tools/__init__.py`, `src/pentest/tools/README.md`
 
 **Acceptance Criteria:**
-- [ ] `SearchGuideAction` Pydantic model com campos:
+- [x] `SearchGuideAction` Pydantic model com campos:
   - `questions: list[str]` (required, 1 a 5 items)
   - `type: Literal["install", "configure", "use", "pentest", "development", "other"]`
   - `message: str` (required) — resumo curto interno da pesquisa
-- [ ] `StoreGuideAction` Pydantic model com campos:
+- [x] `StoreGuideAction` Pydantic model com campos:
   - `guide: str` (required) — guia pronto em markdown
   - `question: str` (required) — pergunta/origem do guia
   - `type: Literal["install", "configure", "use", "pentest", "development", "other"]`
   - `message: str` (required) — resumo curto interno do store
-- [ ] `create_guide_tool(...)` ou equivalente implementa **ambos** os nomes de tool:
+- [x] `create_guide_tool(...)` ou equivalente implementa **ambos** os nomes de tool:
   - `search_guide`
   - `store_guide`
-- [ ] `search_guide`:
+- [x] `search_guide`:
   1. Pesquisa no vector store com filtro `doc_type="guide"`
   2. Aplica também filtro `guide_type=<type>`
   3. Executa 1-5 queries semânticas
@@ -2996,12 +2996,12 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
   6. Faz merge + deduplicação + sort por score
   7. Retorna no máximo `3` resultados
   8. Se nada for encontrado, retorna a mensagem equivalente a `"nothing found in guide store and you need to store it after figure out this case"`
-- [ ] Output de `search_guide` é legível pelo agente e inclui por documento:
+- [x] Output de `search_guide` é legível pelo agente e inclui por documento:
   - match score
   - guide type original
   - question original
   - content
-- [ ] `store_guide`:
+- [x] `store_guide`:
   1. Constrói documento a partir de `Question:\n{question}\n\nGuide:\n{guide}`
   2. Anonimiza dados sensíveis antes de guardar
   3. Guarda no vector store com metadata:
@@ -3014,9 +3014,9 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
      - `part_size`
      - `total_size`
   4. Retorna `"guide stored successfully"`
-- [ ] `is_available()` ou equivalente só retorna `True` quando o vector store está configurado
-- [ ] Erros de parsing / vector store / storage retornam erro claro; quando fizer sentido seguir o padrão actual do projecto, o agente deve receber string legível em vez de crash do loop
-- [ ] As tools são classificadas correctamente:
+- [x] `is_available()` ou equivalente só retorna `True` quando o vector store está configurado
+- [x] Erros de parsing / vector store / storage retornam erro claro; quando fizer sentido seguir o padrão actual do projecto, o agente deve receber string legível em vez de crash do loop
+- [x] As tools são classificadas correctamente:
   - `search_guide` = vector DB search tool
   - `store_guide` = vector DB store tool
 
@@ -3034,21 +3034,21 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - O Scanner deve usar `search_guide` para perguntar "como devo abordar isto?" e `store_guide` apenas quando descobrir uma técnica realmente reutilizável
 
 **Tests Required:**
-- [ ] `SearchGuideAction` valida 1-5 queries e rejecta listas vazias ou >5
-- [ ] `StoreGuideAction` valida campos obrigatórios e enums
-- [ ] `search_guide` com resultados mock do vector store retorna texto formatado com score, guide type, original question e content
-- [ ] `search_guide` faz merge/dedup de resultados vindos de múltiplas queries
-- [ ] `search_guide` respeita threshold e máximo de 3 resultados finais
-- [ ] `search_guide` sem resultados retorna a mensagem de not found
-- [ ] `store_guide` chama o vector store com conteúdo anonimizado e metadata correcta
-- [ ] `store_guide` retorna `guide stored successfully`
-- [ ] `is_available()` reflecte correctamente a presença/ausência do vector store
-- [ ] E2E / real-data test: com vector store real configurado, guardar um guide e pesquisá-lo depois devolve conteúdo relevante para uma query semântica relacionada
+- [x] `SearchGuideAction` valida 1-5 queries e rejecta listas vazias ou >5
+- [x] `StoreGuideAction` valida campos obrigatórios e enums
+- [x] `search_guide` com resultados mock do vector store retorna texto formatado com score, guide type, original question e content
+- [x] `search_guide` faz merge/dedup de resultados vindos de múltiplas queries
+- [x] `search_guide` respeita threshold e máximo de 3 resultados finais
+- [x] `search_guide` sem resultados retorna a mensagem de not found
+- [x] `store_guide` chama o vector store com conteúdo anonimizado e metadata correcta
+- [x] `store_guide` retorna `guide stored successfully`
+- [x] `is_available()` reflecte correctamente a presença/ausência do vector store
+- [x] E2E / real-data test: com vector store real configurado, guardar um guide e pesquisá-lo depois devolve conteúdo relevante para uma query semântica relacionada
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O Scanner passa a ter memória reutilizável de metodologias, alinhada com o protocolo do PentAGI
+- [x] Code written and passing all tests
+- [x] Code reviewed
+- [x] O Scanner passa a ter memória reutilizável de metodologias, alinhada com o protocolo do PentAGI
 
 **Dependencies:** US-010 (Vector Store Model)
 **Estimated Complexity:** M

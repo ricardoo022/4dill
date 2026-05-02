@@ -10,11 +10,13 @@ from pentest.tools.guide import _anonymize_content, create_guide_tools, is_avail
 
 def test_is_available():
     """Test is_available check."""
+    mock_session = MagicMock()
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
-        assert is_available() is True
+        assert is_available(mock_session) is True
+        assert is_available(None) is False
 
     with patch.dict(os.environ, {}, clear=True):
-        assert is_available() is False
+        assert is_available(mock_session) is False
 
 
 def test_anonymize_content():
@@ -75,7 +77,10 @@ async def test_search_guide_nothing_found():
         result = await search_tool.arun(
             {"questions": ["how to bypass waf"], "type": "pentest", "message": "searching"}
         )
-        assert "nothing found in guide store" in result
+        assert (
+            result
+            == "nothing found in guide store and you need to store it after figure out this case"
+        )
 
 
 @pytest.mark.asyncio
@@ -115,8 +120,19 @@ async def test_search_guide_merge_and_deduplicate():
 
         # Check result contains both but unique
         assert "Found 2 relevant guides" in result
-        assert '[Score: 0.95] Q: "WAF bypass"' in result  # Higher score from second query
-        assert '[Score: 0.85] Q: "SQLi methodology"' in result
+        assert (
+            '[Score: 0.95] [Type: pentest] Q: "WAF bypass"' in result
+        )  # Higher score from second query
+        assert '[Score: 0.85] [Type: pentest] Q: "SQLi methodology"' in result
+
+        # Verify threshold filtering in the SQL query
+        assert mock_session.execute.call_count == 2
+        for call in mock_session.execute.call_args_list:
+            stmt = call[0][0]
+            # Inspect the parameters of the compiled statement
+            compiled = stmt.compile()
+            # The distance threshold 0.4 should be in the parameters
+            assert 0.4 in compiled.params.values()
 
 
 @pytest.mark.asyncio

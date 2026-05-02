@@ -7,11 +7,13 @@ Testes E2E de `tools/` com serviços externos reais.
 | Ficheiro | Descricao |
 |---|---|
 | `__init__.py` | Package init |
+| `test_guide_e2e.py` | Testa Guide search e store com real DB e OpenAI embeddings round-trip |
 | `test_tavily_e2e.py` | Testa Tavily search com `TAVILY_API_KEY` real: answer gerada por IA, fontes rankeadas |
 
 ## O que é testado
 
 - Tavily devolve `answer` não-vazia para queries de segurança/pentest
+- `search_guide` e `store_guide` round-trip: anonimização, armazenamento vetorial e recuperação semântica
 - Fontes devolvidas têm URL e score válidos
 - Resultado formatado correctamente para consumo pelo Searcher agent
 
