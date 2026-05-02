@@ -4,6 +4,8 @@ description: |
   Full PR review cycle for the LusitAI aipentest project. Given a PR number (or the
   current branch), this skill fetches the diff, identifies the User Story being
   implemented, reads the acceptance criteria and required tests from USER-STORIES.md,
+  routes framework-specific judgment through official LangChain/LangGraph/Deep Agents
+  skills using docs/LANGCHAIN-SKILLS-GUIDE.md as routing source of truth,
   enforces validation with real infrastructure tests (integration/agent/e2e) whenever
   the story impacts runtime behavior, rejects mock-only evidence for behavior that can
   be tested with Docker/PostgreSQL/Neo4j/real HTTP, runs a pre-landing code quality
@@ -20,6 +22,9 @@ description: |
 End-to-end PR review tailored to this project's conventions. Covers: diff analysis,
 User Story traceability, test execution, architecture coherence, and a final APPROVE /
 REQUEST CHANGES verdict with actionable inline comments.
+
+When the PR touches LangChain/LangGraph/Deep Agents concerns, invoke the corresponding
+official skill(s) to support technical judgment instead of relying only on generic review.
 
 ## Argument
 
@@ -105,6 +110,51 @@ From the User Story, extract and record:
 - **Acceptance Criteria** — every checklist item that must be satisfied
 - **Tests Required** — the specific test scenarios that must exist and pass
 - **Technical Notes** — implementation constraints
+
+---
+
+### Phase 2.5 — Route to LangChain/LangGraph Skills (When Applicable)
+
+Before evaluating architecture or tests in depth, decide whether specialized framework
+skills are required. Use `docs/LANGCHAIN-SKILLS-GUIDE.md` as the routing source of truth.
+
+Execute this routing checklist:
+
+1. Read changed files and PR scope signals (paths, symbols, behavior changed).
+2. Match detected scope to the guide's "Quando" and "No projecto" sections.
+3. Invoke the relevant skill(s) and incorporate their guidance into later phases.
+4. Record in review notes which skill(s) were invoked and why.
+
+Routing matrix (derived from `docs/LANGCHAIN-SKILLS-GUIDE.md`):
+
+- Invoke `/langgraph-fundamentals` when PR changes `StateGraph`, graph nodes/edges,
+  routing loops, `Command`, `Send`, streaming, or agent-chain orchestration.
+- Invoke `/langchain-fundamentals` when PR changes `create_agent()`, `@tool`, tool
+  binding, agent construction, or tool interface contracts.
+- Invoke `/langgraph-persistence` when PR changes checkpointers, `thread_id`, state
+  recovery, Store usage, or persistence boundaries.
+- Invoke `/langchain-middleware` when PR changes tool interception, reflection/retry,
+  human approval middleware, or structured output middleware.
+- Invoke `/langgraph-human-in-the-loop` when PR changes `interrupt()`,
+  `Command(resume=...)`, barrier pause/resume flows, or approval/validation flows.
+- Invoke `/langchain-rag` when PR changes embeddings, retrievers, vector stores,
+  Memorist behavior, semantic memory tools, or ingestion/index pipelines.
+- Invoke `/deep-agents-orchestration` when PR changes subagent delegation, planning,
+  or task decomposition middleware.
+- Invoke `/deep-agents-memory` when PR changes StateBackend/StoreBackend/Composite
+  backend logic or filesystem-memory routing.
+- Invoke `/deep-agents-core` when PR introduces or refactors `create_deep_agent()`
+  harness-level behavior.
+- Invoke `/framework-selection` only when PR proposes changing framework layer choices
+  (LangChain vs LangGraph vs Deep Agents).
+- Invoke `/langchain-dependencies` when PR changes framework dependency versions,
+  provider packages, or installation/setup constraints.
+
+Invocation policy:
+
+- Invoke no framework skill only when PR does not touch these concerns (document why N/A).
+- Invoke multiple skills when scope crosses boundaries (e.g., graph + middleware + persistence).
+- Treat missing required invocation as a review quality gap; fix it before issuing verdict.
 
 ---
 
@@ -219,6 +269,10 @@ When PR touches runtime flow/agents/tools/database/docker/mcp boundaries, run af
 
 Read `references/code-review-checklist.md` and apply it to the diff obtained in Phase 1.
 
+Before finalizing findings, merge insights gathered from Phase 2.5 skill invocations.
+If a specialized skill recommends stricter validation than the default checklist,
+apply the stricter rule.
+
 Run **Pass 1 (CRITICAL)** first, then **Pass 2 (INFORMATIONAL)**. For each finding:
 - Record the file, line number, category, and a one-line description.
 - Classify as `AUTO-FIX` or `ASK` using the Fix-First heuristic in the checklist.
@@ -284,6 +338,8 @@ Produce the following structured report:
 #### Summary
 
 One paragraph: what this PR implements, which US it closes, overall quality impression.
+
+Include which LangChain/LangGraph/Deep Agents skills were invoked (if any) and why.
 
 #### Acceptance Criteria Coverage
 
