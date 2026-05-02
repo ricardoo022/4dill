@@ -1,3 +1,7 @@
+---
+tags: [agents]
+---
+
 # Deep Dive: US-061 - HackResult Model & Barrier Tool
 
 Esta User Story define o contrato de dados entre o **Scanner Agent** e o **Orchestrator**. O objetivo é garantir que os resultados do escaneamento sejam retornados de forma estruturada e validada.
@@ -38,3 +42,11 @@ Para validar a tipagem e o linting:
 mypy src/pentest/models/hack.py
 ruff check src/pentest/models/hack.py
 ```
+
+## Related Notes
+
+- [[US-062-SPLOITUS-TOOL-EXPLAINED]] — Sploitus search tool, primeira ferramenta do Scanner agent
+- [[US-038-BARRIERS-EXPLAINED]] — padrão barrier tool (subtask_list, search_result, hack_result)
+- [[US-037-BASE-GRAPH-EXPLAINED]] — BarrierAwareToolNode, como as barreiras interrompem o loop
+- [[US-054-SEARCH-MODELS-EXPLAINED]] — SearchResult e SearchAction, estrutura análoga no Searcher
+- [[US-055-SEARCH-RESULT-BARRIER-EXPLAINED]] — coexistência de subtask_list e search_result

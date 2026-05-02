@@ -53,7 +53,7 @@ Normal execution is autonomous. `WAITING` states are valid for operational pause
 | `controller/` | Scan lifecycle orchestration (flow → task → subtask) | `pkg/controller/` |
 | `providers/` | LLM execution loop + agent chain | `pkg/providers/` |
 | `tools/` | Tool registry, executor, handlers (terminal, search, memory, browser, web search) | `pkg/tools/` |
-| `docker/` | Kali container management (create, exec, destroy) | `pkg/docker/` |
+| `docker/` | Kali container management (create, exec, file I/O, stop, destroy) | `pkg/docker/` |
 | `database/` | Persistence (flows, tasks, subtasks, containers, toolcalls, msgchains, termlogs, msglogs, vector_store) | `pkg/database/` |
 | `graphiti/` | Neo4j knowledge graph client | `pkg/graphiti/` |
 | `templates/` | Jinja2 prompt templates, one .md.j2 per agent | `pkg/templates/prompts/` |
@@ -114,7 +114,7 @@ The `postCreateCommand` installs the project in editable mode and runs `pre-comm
 
 ## Testing Strategy
 
-Four test layers, mapped to User Story acceptance criteria (see `/test-us` skill):
+Five test layers, mapped to User Story acceptance criteria (see `/test-us` skill):
 
 | Layer | Directory | Marker | Dependencies | CI |
 |---|---|---|---|---|
@@ -122,8 +122,9 @@ Four test layers, mapped to User Story acceptance criteria (see `/test-us` skill
 | **Integration** | `tests/integration/` | `@pytest.mark.integration` | PostgreSQL (testcontainers), Docker | Always |
 | **Agent** | `tests/agent/` | `@pytest.mark.agent` | Mocked LLM (respx) | Always |
 | **E2E** | `tests/e2e/` | `@pytest.mark.e2e` | Real LLM + Docker + target | Manual only (`workflow_dispatch`) |
+| **Evals** | `tests/evals/` | *(none)* | Real LLM + PortSwigger spinup | Manual only |
 
-Test stack: pytest, pytest-asyncio, pytest-cov, pytest-mock, testcontainers, polyfactory, respx, freezegun.
+Test stack: pytest, pytest-asyncio, pytest-cov, pytest-mock, pytest-timeout, testcontainers, polyfactory, respx, freezegun, playwright.
 
 **RULE — When a test fails, never change the test just to make it pass.** First determine whether the bug is in the production code or genuinely in the test itself (wrong assertion, stale fixture, incorrect expectation). Only modify a test if the test was wrong about what the code should do. If the code is wrong, fix the code. If it is unclear, stop and ask before touching either.
 
@@ -207,41 +208,61 @@ Detailed architecture docs (Portuguese) in `docs/`:
 - `Epics/Generator agent/US-041-STUBS-EXPLAINED.md` — memorist/searcher stub tools
 - `Epics/Generator agent/US-042-SKILL-LOADER-EXPLAINED.md` — skill index loader (SKILL.md frontmatter parsing)
 - `Epics/Generator agent/US-043-GENERATOR-PROMPTS-EXPLAINED.md` — Jinja2 prompt renderer, template variables, scan_path injection
+- `Epics/Generator agent/US-044-GENERATOR-AGENT-EXPLAINED.md` — full Generator agent: LLM resolution, skill loading, graph construction
 - `Epics/Knowledge Graph/US-034-NEO4J-GRAPHITI-DEVCONTAINER-EXPLAINED.md` — Neo4j + Graphiti devcontainer setup
 - `Epics/Knowledge Graph/US-035-GRAPHITI-CLIENT-EXPLAINED.md` — Graphiti async HTTP client
 - `Epics/Knowledge Graph/US-036-GRAPHITI-SEARCH-TOOL-EXPLAINED.md` — Graphiti search LangChain tool
+- `Epics/Knowledge Graph/GRAPHITI-TROUBLESHOOTING.md` — common Graphiti/Neo4j issues and fixes
 - `Epics/Database/US-006-SQLALCHEMY-ASYNC-CONNECTION-POOL-EXPLAINED.md` — async connection pool implementation details
 - `Epics/Database/US-007-DATABASE-ENUM-TYPES.md` — PostgreSQL enum types + SQLAlchemy wrappers
 - `Epics/Database/US-008-CORE-DB-MODELS.md` — Flow/Task/Subtask SQLAlchemy 2.0 models, cascade delete, soft-delete, indexes
+- `Epics/Database/US-009-SUPPORTING-DB-MODELS-EXPLAINED.md` — Toolcall, Msgchain, Termlog, Msglog SQLAlchemy models
+- `Epics/Database/US-010-VECTOR-STORE-MODEL-EXPLAINED.md` — VectorStore model, pgvector embedding column, ivfflat index
 - `Epics/Database/US-011-ALEMBIC-MIGRATIONS-EXPLAINED.md` — Alembic async env, initial migration design, idempotency, trigger function, ivfflat index
-- `Epics/Docker Sandbox/US-019-CONTAINER-UTILITIES-EXPLAINED.md` — container naming and port allocation utilities
+- `Epics/Database/US-012-Query-Functions-CRUD-Operations-EXPLAINED.md` — database/queries/ CRUD modules (8 modules, typed params, async query functions)
 - `Epics/Docker Sandbox/US-013-DOCKER-CLIENT-EXPLAINED.md` — Docker client init, config, network setup, DinD host_dir resolution
 - `Epics/Docker Sandbox/US-014A-IMAGE-MANAGEMENT-EXPLAINED.md` — ensure_image() flow: cache hit, pull with timeout, fallback logic, DockerImageError
 - `Epics/Docker Sandbox/US-014B-CONTAINER-CREATION-STARTUP-EXPLAINED.md` — run_container() flow: DB lifecycle (STARTING→RUNNING/FAILED), port bindings, CRC32 hostname, volume setup, bridge/host networking, image fallback retry
+- `Epics/Docker Sandbox/US-015-CONTAINER-EXEC-EXPLAINED.md` — exec_command() with timeout and detach support
+- `Epics/Docker Sandbox/US-016-File-Operations-EXPLAINED.md` — read_file() / write_file() container file I/O
+- `Epics/Docker Sandbox/US-017-CONTAINER-LIFECYCLE-EXPLAINED.md` — stop_container() / remove_container() with DB sync
+- `Epics/Docker Sandbox/US-018-STARTUP-CLEANUP-EXPLAINED.md` — container startup cleanup and recovery on boot
+- `Epics/Docker Sandbox/US-019-CONTAINER-UTILITIES-EXPLAINED.md` — container naming and port allocation utilities
 - `Epics/Agent Evaluation/EVAL-TARGETS.md` — vulnerable test targets by backend type
-- `Epics/Searcher agent/US-054-SEARCH-MODELS-EXPLAINED.md` — SearchResult, SearchAction, ComplexSearch, SearchAnswerAction Pydantic models
-- `Epics/Searcher agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md` — search_result barrier tool, coexistence with subtask_list, graph integration
-- `Epics/Searcher agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md` — DuckDuckGo web search tool and availability checks
-- `Epics/Searcher agent/US-057-TAVILY-SEARCH-TOOL-EXPLAINED.md` — Tavily web search tool with answer + ranked sources
+- `Epics/Agent Evaluation/US-045-PORTSWIGGER-MVP-DATASET-EXPLAINED.md` — PortSwigger MVP dataset design and lab selection
+- `Epics/Agent Evaluation/US-046-PORTSWIGGER-SPINUP-EXPLAINED.md` — PortSwigger lab spinup automation and eval harness
+- `Epics/Searcher Agent/US-054-SEARCH-MODELS-EXPLAINED.md` — SearchResult, SearchAction, ComplexSearch, SearchAnswerAction Pydantic models
+- `Epics/Searcher Agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md` — search_result barrier tool, coexistence with subtask_list, graph integration
+- `Epics/Searcher Agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md` — DuckDuckGo web search tool and availability checks
+- `Epics/Searcher Agent/US-057-TAVILY-SEARCH-TOOL-EXPLAINED.md` — Tavily web search tool with answer + ranked sources
+- `Epics/Searcher Agent/US-058-SEARCH-ANSWER-TOOL-EXPLAINED.md` — create_search_answer_tool() pgvector semantic search for Memorist
+- `Epics/Searcher Agent/US-059-Searcher-prompt-templates-EXPLAINED.md` — render_searcher_prompt(), searcher_system.md.j2 / searcher_user.md.j2
+- `Epics/Scanner Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md` — HackResult Pydantic model for Scanner agent output
+- `Epics/Scanner Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md` — Sploitus.com exploit search tool, result formatting, truncation
 
 ## Development Notes
 
-- Project is in early implementation — several `src/pentest/` modules are still `__init__.py` stubs (`controller/`, `mcp/`, `providers/`, `agents/` except base.py)
+- Project is in early implementation — several `src/pentest/` modules are still `__init__.py` stubs (`controller/`, `mcp/`, `providers/` except factory.py, `agents/` except base.py + generator.py)
 - **Implemented modules:**
+  - `config.py` — `LLMConfig` Pydantic model; reads provider + model from env vars (`LLM_PROVIDER`, `LLM_MODEL`, per-agent overrides like `GENERATOR_LLM_MODEL`); used by `providers/factory.py`
+  - `providers/factory.py` — `create_chat_model()` factory + `resolve_provider_config()`; supports Anthropic and OpenAI; selects provider and model per agent via `LLMConfig`
   - `recon/` — backend detection (supabase, firebase, custom_api, subdomains, orchestrator)
   - `agents/base.py` — LangGraph base graph pattern (BarrierAwareToolNode, AgentState, create_agent_graph)
-  - `models/` — subtask.py, recon.py, tool_args.py, search.py (Pydantic schemas; search.py has `SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction`)
-  - `tools/` — barriers.py (`subtask_list` + `search_result`), terminal.py, file.py (Docker execution via factory closures), browser.py (HTTP content fetching), stubs.py (memorist/searcher placeholders), graphiti_search.py (Graphiti knowledge graph search), duckduckgo.py (DuckDuckGo web search), tavily.py (Tavily web search), registry.py (tool registry dataclasses)
+  - `agents/generator.py` — full Generator agent: resolves LLM via `providers/factory.py`, loads FASE skill index, renders prompt via `templates/renderer.py`, builds tool list, calls `create_agent_graph()`
+  - `models/` — subtask.py, recon.py, tool_args.py, search.py (Pydantic schemas; search.py has `SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction`), hack.py (`HackResult` with `result` + `message` fields for Scanner output)
+  - `tools/` — barriers.py (`subtask_list` + `search_result`), terminal.py, file.py (Docker execution via factory closures), browser.py (HTTP content fetching), stubs.py (memorist/searcher placeholders), graphiti_search.py (Graphiti knowledge graph search), duckduckgo.py (DuckDuckGo web search), tavily.py (Tavily web search), search_memory.py (`create_search_answer_tool()` pgvector semantic search for Memorist), sploitus.py (Sploitus.com exploit search with result formatting/truncation), registry.py (tool registry dataclasses)
   - `skills/loader.py` — `load_fase_index()` parses SKILL.md frontmatter for Generator prompt injection; `load_fase_skill()` loads full SKILL.md for Scanner
   - `database/connection.py` — async engine init, session context manager, connection pool (pool_size=10, max_overflow=20)
   - `database/exceptions.py` — `DatabaseConnectionError` with hostname/port context
   - `database/enums.py` — 10 PostgreSQL StrEnum types + SQLAlchemy wrappers (all with `values_callable` for lowercase serialization)
   - `database/models.py` — `Flow`, `Task`, `Subtask`, `Container`, `Toolcall`, `Msgchain`, `Termlog`, `Msglog`, `VectorStore` SQLAlchemy 2.0 models; cascade delete, soft-delete (`deleted_at`), timezone-aware timestamps, ivfflat index on `VectorStore.embedding`; `create_vector_extension(AsyncConnection)` helper
+  - `database/queries/` — 8 CRUD modules: containers.py, flows.py, msgchains.py, msglogs.py, subtasks.py, tasks.py, termlogs.py, toolcalls.py; each exports `Create*Params` dataclass + typed async query functions (create, get, list)
   - `alembic/` — fully configured: `alembic.ini` (env-driven URL), async `env.py`, `versions/001_initial_schema.py` (all 9 runtime tables, 10 enums, 6 triggers, ivfflat index, pgvector extension)
   - `templates/renderer.py` — `render_generator_prompt()` using Jinja2; templates live in `templates/prompts/` as `.md.j2` files (currently `generator_system.md.j2`, `generator_user.md.j2`)
+  - `templates/searcher.py` — `render_searcher_prompt()` stub for the Searcher agent (searcher `.md.j2` templates not yet created)
   - `graphiti/` — config.py (env-based settings), client.py (async HTTP client with 7 search methods), models.py (typed request/response models), local_fallback.py (local Neo4j fallback for ingestion/search when Graphiti server is unavailable; regex-based entity extraction for hosts, CVEs, ports, credentials, URLs, products)
   - `docker/utils.py` — container naming (`primary_terminal_name`) and deterministic port allocation (`get_primary_container_ports`)
-  - `docker/client.py` — `DockerClient` with `ensure_image()` (cache → pull → fallback → `DockerImageError`), `_pull_image()` with configurable timeout via `ThreadPoolExecutor`, `DockerConfig.pull_timeout` (default 300s); `run_container(container_type, flow_id, image, host_config)` creates and starts a flow container with full DB lifecycle (STARTING → RUNNING / FAILED), deterministic port bindings, CRC32 hostname, volume setup, bridge/host networking, and image fallback retry; helpers: `_crc32_hostname()`, `_resolve_flow_paths()`, `_build_port_bindings()`, `_build_volumes()`, `_build_run_kwargs()`
+  - `docker/client.py` — `DockerClient` with `ensure_image()` (cache → pull → fallback → `DockerImageError`), `_pull_image()` with configurable timeout via `ThreadPoolExecutor`, `DockerConfig.pull_timeout` (default 300s); `run_container()` creates and starts a flow container with full DB lifecycle (STARTING → RUNNING / FAILED), deterministic port bindings, CRC32 hostname, volume setup, bridge/host networking, and image fallback retry; `exec_command(container_id, cmd, timeout, detach)` runs commands inside a running container; `read_file(container_id, path)` / `write_file(container_id, path, content)` for container file I/O; `stop_container(container_id)` / `remove_container(container_id)` with DB sync (RUNNING → STOPPED / REMOVED); helpers: `_crc32_hostname()`, `_resolve_flow_paths()`, `_build_port_bindings()`, `_build_volumes()`, `_build_run_kwargs()`
   - `docker/config.py` — `DockerConfig` Pydantic model with `pull_timeout: int = 300`
   - `docker/exceptions.py` — `DockerConnectionError`, `DockerImageError`
 - `.devcontainer/` is configured and functional

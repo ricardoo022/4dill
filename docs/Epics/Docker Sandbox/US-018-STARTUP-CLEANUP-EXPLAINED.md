@@ -2,7 +2,7 @@
 epic: Docker Sandbox
 status: completed
 us_id: "018"
-tags: [docker, cleanup, synchronization, idempotency, selectinload]
+tags: [docker]
 ---
 
 # US-018: Startup Cleanup - Docker Sandbox Finalization (Deep Dive)

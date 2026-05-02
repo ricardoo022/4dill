@@ -516,7 +516,7 @@ Cada modelo Python corresponde a uma tabela Go com o mesmo nome. As diferencas p
 
 ---
 
-## Ligacoes para Documentacao Relacionada
+## Related Notes
 
 - **US-008-CORE-DB-MODELS-EXPLAINED.md** — modelos core (Flow, Task, Subtask)
 - **US-007-DATABASE-ENUM-TYPES-EXPLAINED.md** — tipos enum usados nos modelos

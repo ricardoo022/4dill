@@ -1,3 +1,7 @@
+---
+tags: [docker]
+---
+
 # US-017: Container Lifecycle (Stop and Remove) - EXPLAINED
 
 ## Architecture Decisions
@@ -24,3 +28,11 @@ Integration tests require a running Docker daemon and a reachable PostgreSQL dat
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/pentagidb_test \
 .venv/bin/pytest tests/integration/docker/test_lifecycle.py -v
 ```
+
+## Related Notes
+
+- [[US-014B-CONTAINER-CREATION-STARTUP-EXPLAINED]] — run_container(), DB lifecycle STARTING → RUNNING / FAILED
+- [[US-018-STARTUP-CLEANUP-EXPLAINED]] — cleanup de containers órfãos no arranque do sistema
+- [[US-016-File-Operations-EXPLAINED]] — read_file() / write_file() dentro do container
+- [[US-015-CONTAINER-EXEC-EXPLAINED]] — exec_command() com timeout e detach
+- [[US-013-DOCKER-CLIENT-EXPLAINED]] — DockerClient init, config, network setup

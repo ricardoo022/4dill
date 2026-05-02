@@ -18,6 +18,7 @@ Documentação de arquitectura, implementação e planning do projecto.
 | [EXECUTION-FLOW](EXECUTION-FLOW.md) | Fluxo completo (7 fases, estado DB em cada passo) |
 | [PROJECT-STRUCTURE](PROJECT-STRUCTURE.md) | Mapeamento PentAGI Go → Python, stack técnica |
 | [DATABASE-SCHEMA](DATABASE-SCHEMA.md) | 20 tabelas PostgreSQL + pgvector |
+| [DATABASE_SETUP](DATABASE_SETUP.md) | Guia de setup PostgreSQL (extensões, URL, devcontainer vs. CI) |
 
 ## Planning
 
@@ -95,7 +96,17 @@ Hub note: [[Epics/Docker Sandbox/README|Docker Sandbox]]
 | [US-014A Image Management](Epics/Docker%20Sandbox/US-014A-IMAGE-MANAGEMENT-EXPLAINED.md) | `docker/client.py` — ensure_image() |
 | [US-014B Container Creation and Startup](Epics/Docker%20Sandbox/US-014B-CONTAINER-CREATION-STARTUP-EXPLAINED.md) | `docker/client.py` — run_container(), runtime config, DB lifecycle, retry |
 | [US-015 Container Exec](Epics/Docker%20Sandbox/US-015-CONTAINER-EXEC-EXPLAINED.md) | `docker/client.py`, `tools/terminal.py`, `models/tool_args.py` — exec command, timeout/detach, health checks, test coverage |
+| [US-016 File Operations](Epics/Docker%20Sandbox/US-016-File-Operations-EXPLAINED.md) | `docker/client.py` — read_file() / write_file() container file I/O |
+| [US-017 Container Lifecycle](Epics/Docker%20Sandbox/US-017-CONTAINER-LIFECYCLE-EXPLAINED.md) | `docker/client.py` — stop_container() / remove_container() com DB sync |
+| [US-018 Startup Cleanup](Epics/Docker%20Sandbox/US-018-STARTUP-CLEANUP-EXPLAINED.md) | `docker/client.py` — cleanup de containers órfãos no arranque |
 | [US-019 Container Utilities](Epics/Docker%20Sandbox/US-019-CONTAINER-UTILITIES-EXPLAINED.md) | `docker/utils.py` |
+
+### Scanner Agent
+
+| Doc | Módulo |
+|---|---|
+| [US-061 HackResult Model](Epics/Scanner%20Agent/US-061-HACK-RESULT-MODEL-EXPLAINED.md) | `models/hack.py`, `tools/barriers.py` — contrato de dados Scanner → Orchestrator |
+| [US-062 Sploitus Search Tool](Epics/Scanner%20Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md) | `tools/sploitus.py` — pesquisa de exploits no Sploitus.com |
 
 ### Avaliação de Agentes
 
