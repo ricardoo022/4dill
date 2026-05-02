@@ -69,4 +69,6 @@ async def test_scanner_browser_advanced_mode(tmp_path: Path):
 
     # Verify the agent successfully took a screenshot
     result_text = barrier_args.get("result", "")
-    assert "screenshot" in result_text.lower() or "png" in result_text.lower(), f"Agent failed to report screenshot: {result_text}"
+    assert "screenshot" in result_text.lower() or "png" in result_text.lower(), (
+        f"Agent failed to report screenshot: {result_text}"
+    )
