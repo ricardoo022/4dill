@@ -2053,7 +2053,7 @@ Framework de avaliação para medir e comparar a qualidade dos agentes. Permite 
 
 ---
 
-### US-046: PortSwigger Spinup Automation
+### US-046: PortSwigger Spinup Automation (DONE)
 
 **Epic:** Agent Evaluation (LangSmith)
 
@@ -2066,25 +2066,25 @@ Framework de avaliação para medir e comparar a qualidade dos agentes. Permite 
 - `tests/evals/portswigger_labs.json`
 
 **Acceptance Criteria:**
-- [ ] `spinup_lab(lab_url)` retorna URL única `*.web-security-academy.net`
-- [ ] Sessão persistida em ficheiro local para evitar login repetido
-- [ ] Erros de auth/timeouts retornam mensagens claras para troubleshooting
-- [ ] CLI suporta modo debug (`--headed`)
-- [ ] Runner consegue fazer spinup em batch para subset `quick`
+- [x] `spinup_lab(lab_url)` retorna URL única `*.web-security-academy.net`
+- [x] Sessão persistida em ficheiro local para evitar login repetido
+- [x] Erros de auth/timeouts retornam mensagens claras para troubleshooting
+- [x] CLI suporta modo debug (`--headed`)
+- [x] Runner consegue fazer spinup em batch para subset `quick`
 
 **Technical Notes:**
 - Credenciais via `PORTSWIGGER_EMAIL` e `PORTSWIGGER_PASSWORD`
 - A automação só prepara o target; a avaliação dos agentes ocorre noutras US
 
 **Tests Required:**
-- [ ] Spinup de 1 lab conhecido retorna URL válida
-- [ ] Reexecução usa sessão guardada
-- [ ] Falha de credenciais é detectada sem crash silencioso
+- [x] Spinup de 1 lab conhecido retorna URL válida
+- [x] Reexecução usa sessão guardada
+- [x] Falha de credenciais é detectada sem crash silencioso
 
 **Definition of Done:**
-- [ ] Spinup automatizado estável para o MVP
-- [ ] Logs mínimos de diagnóstico disponíveis
-- [ ] Code reviewed
+- [x] Spinup automatizado estável para o MVP
+- [x] Logs mínimos de diagnóstico disponíveis
+- [x] Code reviewed
 
 **Dependencies:** US-045
 **Estimated Complexity:** S
