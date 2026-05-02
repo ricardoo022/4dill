@@ -4489,6 +4489,74 @@ Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliz
 
 ---
 
+## Epic 15: Support Agents
+
+Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum produz findings nem executa testes directamente: são invocados por outros agentes para obter orientação estratégica, ajustar o plano de scan, ou enriquecer contexto antes de pedir conselho.
+
+**Referência PentAGI confirmada:**
+- Adviser: `GetAskAdviceHandler` → `performSimpleChain()` — sem tools, sem barrier, resposta de texto directa
+- Refiner: `RefinerExecutorConfig` — loop LangGraph com `subtask_patch` barrier + `terminal` + `file` + `browser` + `memorist` + `searcher`
+- Enricher: `EnricherExecutorConfig` — loop LangGraph com `enricher_result` barrier + `terminal` + `file` + `search_in_memory` (opcional) + `graphiti_search` (opcional)
+- Reflector: **NÃO é um agente standalone** — é um mecanismo de recovery embutido no `providers/performer.py`; não faz parte deste épico
+
+---
+
+### US-090: Adviser — prompt templates + simple chain + advice delegation tool
+
+**Epic:** Support Agents
+
+**Story:** As a developer, I want an Adviser agent implemented as a simple LLM chain so that other agents can request strategic guidance when stuck, without spinning up a full LangGraph loop.
+
+**Contexto:** O Adviser é o único agente do sistema que não usa `create_agent_graph()`. É uma chamada directa ao LLM (`performSimpleChain` no PentAGI): recebe uma pergunta com contexto, devolve texto com orientação. Actualmente não existe qualquer stub ou implementação — precisa de ser criado de raiz. O Mentor (intervenção automática após 20+ tool calls) usa o mesmo mecanismo mas com prompt diferente e é implementado no `providers/performer.py` — fora do âmbito desta US.
+
+**Ficheiros:**
+- `src/pentest/models/tool_args.py` — adicionar `AdviserInput` (question + context)
+- `src/pentest/templates/prompts/adviser_system.md.j2` — novo
+- `src/pentest/templates/prompts/adviser_user.md.j2` — novo
+- `src/pentest/templates/adviser.py` — `render_adviser_prompt(question, context, execution_context)`
+- `src/pentest/agents/adviser.py` — `give_advice(question, context, llm, execution_context="") -> str` async
+- `src/pentest/tools/adviser.py` — tool `advice` que chama `give_advice()` via factory closure
+- `tests/unit/agents/test_adviser.py`
+- `tests/unit/tools/test_adviser_tool.py`
+- `tests/unit/templates/test_adviser_templates.py`
+
+**Acceptance Criteria:**
+- [ ] Existe modelo `AdviserInput` com campos `question: str` e `context: str` (não vazios)
+- [ ] Existem templates `adviser_system.md.j2` e `adviser_user.md.j2` em `templates/prompts/`
+- [ ] `render_adviser_prompt()` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
+- [ ] `give_advice(question, context, llm, execution_context="")` é `async`, constrói `SystemMessage + HumanMessage` e invoca o LLM directamente (sem `create_agent_graph` e sem `create_agent`)
+- [ ] Devolve a resposta do LLM como `str` — sem parsing, sem barrier, sem loop
+- [ ] Existe tool `advice` criada via `StructuredTool.from_function()` com `args_schema=AdviserInput` e factory `create_advice_tool(llm)`
+- [ ] Quando chamada, a tool invoca `give_advice()` passando `execution_context` opcional e devolve a resposta como string
+- [ ] Prompt system inclui: papel de conselheiro estratégico, autorização de pentesting, regras de eficiência (resposta concisa e accionável), e instrução de nunca executar comandos directamente
+- [ ] Prompt user inclui: a questão, o contexto do problema, e execution context opcional
+- [ ] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
+
+**Technical Notes:**
+- Não usar nem `create_agent_graph()` (LangGraph) nem `create_agent()` (LangChain agent loop com tools) — o Adviser é uma chamada directa ao LLM: `llm.ainvoke([SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)])`. Não há loop, não há tools, não há state. A `framework-selection` skill classifica este padrão como *"pure model call → LangChain (LCEL / chain)"*. Usa-se `ainvoke` directo em vez de LCEL pipe (`prompt | llm`) porque há apenas uma invocação com mensagens já renderizadas pelo Jinja2 — o pipe operator não acrescenta valor neste caso.
+- O LLM é resolvido via `create_chat_model(agent_name="adviser")` para suportar override por env var (`ADVISER_MODEL`)
+- A factory `create_advice_tool(llm)` segue o padrão de `create_browser_tool()` — closure que captura o LLM. A tool é criada com `StructuredTool.from_function()` (não `@tool`) porque usa `args_schema=AdviserInput` (Pydantic model customizado) e nome explícito `"advice"`.
+- O Mentor (intervenção automática a 20+ tool calls) usa prompts diferentes (`mentor_system.md.j2`) e será implementado no `providers/performer.py` — fora do âmbito desta US
+
+**Tests Required:**
+- [ ] `AdviserInput` valida campos obrigatórios e rejeita strings vazias/whitespace
+- [ ] `render_adviser_prompt()` devolve tuple com system e user prompt não vazios
+- [ ] System prompt contém referência ao papel de conselheiro e regras de eficiência
+- [ ] User prompt contém a questão passada como argumento
+- [ ] `give_advice()` com LLM mockado devolve string não vazia
+- [ ] `give_advice()` passa `execution_context` ao `render_adviser_prompt()` quando fornecido
+- [ ] Tool `advice` criada com `StructuredTool.from_function()`, com `args_schema=AdviserInput`, é chamável e devolve string
+- [ ] `create_advice_tool(llm)` devolve tool com nome `"advice"`
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+
+**Dependencies:** US-037 (create_agent_graph pattern estabelecido — não usado directamente mas o padrão de factory closures é reutilizado)
+**Estimated Complexity:** S
+
+---
+
 ## Related Notes
 
 - [Docs Home](README.md)
