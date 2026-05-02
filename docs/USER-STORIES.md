@@ -4557,6 +4557,128 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 
 ---
 
+### US-091: Refiner — subtask_patch barrier + prompt templates + refiner agent
+
+**Epic:** Support Agents
+
+**Story:** As a developer, I want a Refiner agent that can analyse mid-scan findings and propose adjustments to the subtask plan, so that the scan adapts dynamically when initial assumptions prove incorrect.
+
+**Contexto:** O Refiner é chamado pelo controller quando os findings de um subtask revelam que o plano original precisa de ajuste. Recebe o task actual, a lista de subtasks (incluindo as já concluídas), os findings que motivaram a revisão, e devolve um patch com as alterações ao plano via barrier `subtask_patch`. Usa `create_agent_graph()` com LangGraph — ao contrário do Adviser, o Refiner TEM tools e usa o loop completo.
+
+**Ficheiros:**
+- `src/pentest/models/tool_args.py` — adicionar `SubtaskPatchOperation` e `SubtaskPatchInput`
+- `src/pentest/templates/prompts/refiner_system.md.j2` — novo
+- `src/pentest/templates/prompts/refiner_user.md.j2` — novo
+- `src/pentest/templates/refiner.py` — `render_refiner_prompt(task, subtasks, findings, available_tools, execution_context="")`
+- `src/pentest/tools/barriers.py` — adicionar barrier `subtask_patch`
+- `src/pentest/agents/refiner.py` — `refine_subtasks(task, subtasks, findings, docker_client, llm, ...)` async
+- `tests/unit/agents/test_refiner.py`
+- `tests/unit/tools/test_subtask_patch_barrier.py`
+- `tests/unit/templates/test_refiner_templates.py`
+
+**Acceptance Criteria:**
+- [ ] Existe modelo `SubtaskPatchOperation` com: `action: Literal["add", "update", "remove"]`, `subtask_id: int | None` (obrigatório para `update`/`remove`, `None` para `add`), `title: str | None`, `description: str | None`, `fase: str | None`; validação via `@model_validator(mode='after')`
+- [ ] Existe modelo `SubtaskPatchInput` com: `patches: list[SubtaskPatchOperation]` (min 1) e `message: str`
+- [ ] Existe barrier `subtask_patch` em `tools/barriers.py`, criado com `@tool(args_schema=SubtaskPatchInput)`, seguindo o padrão de `subtask_list` e `search_result`
+- [ ] `render_refiner_prompt(task, subtasks, findings, available_tools, execution_context="")` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
+- [ ] Usa o `AgentState` partilhado de `agents/base.py` (`messages`, `barrier_result: dict | None`, `barrier_hit: bool`) — não define state próprio
+- [ ] Chama `create_agent_graph(llm, tools, barrier_names={"subtask_patch"}, max_iterations=20)` — argumento é `barrier_names` (plural, set), seguindo o padrão de `agents/generator.py`
+- [ ] Grafo tem 2 nós: `call_llm` e `execute_tools` (`BarrierAwareToolNode`); edge condicional de `execute_tools`: `barrier_hit=True` → `END`, caso contrário → `call_llm`
+- [ ] Tools do agente: terminal (factory closure), file (factory closure), browser (factory closure), stub memorist, stub searcher, `subtask_patch` (barrier)
+- [ ] Resultado extraído de `state["barrier_result"]` (dict) via `SubtaskPatchInput.model_validate(result["barrier_result"])`; levanta `RefinerError` se `barrier_hit` for `False`
+- [ ] Função de entrada é `refine_subtasks(task, subtasks, findings, docker_client, llm, ...)` async — cria o grafo internamente e invoca com `graph.ainvoke()`; não expõe o grafo directamente
+- [ ] Prompt system define: papel de analista de plano de pentest, autorização de pentesting, instrução para usar tools de reconhecimento antes de propor patch
+- [ ] Prompt user inclui: descrição do task, lista de subtasks actual (com estado), findings que motivaram a revisão, execution context opcional
+- [ ] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
+
+**Technical Notes:**
+- Usa `create_agent_graph()` (LangGraph) — o Refiner TEM tools e usa o loop completo; seguir o padrão exacto de `agents/generator.py` (`generate_subtasks`)
+- Fluxo do grafo (definido em `agents/base.py`): `START → call_llm → execute_tools → (barrier_hit? → END) / (continua? → call_llm)`. Dois nós, dois conditional edges. O `BarrierAwareToolNode` guarda o resultado em `state["barrier_result"]` (dict) e activa `state["barrier_hit"] = True`.
+- `AgentState` é partilhado em `agents/base.py`: `messages: Annotated[list[BaseMessage], add_messages]` (LangGraph `add_messages` reducer), `barrier_result: dict | None`, `barrier_hit: bool`. Não criar um `AgentState` próprio.
+- `create_agent_graph()` recebe `max_iterations` (default 100) — passar `max_iterations=20` como o Generator, para prevenir loops infinitos no Refiner
+- Barrier `subtask_patch` segue o padrão dos barriers existentes em `tools/barriers.py` (`@tool(args_schema=...)`) — sem factory closure porque não captura estado externo
+- Tools de docker (terminal, file) requerem `DockerClient` — instanciadas dentro de `refine_subtasks()` antes de chamar `create_agent_graph()`, tal como em `generate_subtasks()`
+- Após `graph.ainvoke()`, verificar `result["barrier_hit"]`; se `False`, levantar `RefinerError`; se `True`, fazer `SubtaskPatchInput.model_validate(result["barrier_result"])`
+- `SubtaskPatchOperation.subtask_id` é obrigatório para `update` e `remove`, deve ser `None` para `add`; validar com `@model_validator(mode='after')`
+- O controller chama `refine_subtasks()`, recebe `SubtaskPatchInput`, e aplica o patch à lista de subtasks no DB
+
+**Tests Required:**
+- [ ] `SubtaskPatchOperation` rejeita `update` e `remove` sem `subtask_id`
+- [ ] `SubtaskPatchOperation` aceita `add` com `subtask_id=None`
+- [ ] `SubtaskPatchInput` rejeita lista vazia de patches
+- [ ] `render_refiner_prompt()` devolve tuple com system e user prompt não vazios
+- [ ] User prompt contém task e findings passados como argumento
+- [ ] Barrier `subtask_patch` com `SubtaskPatchInput` mockado termina o loop do agente e devolve patches
+- [ ] `refine_subtasks()` com LLM e docker mockados invoca o grafo e devolve `SubtaskPatchInput` validado
+- [ ] `refine_subtasks()` levanta `RefinerError` quando `barrier_hit` é `False`
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+
+**Dependencies:** US-037 (create_agent_graph), US-039 (terminal/file tools), US-040 (browser tool), US-041 (memorist/searcher stubs), US-055 (subtask_list barrier pattern)
+**Estimated Complexity:** M
+
+---
+
+### US-092: Enricher — enricher_result barrier + prompt templates + enricher agent
+
+**Epic:** Support Agents
+
+**Story:** As a developer, I want an Enricher agent that gathers additional context from memory and the knowledge graph before the Adviser responds, so that the Adviser's guidance is grounded in actual scan history rather than just the immediate question.
+
+**Contexto:** O Enricher é o primeiro estágio do pipeline de dois passos Enricher→Adviser. Quando o Orchestrator pede conselho, chama primeiro o Enricher para recolher contexto relevante (scan history, tool results anteriores, entidades do knowledge graph), e só depois passa esse contexto enriquecido ao Adviser. Tem terminal, file, search_in_memory e graphiti_search — todas já implementadas. Precisa apenas do barrier `enricher_result`, dos templates, e da função de entrada.
+
+**Ficheiros:**
+- `src/pentest/models/tool_args.py` — adicionar `EnricherResultInput` (context + message)
+- `src/pentest/templates/prompts/enricher_system.md.j2` — novo
+- `src/pentest/templates/prompts/enricher_user.md.j2` — novo
+- `src/pentest/templates/enricher.py` — `render_enricher_prompt(question, execution_context, available_tools)`
+- `src/pentest/tools/barriers.py` — adicionar barrier `enricher_result`
+- `src/pentest/agents/enricher.py` — `enrich_context(question, execution_context, docker_client, session, graphiti_client, llm, ...)` async
+- `tests/unit/agents/test_enricher.py`
+- `tests/unit/tools/test_enricher_result_barrier.py`
+- `tests/unit/templates/test_enricher_templates.py`
+
+**Acceptance Criteria:**
+- [ ] Existe modelo `EnricherResultInput` com: `context: str` (min_length=1) e `message: str`
+- [ ] Existe barrier `enricher_result` em `tools/barriers.py`, criado com `@tool(args_schema=EnricherResultInput)`, seguindo o padrão de `subtask_list` e `search_result`
+- [ ] `render_enricher_prompt(question, execution_context, available_tools)` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
+- [ ] Usa o `AgentState` partilhado de `agents/base.py` (`messages`, `barrier_result: dict | None`, `barrier_hit: bool`) — não define state próprio
+- [ ] Chama `create_agent_graph(llm, tools, barrier_names={"enricher_result"}, max_iterations=20)` — argumento é `barrier_names` (plural, set)
+- [ ] Tools do agente: terminal (factory closure com `DockerClient`), file (factory closure com `DockerClient`), `create_search_answer_tool(session)` (search_in_memory), `create_graphiti_search_tool(graphiti_client)`
+- [ ] `BarrierAwareToolNode` detecta `enricher_result` como barrier, guarda `EnricherResultInput` em `state["barrier_result"]`, e termina o grafo (`END`)
+- [ ] Função de entrada é `enrich_context(question, execution_context, docker_client, session, graphiti_client, llm, ...)` async — cria o grafo internamente e invoca com `graph.ainvoke()`
+- [ ] Resultado extraído de `state["barrier_result"]` via `EnricherResultInput.model_validate(result["barrier_result"])`; levanta `EnricherError` se `barrier_hit` for `False`
+- [ ] Prompt system define: papel de recolhedor de contexto, instrução para pesquisar memória e knowledge graph antes de responder, e instrução para sintetizar numa resposta estruturada via `enricher_result`
+- [ ] Prompt user inclui: a questão que precisa de contexto e o execution context actual
+- [ ] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
+
+**Technical Notes:**
+- Usa `create_agent_graph()` (LangGraph) — seguir o padrão exacto de `agents/generator.py` e `agents/refiner.py`
+- Fluxo: `START → call_llm → execute_tools → (barrier_hit? → END) / (continua? → call_llm)`; quando barrier é detectado, `state["barrier_result"]` contém o dict com `context` e `message`
+- Tools são todas factory closures existentes — `create_search_answer_tool(session)` de `tools/search_memory.py` e `create_graphiti_search_tool(graphiti_client)` de `tools/graphiti_search.py`; sem stubs novos
+- `EnricherResultInput` é simples — sem `@model_validator`; validação apenas pelo `min_length=1` no campo `context`
+- Container ID para terminal/file: passar como parâmetro a `enrich_context()` (tal como o generator usa `_GENERATOR_CONTAINER_ID`); o caller (controller/performer) conhece o container do flow
+- `graphiti_client` pode ser `None` se Graphiti não estiver habilitado — nesse caso, não adicionar a tool à lista (verificar `GRAPHITI_ENABLED` env var ou usar `graphiti_client.enabled`)
+
+**Tests Required:**
+- [ ] `EnricherResultInput` rejeita `context` vazio ou só whitespace
+- [ ] `render_enricher_prompt()` devolve tuple com system e user prompt não vazios
+- [ ] User prompt contém a questão passada como argumento
+- [ ] Barrier `enricher_result` com `EnricherResultInput` mockado termina o loop e devolve context
+- [ ] `enrich_context()` com LLM e tools mockados invoca o grafo e devolve `EnricherResultInput` validado
+- [ ] `enrich_context()` levanta `EnricherError` quando `barrier_hit` é `False`
+
+**Definition of Done:**
+- [ ] Code written and passing all tests
+- [ ] Code reviewed
+
+**Dependencies:** US-037 (create_agent_graph), US-034/US-035 (graphiti client), US-039 (terminal/file tools), US-058 (create_search_answer_tool), US-091 (enricher_result barrier pattern)
+**Estimated Complexity:** M
+
+---
+
 ## Related Notes
 
 - [Docs Home](README.md)
