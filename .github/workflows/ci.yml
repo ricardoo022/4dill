@@ -93,6 +93,11 @@ jobs:
           --cov=src/pentest --cov-report=term-missing --cov-report=xml:coverage.xml
           --junitxml=test-results/unit.xml
 
+      - name: Run eval unit tests (mocked, no credentials needed)
+        run: >-
+          pytest tests/evals/ -v --tb=short --timeout=120
+          -m "not e2e" --junitxml=test-results/evals-unit.xml
+
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         if: always()
@@ -106,6 +111,13 @@ jobs:
         with:
           name: test-results-unit
           path: test-results/unit.xml
+
+      - name: Upload eval unit test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-evals-unit
+          path: test-results/evals-unit.xml
 
   integration:
     name: Integration Tests
@@ -373,6 +385,52 @@ jobs:
         with:
           name: test-results-e2e
           path: test-results/e2e.xml
+
+  portswigger-spinup:
+    name: PortSwigger Spinup E2E
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache virtualenv
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-py3.12-${{ hashFiles('**/pyproject.toml') }}
+
+      - name: Install dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[dev]"
+
+      - name: Add venv to PATH
+        run: echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
+
+      - name: Install Playwright Chromium
+        run: playwright install chromium --with-deps
+
+      - name: Run PortSwigger spinup E2E tests
+        env:
+          PORTSWIGGER_EMAIL: ${{ secrets.PORTSWIGGER_EMAIL }}
+          PORTSWIGGER_PASSWORD: ${{ secrets.PORTSWIGGER_PASSWORD }}
+        run: >-
+          pytest tests/evals/test_spinup_e2e.py -v --tb=short --timeout=300
+          -m e2e --junitxml=test-results/portswigger-spinup.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-portswigger-spinup
+          path: test-results/portswigger-spinup.xml
 
   ci-pass:
     name: CI Pass
