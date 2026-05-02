@@ -61,6 +61,14 @@ Hub notes: [[Epics/Generator agent/README|Generator agent]], [[Epics/Searcher ag
 | [US-058 search_answer Tool](Epics/Searcher%20agent/US-058-SEARCH-ANSWER-TOOL-EXPLAINED.md) | `tools/search_memory.py` — pgvector semantic search |
 | [US-059 Searcher Prompt Templates](Epics/Searcher%20agent/US-059-Searcher-prompt-templates-EXPLAINED.md) | `templates/searcher.py`, `searcher_system.md`, `searcher_user.md` |
 
+### Memorist Agent
+
+Hub note: [[Epics/Memorist Agent/README|Memorist Agent]]
+
+| Doc | Módulo |
+| --- | --- |
+| [US-080 MemoristResult Model](Epics/Memorist%20Agent/US-080-MEMORISTRESULT-MODEL-EXPLAINED.md) | `models/memorist.py`, `tools/barriers.py` — memorist_result barrier tool |
+
 ### Knowledge Graph
 
 Hub note: [[Epics/Knowledge Graph/README|Knowledge Graph]]

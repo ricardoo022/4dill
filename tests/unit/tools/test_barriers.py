@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from pentest.agents.base import create_agent_graph
 from pentest.models.search import SearchResult
 from pentest.models.subtask import SubtaskInfo, SubtaskList
-from pentest.tools.barriers import hack_result, search_result, subtask_list
+from pentest.tools.barriers import memorist_result, search_result, subtask_list
 
 
 def test_subtask_info_validation():
@@ -146,41 +146,52 @@ def test_graph_integration_with_search_result():
     assert result["barrier_result"]["message"] == "Resumo para o utilizador"
 
 
-def test_hack_result_tool():
-    invoke_args = {"result": "Detailed technical report", "message": "Short internal summary"}
-    result = hack_result.invoke(invoke_args)
-    assert result == "hack result successfully processed"
+def test_memorist_result_validation():
+    with pytest.raises(ValidationError):
+        memorist_result.invoke({"result": "", "message": "Found"})
+
+    with pytest.raises(ValidationError):
+        memorist_result.invoke({"result": "Data", "message": "   "})
+
+    result = memorist_result.invoke({"result": "Memory data", "message": "Done"})
+    assert result == "memorist result successfully processed"
 
 
-def test_hack_result_tool_json_schema():
-    schema = hack_result.args_schema.model_json_schema()
+def test_memorist_result_tool():
+    invoke_args = {"result": "Found CVEs in memory", "message": "Encontrados CVEs"}
+    result = memorist_result.invoke(invoke_args)
+    assert result == "memorist result successfully processed"
+
+
+def test_memorist_result_tool_json_schema():
+    schema = memorist_result.args_schema.model_json_schema()
     assert "result" in schema["properties"]
     assert "message" in schema["properties"]
     assert "result" in schema["required"]
     assert "message" in schema["required"]
 
 
-def test_graph_integration_with_hack_result():
+def test_graph_integration_with_memorist_result():
     mock_llm = RunnableLambda(
         lambda x: AIMessage(
             content="",
             tool_calls=[
                 {
-                    "name": "hack_result",
+                    "name": "memorist_result",
                     "args": {
-                        "result": "Detailed report about SQLi found",
-                        "message": "Vulnerability discovered",
+                        "result": "Detailed memory report",
+                        "message": "Resumo da memória",
                     },
-                    "id": "call_hack_result",
+                    "id": "call_memorist_result",
                 }
             ],
         )
     )
     mock_llm.bind_tools = lambda tools: mock_llm
 
-    graph = create_agent_graph(mock_llm, [hack_result], barrier_names=["hack_result"])
-    result = graph.invoke({"messages": [HumanMessage(content="Perform full scan")]})
+    graph = create_agent_graph(mock_llm, [memorist_result], barrier_names=["memorist_result"])
+    result = graph.invoke({"messages": [HumanMessage(content="Search memory for vulnerabilities")]})
 
     assert result.get("barrier_hit") is True
-    assert result["barrier_result"]["result"] == "Detailed report about SQLi found"
-    assert result["barrier_result"]["message"] == "Vulnerability discovered"
+    assert result["barrier_result"]["result"] == "Detailed memory report"
+    assert result["barrier_result"]["message"] == "Resumo da memória"
