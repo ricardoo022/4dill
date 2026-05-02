@@ -1,5 +1,5 @@
 ---
-tags: [agent, scanner, wiring, graph]
+tags: [agents]
 ---
 
 # US-065: Scanner Agent Completo — Explicação Detalhada

@@ -20,6 +20,7 @@ Testes end-to-end com LLM real, Docker e serviços reais. Nesta repo são execut
 | Ficheiro | O que testa |
 |---|---|
 | `test_searcher_agent_e2e.py` | Round-trip real de `perform_search` e `create_searcher_tool` com provider LLM real; faz skip automático quando faltam API keys/provider válido ou motores de busca indisponíveis |
+| `test_scanner_e2e.py` | Round-trip do Scanner com Docker real: cria container, delega subtask para `run_scanner`, valida `HackResult` e verifica evidência no filesystem do container |
 
 ## Como correr
 
