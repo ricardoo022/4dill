@@ -1,5 +1,5 @@
 ---
-tags: [epic, scanner, sploitus, docs]
+tags: [agents]
 ---
 
 # Deep Dive: US-062 - Sploitus Search Tool
@@ -50,3 +50,4 @@ ruff check src/pentest/tools/sploitus.py
 
 * [[USER-STORIES]]
 * [[AGENT-ARCHITECTURE]]
+* [[PROJECT-STRUCTURE]]
