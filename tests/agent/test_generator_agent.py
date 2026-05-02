@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 
 from pentest.agents.generator import GeneratorError, generate_subtasks
@@ -20,35 +21,52 @@ class _FakeGraph:
         return self._result
 
 
-class _FakeLLM:
-    def bind_tools(self, tools):  # noqa: ANN001
+class _FakeLLM(BaseChatModel):
+    """Provider-agnostic fake LLM for agent-layer tests."""
+
+    def bind_tools(self, tools: list[Any]) -> "_FakeLLM":
         return self
 
-    def invoke(self, _state):  # noqa: ANN001
-        return AIMessage(
-            content="",
-            tool_calls=[
-                {
-                    "name": "subtask_list",
-                    "args": {
-                        "subtasks": [
+    def _generate(self, messages: list[Any], stop: list[str] | None = None, **kwargs: Any) -> Any:
+        from langchain_core.outputs import ChatGeneration, ChatResult
+
+        return ChatResult(
+            generations=[
+                ChatGeneration(
+                    message=AIMessage(
+                        content="",
+                        tool_calls=[
                             {
-                                "title": "Map API surface",
-                                "description": "Enumerate public endpoints and auth requirements.",
-                                "fase": "fase-1",
-                            },
-                            {
-                                "title": "Test auth bypass",
-                                "description": "Probe RLS/Auth controls on discovered endpoints.",
-                                "fase": "fase-3",
-                            },
+                                "name": "subtask_list",
+                                "args": {
+                                    "subtasks": [
+                                        {
+                                            "title": "Map API surface",
+                                            "description": "Enumerate public endpoints and auth requirements.",
+                                            "fase": "fase-1",
+                                        },
+                                        {
+                                            "title": "Test auth bypass",
+                                            "description": "Probe RLS/Auth controls on discovered endpoints.",
+                                            "fase": "fase-3",
+                                        },
+                                    ],
+                                    "message": "plan completed",
+                                },
+                                "id": "call_subtasks",
+                            }
                         ],
-                        "message": "plan completed",
-                    },
-                    "id": "call_subtasks",
-                }
-            ],
+                    )
+                )
+            ]
         )
+
+    async def _agenerate(self, messages: list[Any], stop: list[str] | None = None, **kwargs: Any) -> Any:
+        return self._generate(messages, stop, **kwargs)
+
+    @property
+    def _llm_type(self) -> str:
+        return "fake"
 
 
 async def test_generate_subtasks_agent_happy_path_with_realistic_plan(
@@ -73,7 +91,9 @@ async def test_generate_subtasks_agent_happy_path_with_realistic_plan(
     )
 
     mock_llm = _FakeLLM()
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: mock_llm)
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: mock_llm
+    )
 
     subtasks = await generate_subtasks("scan https://example.com", profile, "/tmp/skills")
 
@@ -105,7 +125,9 @@ async def test_generate_subtasks_toolset_selection_with_and_without_docker(
         "pentest.agents.generator.render_generator_prompt",
         lambda input_text, backend_profile, fase_index, execution_context: ("system", "user"),
     )
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: _FakeLLM())
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: _FakeLLM()
+    )
 
     def _fake_create_graph(llm, tools, barrier_names, max_iterations):
         key = "without_docker" if call_index["value"] == 0 else "with_docker"
@@ -173,7 +195,9 @@ async def test_generate_subtasks_raises_generator_error_when_barrier_missing(
         "pentest.agents.generator.render_generator_prompt",
         lambda input_text, backend_profile, fase_index, execution_context: ("system", "user"),
     )
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: _FakeLLM())
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: _FakeLLM()
+    )
     monkeypatch.setattr(
         "pentest.agents.generator.create_agent_graph",
         lambda llm, tools, barrier_names, max_iterations: _FakeGraph(

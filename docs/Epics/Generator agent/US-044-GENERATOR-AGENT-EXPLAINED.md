@@ -16,10 +16,19 @@ O Generator e o primeiro agente a executar no ciclo de vida de um scan. A sua re
 - Carrega o indice de FASE skills relevantes para o `scan_path` do perfil.
 - Renderiza system + user prompt com Jinja2.
 - Monta o conjunto de tools: terminal + file (se Docker disponivel), browser, memorist (stub), searcher (stub) e `subtask_list` (barrier).
-- Executa o LangGraph com `ChatAnthropic` e `BarrierAwareToolNode`.
+- Executa o LangGraph com LLM resolvido via provider factory (`create_chat_model`) e `BarrierAwareToolNode`.
 - Extrai e valida a lista de subtasks do `barrier_result`, retornando `list[SubtaskInfo]`.
 
 Sem o Generator, o sistema nao consegue arranhar o ciclo de scan — ele e o ponto de entrada que transforma "scan https://example.com" num plano de accao estruturado.
+
+### Nota sobre o LLM actual (temporario)
+
+O provider default e **Anthropic** (`claude-sonnet-4-20250514`), mas isto e uma decisao **temporaria** enquanto o sistema nao suporta multi-provider oficialmente. O Generator usa agora:
+
+1. **Config centralizado** (`pentest.config`): `resolve_provider_config()` com prioridade de resolucao (parametro → env vars agent-specific → env vars genericas → default)
+2. **Factory provider-agnostic** (`pentest.providers.factory`): `create_chat_model()` com suporte a Anthropic, OpenAI e futuros providers
+
+A configuracao e resolvida via env vars (`GENERATOR_PROVIDER`, `GENERATOR_MODEL`, `LLM_PROVIDER`, `LLM_MODEL`) sem acoplamento a vendor especifico no codigo do agente. O plano de evolucao e descrito na secao "Evolucao Multi-Provider" no final deste documento.
 
 ---
 
@@ -162,15 +171,20 @@ O conjunto de tools depende do contexto:
 ### Passo 4: Criar LLM e Graph (linhas 64-69)
 
 ```python
-llm = ChatAnthropic(
-    model_name=_resolve_generator_model(model),
+llm = _resolve_generator_llm(
+    provider=provider,
+    model=model,
     timeout=None,
     stop=None,
 )
 graph = create_agent_graph(llm, tools, barrier_names={"subtask_list"}, max_iterations=20)
 ```
 
-O LLM e `ChatAnthropic` com modelo resolvido pela cascata. O graph usa `barrier_names={"subtask_list"}` — so a tool `subtask_list` e considerada barrier. O `max_iterations=20` previne loops infinitos: se o LLM nao chamar `subtask_list` apos 20 iteracoes, o graph para e o codigo detecta `barrier_hit=False`.
+O LLM e criado via `_resolve_generator_llm()` que usa:
+1. **Config centralizado** (`pentest.config.resolve_provider_config()`): resolve provider + model via parametro → env vars (`GENERATOR_PROVIDER`, `GENERATOR_MODEL`) → env vars genericas (`LLM_PROVIDER`, `LLM_MODEL`) → default
+2. **Factory provider-agnostic** (`pentest.providers.factory.create_chat_model()`): instancia o LLM sem acoplamento a vendor
+
+Isto permite trocar o provider (Anthropic, OpenAI, etc.) sem alterar o codigo do agente. O model atual e `claude-sonnet-4-20250514` (default temporario). O graph usa `barrier_names={"subtask_list"}` — so a tool `subtask_list` e considerada barrier. O `max_iterations=20` previne loops infinitos: se o LLM nao chamar `subtask_list` apos 20 iteracoes, o graph para e o codigo detecta `barrier_hit=False`.
 
 ### Passo 5: Invocar o graph (linhas 70-72)
 
@@ -508,11 +522,12 @@ async def run_<agent>(
     skills_dir: str,
     docker_client: DockerClient | None = None,
     model: str | None = None,
+    provider: str | None = None,
 ) -> <ResultType>:
     1. Carregar skills relevantes via load_fase_index()
     2. Renderizar prompts via render_<agent>_prompt()
     3. Montar tools (conditional on docker_client)
-    4. Criar ChatAnthropic com modelo resolvido (param → env → default)
+    4. Criar LLM via _resolve_<agent>_llm() provider-agnostic (param → env → default)
     5. Criar graph via create_agent_graph() com barrier_names especifico
     6. Invocar graph com ainvoke()
     7. Validar barrier_result e extrair output
@@ -524,6 +539,9 @@ Cada agente novo deve seguir este template, mudando:
 - O conjunto de tools
 - O `barrier_names` (cada agente tem o seu barrier de sinalizacao)
 - A validacao do `barrier_result`
+- Usar `pentest.providers.factory.create_chat_model()` para ser provider-agnostic
+
+**Nota:** O provider Anthropic e o default **temporario** actual. Ver secao "Evolucao Multi-Provider" abaixo.
 
 ---
 
@@ -551,11 +569,52 @@ A: Nem todas as subtasks pertencem a uma FASE especifica. Por exemplo, uma subta
 
 | Ficheiro | Responsabilidade |
 |---|---|
-| `src/pentest/agents/generator.py` | Implementacao principal do Generator agent — `generate_subtasks()`, `GeneratorError`, `_resolve_generator_model()` |
+| `src/pentest/config.py` | Configuracao centralizada — `resolve_provider_config()`, `get_default_provider()`, `get_default_model()` |
+| `src/pentest/providers/factory.py` | Factory provider-agnostic — `create_chat_model()`, usa `pentest.config` para resolução |
+| `src/pentest/agents/generator.py` | Implementacao principal do Generator agent — `generate_subtasks()`, `GeneratorError`, `_resolve_generator_llm()` |
 | `src/pentest/agents/__init__.py` | Exportacao publica de `GeneratorError` e `generate_subtasks` |
 | `tests/agent/test_generator_agent.py` | Testes de camada Agent — happy path com plano realista, seleccao de tools, erro de barrier |
 | `tests/unit/agents/test_generator.py` | Testes unitarios — validacao de output, conditional de Docker, cascata de modelo, contagem invalida |
-| `tests/e2e/test_generator_claude_e2e.py` | Teste E2E com Claude real — carrega API key do `.env`, cria skills temporarias, valida contrato |
+| `tests/e2e/test_generator_llm_e2e.py` | Teste E2E provider-agnostic — carrega API key do `.env` dinamicamente, valida contrato |
+
+---
+
+## Evolucao Multi-Provider
+
+O uso do Anthropic como default e uma decisao **temporaria** enquanto o sistema nao tem suporte oficial multi-provider. O trabalho realizado nesta US estabeleceu a base para a evolucao:
+
+### O que ja foi feito
+1. **Factory provider-agnostic** (`pentest/providers/factory.py`):
+   - `create_chat_model(provider, model, **kwargs)` cria LLMs sem acoplamento a vendor
+   - `resolve_provider_config()` resolve provider + model via parametro → env vars → defaults
+   - Suporte inicial para Anthropic e OpenAI
+
+2. **Generator desacoplado**:
+   - `_resolve_generator_llm()` usa a factory em vez de instanciar `ChatAnthropic` directamente
+   - Testes atualizados para mockar a factory, nao o vendor
+
+### Plano de evolucao
+| Fase | O que fazer | Prioridade |
+|---|---|---|
+| 1 | Mover configuracao de modelo para `pentest/config.py` centralizado | Alta |
+| 2 | Criar `LLMProvider` enum + registry dinamico de providers | Media |
+| 3 | Suporte a Ollama / LM Studio (local models) | Baixa |
+| 4 | Per-agent provider selection (Orchestrator usa Anthropic, Searcher usa OpenAI, etc.) | Baixa |
+
+### Env vars para configuracao
+```bash
+# Provider generico (fallback)
+LLM_PROVIDER=anthropic
+LLM_MODEL=claude-sonnet-4-20250514
+
+# Provider especifico por agente
+GENERATOR_PROVIDER=anthropic
+GENERATOR_MODEL=claude-sonnet-4-20250514
+
+# API keys (por provider)
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+```
 
 ---
 
@@ -571,3 +630,4 @@ A: Nem todas as subtasks pertencem a uma FASE especifica. Por exemplo, uma subta
 - [[US-043-GENERATOR-PROMPTS-EXPLAINED]] — Jinja2 prompt renderer
 - [[AGENT-ARCHITECTURE]] — Papel do Generator no sistema de 12 agentes
 - [[EXECUTION-FLOW]] — Ciclo de vida do scan (7 fases)
+- [[US-044-GENERATOR-AGENT-EXPLAINED]] — Este documento (Evolucao Multi-Provider)

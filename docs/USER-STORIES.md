@@ -1926,19 +1926,20 @@ class BarrierAwareToolNode:
 **Ficheiros:** `src/pentest/agents/generator.py`
 
 **Acceptance Criteria:**
-- [ ] `async def generate_subtasks(input: str, backend_profile: BackendProfile, skills_dir: str, docker_client: DockerClient | None = None) -> list[SubtaskInfo]` que:
+- [ ] `async def generate_subtasks(input: str, backend_profile: BackendProfile, skills_dir: str, docker_client: DockerClient | None = None, model: str | None = None, provider: str | None = None) -> list[SubtaskInfo]` que:
   1. Carrega o fase index via `load_fase_index(backend_profile.scan_path, skills_dir)`
   2. Renderiza o prompt via `render_generator_prompt(input, backend_profile, fase_index, "")`
   3. Cria as tools: terminal, file (se docker_client disponível), browser, memorist (stub), searcher (stub), subtask_list (barrier)
-  4. Cria o LLM: `ChatAnthropic(model="claude-sonnet-4-20250514")`
+  4. Cria o LLM via factory provider-agnostic (`_resolve_generator_llm()` que usa `pentest.config` + `pentest.providers.factory`)
   5. Cria o graph via `create_agent_graph(llm, tools, barrier_names={"subtask_list"}, max_iterations=20)`
   6. Invoca o graph com system prompt + user message
   7. Extrai a lista de subtasks do resultado
   8. Retorna `list[SubtaskInfo]`
 - [ ] Se docker_client é None: terminal e file não são incluídos nas tools (Generator planeia só com browser + stubs)
 - [ ] Se LLM não chama subtask_list após max_iterations: raise `GeneratorError("Generator failed to produce a plan")`
-- [ ] Modelo LLM configurável via parâmetro ou env var `GENERATOR_MODEL`
+- [ ] Modelo LLM configurável via parâmetro `model`/`provider` ou env vars (`GENERATOR_PROVIDER`, `GENERATOR_MODEL`, `LLM_PROVIDER`, `LLM_MODEL`)
 - [ ] Log do plano gerado: lista de subtasks com títulos
+- [ ] LLM desacoplado de vendor específico (usa `pentest.config` centralizado e factory)
 
 **Technical Notes:**
 - PentAGI reference: `performers.go` → `performSubtasksGenerator()` lines 94-172
@@ -1947,13 +1948,16 @@ class BarrierAwareToolNode:
 - Para a v1: o Generator corre isolado, sem controller. Testável como função standalone.
 
 **Tests Required:**
+- [ ] `tests/unit/agents/test_generator.py`: Testes unitários com `_FakeLLM` e monkeypatch (sem grafo real)
+- [ ] `tests/agent/test_generator_agent.py`: Testes de camada agent com grafo real + LLM mockado (`@pytest.mark.agent`)
+- [ ] `tests/e2e/test_generator_llm_e2e.py`: Teste E2E com LLM real provider-agnostic (`@pytest.mark.e2e`, manual via `workflow_dispatch`)
 - [ ] `generate_subtasks("scan https://example.com", supabase_profile)` → retorna lista de subtasks
 - [ ] Cada subtask tem title e description não vazios
 - [ ] Subtasks incluem campo `fase` (pelo menos em algumas)
 - [ ] Sem docker_client: funciona só com browser + stubs (sem terminal/file)
 - [ ] Com docker_client mock: terminal e file disponíveis
 - [ ] LLM que não chama subtask_list → `GeneratorError`
-- [ ] Integration test com Claude real: produz plano razoável para target Supabase (marcar como `@pytest.mark.agent`)
+- [ ] Resolução de modelo: parâmetro > env var > default (testado via monkeypatch)
 - [ ] Número de subtasks: entre 1 e 15
 
 **Definition of Done:**

@@ -17,6 +17,19 @@ class _FakeGraph:
         return self._result
 
 
+class _FakeLLM:
+    """Provider-agnostic fake LLM for testing."""
+
+    def __init__(self, **kwargs: Any):
+        self.kwargs = kwargs
+
+    def bind_tools(self, tools: list[Any]) -> "_FakeLLM":
+        return self
+
+    def invoke(self, messages: list[Any]) -> Any:
+        return None  # type: ignore[return-value]
+
+
 @pytest.fixture
 def backend_profile() -> BackendProfile:
     return BackendProfile(
@@ -39,7 +52,9 @@ async def test_generate_subtasks_happy_path_validates_output(
         "pentest.agents.generator.render_generator_prompt",
         lambda input_text, profile, fase_index, context: ("sys", "usr"),
     )
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: object())
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: _FakeLLM()
+    )
     monkeypatch.setattr(
         "pentest.agents.generator.create_agent_graph",
         lambda llm, tools, barrier_names, max_iterations: _FakeGraph(
@@ -80,7 +95,9 @@ async def test_generate_subtasks_without_docker_excludes_terminal_and_file(
         "pentest.agents.generator.render_generator_prompt",
         lambda input_text, profile, fase_index, context: ("sys", "usr"),
     )
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: object())
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: _FakeLLM()
+    )
 
     def _fake_create_graph(llm, tools, barrier_names, max_iterations):
         seen["tools"] = tools
@@ -112,7 +129,9 @@ async def test_generate_subtasks_with_docker_includes_terminal_and_file(
         "pentest.agents.generator.render_generator_prompt",
         lambda input_text, profile, fase_index, context: ("sys", "usr"),
     )
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: object())
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: _FakeLLM()
+    )
 
     def _fake_create_graph(llm, tools, barrier_names, max_iterations):
         seen["tools"] = tools
@@ -153,7 +172,9 @@ async def test_generate_subtasks_raises_when_no_barrier(
         "pentest.agents.generator.render_generator_prompt",
         lambda input_text, profile, fase_index, context: ("sys", "usr"),
     )
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: object())
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: _FakeLLM()
+    )
     monkeypatch.setattr(
         "pentest.agents.generator.create_agent_graph",
         lambda llm, tools, barrier_names, max_iterations: _FakeGraph(
@@ -168,7 +189,7 @@ async def test_generate_subtasks_raises_when_no_barrier(
 async def test_generate_subtasks_model_resolution_param_over_env_and_default(
     monkeypatch: pytest.MonkeyPatch, backend_profile: BackendProfile
 ) -> None:
-    captured_models: list[str] = []
+    captured_resolutions: list[tuple[str | None, str | None]] = []
     monkeypatch.setattr(
         "pentest.agents.generator.load_fase_index", lambda scan_path, skills_dir: "idx"
     )
@@ -177,11 +198,17 @@ async def test_generate_subtasks_model_resolution_param_over_env_and_default(
         lambda input_text, profile, fase_index, context: ("sys", "usr"),
     )
 
-    class _FakeChatAnthropic:
-        def __init__(self, **kwargs: Any):
-            captured_models.append(kwargs["model_name"])
+    # Mock _resolve_generator_llm to capture what's passed to create_chat_model
+    original_resolve = None
+    from pentest.agents.generator import _resolve_generator_llm as _orig
 
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", _FakeChatAnthropic)
+    def _fake_resolve_llm(**kwargs: Any) -> _FakeLLM:
+        captured_resolutions.append((kwargs.get("provider"), kwargs.get("model")))
+        return _FakeLLM(**kwargs)
+
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", _fake_resolve_llm
+    )
     monkeypatch.setattr(
         "pentest.agents.generator.create_agent_graph",
         lambda llm, tools, barrier_names, max_iterations: _FakeGraph(
@@ -194,13 +221,21 @@ async def test_generate_subtasks_model_resolution_param_over_env_and_default(
         ),
     )
 
+    # Test 1: Explicit params passed to _resolve_generator_llm
     monkeypatch.setenv("GENERATOR_MODEL", "env-model")
-    await generate_subtasks("scan", backend_profile, "/skills", model="param-model")
-    await generate_subtasks("scan", backend_profile, "/skills")
-    monkeypatch.delenv("GENERATOR_MODEL")
-    await generate_subtasks("scan", backend_profile, "/skills")
+    monkeypatch.setenv("GENERATOR_PROVIDER", "openai")
+    await generate_subtasks("scan", backend_profile, "/skills", model="param-model", provider="anthropic")
+    assert captured_resolutions[0] == ("anthropic", "param-model")
 
-    assert captured_models == ["param-model", "env-model", "claude-sonnet-4-20250514"]
+    # Test 2: No explicit params → _resolve_generator_llm receives None, uses env vars internally
+    await generate_subtasks("scan", backend_profile, "/skills")
+    assert captured_resolutions[1] == (None, None)  # _resolve_generator_llm receives None, resolves via config
+
+    # Test 3: No env vars → falls back to config defaults
+    monkeypatch.delenv("GENERATOR_MODEL")
+    monkeypatch.delenv("GENERATOR_PROVIDER")
+    await generate_subtasks("scan", backend_profile, "/skills")
+    assert captured_resolutions[2] == (None, None)  # Falls back to config defaults
 
 
 async def test_generate_subtasks_raises_for_invalid_subtask_count(
@@ -213,7 +248,9 @@ async def test_generate_subtasks_raises_for_invalid_subtask_count(
         "pentest.agents.generator.render_generator_prompt",
         lambda input_text, profile, fase_index, context: ("sys", "usr"),
     )
-    monkeypatch.setattr("pentest.agents.generator.ChatAnthropic", lambda **kwargs: object())
+    monkeypatch.setattr(
+        "pentest.agents.generator._resolve_generator_llm", lambda **kwargs: _FakeLLM()
+    )
     monkeypatch.setattr(
         "pentest.agents.generator.create_agent_graph",
         lambda llm, tools, barrier_names, max_iterations: _FakeGraph(
