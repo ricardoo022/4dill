@@ -258,18 +258,18 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 **Context:** PentAGI uses SQLC (code-generated Go queries) + GORM. We replace this with SQLAlchemy 2.0 async using `asyncpg` as the driver. The connection pool settings mirror PentAGI's production configuration. This module lives in `src/pentest/database/connection.py`.
 
 **Acceptance Criteria:**
-- [ ] `create_async_engine()` is configured with:
+ - [x] `create_async_engine()` is configured with:
   - `DATABASE_URL` from environment variable
   - `pool_size=10`, `max_overflow=20` (matches PentAGI's Go connection pool)
   - `pool_timeout=30` seconds
   - `pool_recycle=1800` seconds (30 minutes, prevents stale connections)
   - `echo=False` (set via config, `True` for debug)
-- [ ] `async_sessionmaker` is configured with `expire_on_commit=False`
-- [ ] A `get_session()` async context manager yields a session and handles commit/rollback
-- [ ] An `init_db()` function creates the engine and verifies the connection works
-- [ ] A `close_db()` function disposes the engine cleanly (for shutdown)
-- [ ] Database URL validation rejects non-postgresql URLs
-- [ ] Connection errors raise a clear `DatabaseConnectionError` with the hostname/port
+ - [x] `async_sessionmaker` is configured with `expire_on_commit=False`
+ - [x] A `get_session()` async context manager yields a session and handles commit/rollback
+ - [x] An `init_db()` function creates the engine and verifies the connection works
+ - [x] A `close_db()` function disposes the engine cleanly (for shutdown)
+ - [x] Database URL validation rejects non-postgresql URLs
+ - [x] Connection errors raise a clear `DatabaseConnectionError` with the hostname/port
 
 **Technical Notes:**
 - Use `create_async_engine` from `sqlalchemy.ext.asyncio`
@@ -279,18 +279,18 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 - Consider using `structlog` for connection lifecycle logging
 
 **Tests Required:**
-- [ ] `init_db()` succeeds when PostgreSQL is running (integration test)
-- [ ] `init_db()` raises `DatabaseConnectionError` when PostgreSQL is unreachable
-- [ ] `get_session()` yields a functional session that can execute `SELECT 1`
-- [ ] Connection pool limits are respected: open 15 concurrent sessions, verify pool_size + max_overflow behavior
-- [ ] `close_db()` disposes the engine and subsequent queries fail
-- [ ] Session auto-rollback on exception: start transaction, raise error, verify no dangling transaction
-- [ ] Session commits on successful exit from context manager
+ - [x] `init_db()` succeeds when PostgreSQL is running (integration test)
+ - [x] `init_db()` raises `DatabaseConnectionError` when PostgreSQL is unreachable
+ - [x] `get_session()` yields a functional session that can execute `SELECT 1`
+ - [x] Connection pool limits are respected: open 15 concurrent sessions, verify pool_size + max_overflow behavior
+ - [x] `close_db()` disposes the engine and subsequent queries fail
+ - [x] Session auto-rollback on exception: start transaction, raise error, verify no dangling transaction
+ - [x] Session commits on successful exit from context manager
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Connection module works with the dev container PostgreSQL
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Connection module works with the dev container PostgreSQL
 
 **Dependencies:** US-002, US-005
 **Estimated Complexity:** M
@@ -306,7 +306,7 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 **Context:** PentAGI's migrations define the enum families used by the workflow, container, tool-call, and logging layers. In LusitAI we implement only the enums needed for the current autonomous MCP-driven product, excluding multi-user and interactive assistant values that are outside the current scope. Lives in `src/pentest/database/enums.py`.
 
 **Acceptance Criteria:**
-- [ ] Python `enum.Enum` classes defined for each LusitAI enum type:
+ - [x] Python `enum.Enum` classes defined for each LusitAI enum type:
   - `FlowStatus`: created, running, waiting, finished, failed
   - `TaskStatus`: created, running, waiting, finished, failed
   - `SubtaskStatus`: created, running, waiting, finished, failed
@@ -317,11 +317,11 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
   - `TermlogType`: stdin, stdout, stderr
   - `MsglogType` (10 values): thoughts, browser, terminal, file, search, advice, input, done, answer, report
   - `MsglogResultFormat`: terminal, plain, markdown
-- [ ] Each enum uses `str, Enum` base so values serialize as strings
-- [ ] SQLAlchemy `Enum` type wrappers are provided for each so they can be used in column definitions
-- [ ] Enum values match the current LusitAI schema exactly (case-sensitive)
-- [ ] `WAITING` is documented as an operational pause state (resume via MCP, external dependency, crash recovery, or orchestrated continuation), not mandatory human intervention
-- [ ] Interactive-only values such as assistant/chat-specific variants are excluded from the current schema
+ - [x] Each enum uses `str, Enum` base so values serialize as strings
+ - [x] SQLAlchemy `Enum` type wrappers are provided for each so they can be used in column definitions
+ - [x] Enum values match the current LusitAI schema exactly (case-sensitive)
+ - [x] `WAITING` is documented as an operational pause state (resume via MCP, external dependency, crash recovery, or orchestrated continuation), not mandatory human intervention
+ - [x] Interactive-only values such as assistant/chat-specific variants are excluded from the current schema
 
 **Technical Notes:**
 - PentAGI remains the baseline reference, but LusitAI narrows the enum set to the current autonomous product scope
@@ -330,18 +330,18 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 - The Python enum values must be lowercase strings matching the PostgreSQL values
 
 **Tests Required:**
-- [ ] Each Python enum has the correct number of members matching the SQL `CREATE TYPE`
-- [ ] `FlowStatus.CREATED.value` equals `"created"` (string serialization)
-- [ ] `FlowStatus("created")` returns `FlowStatus.CREATED` (deserialization)
-- [ ] `MsgchainType` has exactly 14 members for the current schema (includes tool_call_fixer, excludes assistant)
-- [ ] `MsglogType` has exactly 10 members for the current schema (includes answer and report, excludes ask)
-- [ ] Invalid enum values raise `ValueError`: `FlowStatus("invalid")` raises
-- [ ] All enum values round-trip through JSON: `json.dumps(e.value)` then `Enum(json.loads(...))`
+ - [x] Each Python enum has the correct number of members matching the SQL `CREATE TYPE`
+ - [x] `FlowStatus.CREATED.value` equals `"created"` (string serialization)
+ - [x] `FlowStatus("created")` returns `FlowStatus.CREATED` (deserialization)
+ - [x] `MsgchainType` has exactly 14 members for the current schema (includes tool_call_fixer, excludes assistant)
+ - [x] `MsglogType` has exactly 10 members for the current schema (includes answer and report, excludes ask)
+ - [x] Invalid enum values raise `ValueError`: `FlowStatus("invalid")` raises
+ - [x] All enum values round-trip through JSON: `json.dumps(e.value)` then `Enum(json.loads(...))`
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] All enums match the LusitAI schema and documented scope
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] All enums match the LusitAI schema and documented scope
 
 **Dependencies:** US-005
 **Estimated Complexity:** S
@@ -357,7 +357,7 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 **Context:** These three tables form the core hierarchy: Flow (scan session) > Task (major testing phase) > Subtask (atomic agent assignment). PentAGI schema: `20241026_115120_initial_state.sql` lines 112-190. All three have status enums, timestamps, and `updated_at` trigger behavior. Lives in `src/pentest/database/models.py`.
 
 **Acceptance Criteria:**
-- [ ] `Flow` model with columns:
+ - [x] `Flow` model with columns:
   - `id` (BigInteger, primary key, auto-increment)
   - `status` (FlowStatus enum, default `created`)
   - `title` (Text, default `"untitled"`)
@@ -372,22 +372,22 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
   - `created_at` (TimestampTZ, server default NOW)
   - `updated_at` (TimestampTZ, server default NOW, onupdate NOW)
   - `deleted_at` (TimestampTZ, nullable) -- soft delete
-- [ ] `Task` model with columns:
+ - [x] `Task` model with columns:
   - `id`, `status` (TaskStatus), `title`, `input` (Text), `result` (Text, default empty)
   - `flow_id` (FK to flows, cascade delete)
   - `created_at`, `updated_at`
-- [ ] `Subtask` model with columns:
+ - [x] `Subtask` model with columns:
   - `id`, `status` (SubtaskStatus), `title`, `description`, `result` (Text, default empty)
   - `context` (Text, not null, default empty) — execution context injetado na subtask (PentAGI migration 20250412)
   - `task_id` (FK to tasks, cascade delete)
   - `created_at`, `updated_at`
-- [ ] Relationships defined:
+ - [x] Relationships defined:
   - `Flow.tasks` -> list of Tasks
   - `Task.subtasks` -> list of Subtasks
   - `Task.flow` -> parent Flow
   - `Subtask.task` -> parent Task
-- [ ] Indexes match PentAGI's schema (status, title, flow_id, task_id)
-- [ ] `updated_at` auto-updates on row modification (via SQLAlchemy `onupdate` or server-side trigger)
+ - [x] Indexes match PentAGI's schema (status, title, flow_id, task_id)
+ - [x] `updated_at` auto-updates on row modification (via SQLAlchemy `onupdate` or server-side trigger)
 
 **Technical Notes:**
 - PentAGI schema: `initial_state.sql` lines 112-190 define the exact columns, types, and indexes
@@ -396,19 +396,19 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 - All models inherit from a shared `Base = DeclarativeBase()`
 
 **Tests Required:**
-- [ ] Create a Flow, verify all default values are set (status=created, title=untitled)
-- [ ] Create a Flow -> Task -> Subtask chain, verify FK relationships work
-- [ ] Query `flow.tasks` returns the correct tasks (lazy/eager loading)
-- [ ] Update a Flow's status, verify `updated_at` changes
-- [ ] Soft delete a Flow (set `deleted_at`), verify it can be filtered out
-- [ ] Delete a Flow cascades to its Tasks and Subtasks
-- [ ] Query by status index: `select(Flow).where(Flow.status == FlowStatus.RUNNING)` works
-- [ ] Flow with `deleted_at IS NULL` filter correctly excludes soft-deleted records
+ - [x] Create a Flow, verify all default values are set (status=created, title=untitled)
+ - [x] Create a Flow -> Task -> Subtask chain, verify FK relationships work
+ - [x] Query `flow.tasks` returns the correct tasks (lazy/eager loading)
+ - [x] Update a Flow's status, verify `updated_at` changes
+ - [x] Soft delete a Flow (set `deleted_at`), verify it can be filtered out
+ - [x] Delete a Flow cascades to its Tasks and Subtasks
+ - [x] Query by status index: `select(Flow).where(Flow.status == FlowStatus.RUNNING)` works
+ - [x] Flow with `deleted_at IS NULL` filter correctly excludes soft-deleted records
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Models match PentAGI's schema column-for-column
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Models match PentAGI's schema column-for-column
 
 **Dependencies:** US-006, US-007
 **Estimated Complexity:** L
@@ -603,52 +603,52 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 **Context:** PentAGI uses SQLC-generated query functions (one function per SQL query, type-safe). We create equivalent async functions using SQLAlchemy for the tables that are in the current LusitAI runtime scope. Each function takes a session and typed parameters, returns typed results, and serves the engine runtime rather than future platform, multi-user, or interactive assistant concerns. Lives in `src/pentest/database/queries/` with one file per entity.
 
 **Acceptance Criteria:**
-- [ ] `queries/flows.py`:
+ - [x] `queries/flows.py`:
   - `create_flow(session, params) -> Flow`
   - `get_flow(session, flow_id) -> Flow | None`
   - `get_flows(session) -> list[Flow]`
   - `update_flow_status(session, flow_id, status) -> Flow`
   - `update_flow_title(session, flow_id, title) -> Flow`
   - `delete_flow(session, flow_id) -> Flow` (soft delete -- sets `deleted_at`)
-- [ ] `queries/tasks.py`:
+ - [x] `queries/tasks.py`:
   - `create_task(session, params) -> Task`
   - `get_flow_tasks(session, flow_id) -> list[Task]` (ordered by created_at ASC)
   - `update_task_status(session, task_id, status) -> Task`
   - `update_task_result(session, task_id, result) -> Task`
-- [ ] `queries/subtasks.py`:
+ - [x] `queries/subtasks.py`:
   - `create_subtask(session, params) -> Subtask`
   - `create_subtasks(session, params_list) -> list[Subtask]` (bulk create)
   - `get_task_subtasks(session, task_id) -> list[Subtask]` (ordered by created_at ASC)
   - `update_subtask_status(session, subtask_id, status) -> Subtask`
   - `update_subtask_result(session, subtask_id, result) -> Subtask`
   - `delete_subtask(session, subtask_id) -> None`
-- [ ] `queries/containers.py`:
+ - [x] `queries/containers.py`:
   - `create_container(session, params) -> Container`
   - `get_containers(session) -> list[Container]` (all, for cleanup)
   - `get_flow_containers(session, flow_id) -> list[Container]`
   - `update_container_status(session, container_id, status) -> Container`
   - `update_container_status_local_id(session, container_id, status, local_id) -> Container`
   - `update_container_image(session, container_id, image) -> Container`
-- [ ] `queries/toolcalls.py`:
+ - [x] `queries/toolcalls.py`:
   - `create_toolcall(session, params) -> Toolcall`
   - `update_toolcall_finished_result(session, toolcall_id, result, duration_seconds) -> Toolcall`
   - `update_toolcall_failed_result(session, toolcall_id, result, duration_seconds) -> Toolcall`
-- [ ] `queries/msgchains.py`:
+ - [x] `queries/msgchains.py`:
   - `create_msgchain(session, params) -> Msgchain`
   - `update_msgchain_chain(session, msgchain_id, chain) -> Msgchain`
   - `update_msgchain_usage(session, msgchain_id, usage_in, usage_out) -> Msgchain`
-- [ ] `queries/termlogs.py`:
+ - [x] `queries/termlogs.py`:
   - `create_termlog(session, params) -> Termlog`
   - `get_flow_termlogs(session, flow_id) -> list[Termlog]` (via flow_id FK direto)
-- [ ] `queries/msglogs.py`:
+ - [x] `queries/msglogs.py`:
   - `create_msglog(session, params) -> Msglog`
   - `update_msglog_result(session, msglog_id, result, result_format) -> Msglog`
   - `get_flow_msglogs(session, flow_id) -> list[Msglog]`
-- [ ] All functions use `async def` and accept `AsyncSession`
-- [ ] All create functions use Pydantic `CreateXxxParams` models for typed input
-- [ ] Queries filter soft-deleted records by default (flows with `deleted_at IS NULL`)
-- [ ] Query modules are limited to the current runtime tables and do not introduce platform-management, multi-user, or assistant-specific persistence APIs ahead of need
-- [ ] `msgchains`, `termlogs`, and `msglogs` query functions are documented as runtime/audit/observability access, not human chat/session APIs
+ - [x] All functions use `async def` and accept `AsyncSession`
+ - [x] All create functions use Pydantic `CreateXxxParams` models for typed input
+ - [x] Queries filter soft-deleted records by default (flows with `deleted_at IS NULL`)
+ - [x] Query modules are limited to the current runtime tables and do not introduce platform-management, multi-user, or assistant-specific persistence APIs ahead of need
+ - [x] `msgchains`, `termlogs`, and `msglogs` query functions are documented as runtime/audit/observability access, not human chat/session APIs
 
 **Technical Notes:**
 - PentAGI reference: `backend/sqlc/models/*.sql` defines all queries
@@ -660,24 +660,24 @@ PostgreSQL schema based on PentAGI's initial migration (`20241026_115120_initial
 - The initial query layer should mirror the narrowed runtime schema introduced in US-011, not the full future platform surface area
 
 **Tests Required:**
-- [ ] CRUD cycle for each entity: create, read, update, verify changes, delete
-- [ ] `create_flow` returns a Flow with auto-generated ID and default values
-- [ ] `get_flow_tasks` returns tasks ordered by `created_at` ascending
-- [ ] `get_flow_tasks` returns empty list for a flow with no tasks
-- [ ] `update_flow_status` changes status and `updated_at` timestamp updates
-- [ ] `delete_flow` sets `deleted_at` (soft delete), `get_flows` excludes it
-- [ ] `create_subtasks` bulk creates 5 subtasks in a single operation
-- [ ] `create_container` with duplicate `local_id` raises IntegrityError
-- [ ] `update_toolcall_finished_result` changes status from `running` to `finished`
-- [ ] `update_msgchain_usage` accumulates token counts (initial 0 + 100 = 100, + 200 = 300)
-- [ ] Transaction rollback: exception in query function does not commit partial changes
-- [ ] No query module is created for out-of-scope entities such as users, roles, providers, prompts, or assistants
+ - [x] CRUD cycle for each entity: create, read, update, verify changes, delete
+ - [x] `create_flow` returns a Flow with auto-generated ID and default values
+ - [x] `get_flow_tasks` returns tasks ordered by `created_at` ascending
+ - [x] `get_flow_tasks` returns empty list for a flow with no tasks
+ - [x] `update_flow_status` changes status and `updated_at` timestamp updates
+ - [x] `delete_flow` sets `deleted_at` (soft delete), `get_flows` excludes it
+ - [x] `create_subtasks` bulk creates 5 subtasks in a single operation
+ - [x] `create_container` with duplicate `local_id` raises IntegrityError
+ - [x] `update_toolcall_finished_result` changes status from `running` to `finished`
+ - [x] `update_msgchain_usage` accumulates token counts (initial 0 + 100 = 100, + 200 = 300)
+ - [x] Transaction rollback: exception in query function does not commit partial changes
+ - [x] No query module is created for out-of-scope entities such as users, roles, providers, prompts, or assistants
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Every query operation needed by the current LusitAI runtime has a Python equivalent
-- [ ] All query functions have type hints
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Every query operation needed by the current LusitAI runtime has a Python equivalent
+ - [x] All query functions have type hints
 
 **Dependencies:** US-008, US-009, US-011
 **Estimated Complexity:** XL
@@ -699,13 +699,13 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 **Context:** PentAGI has two utility patterns: `PrimaryTerminalName(flowID)` for container naming, and `GetPrimaryContainerPorts(flowID)` for deterministic port allocation. These are used throughout the codebase. Lives in `src/pentest/docker/utils.py`. Implemented first because US-013 and US-014 depend on these constants and functions.
 
 **Acceptance Criteria:**
-- [ ] `primary_terminal_name(flow_id: int) -> str` returns `"pentestai-terminal-{flow_id}"`
-- [ ] `get_primary_container_ports(flow_id: int) -> list[int]` returns 2 ports using deterministic formula:
+ - [x] `primary_terminal_name(flow_id: int) -> str` returns `"pentestai-terminal-{flow_id}"`
+ - [x] `get_primary_container_ports(flow_id: int) -> list[int]` returns 2 ports using deterministic formula:
   - `port[i] = 28000 + ((flow_id * 2 + i) % 2000)`
-- [ ] `WORK_FOLDER_PATH = "/work"` constant
-- [ ] `BASE_CONTAINER_PORTS = 28000` constant
-- [ ] `CONTAINER_PORTS_COUNT = 2` constant
-- [ ] `MAX_PORT_RANGE = 2000` constant
+ - [x] `WORK_FOLDER_PATH = "/work"` constant
+ - [x] `BASE_CONTAINER_PORTS = 28000` constant
+ - [x] `CONTAINER_PORTS_COUNT = 2` constant
+ - [x] `MAX_PORT_RANGE = 2000` constant
 
 **Technical Notes:**
 - PentAGI reference: `client.go` lines 29-40 (constants), lines 70-77 (GetPrimaryContainerPorts)
@@ -713,18 +713,18 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 - Container naming must match so that `exec_command` can find the right container by name
 
 **Tests Required:**
-- [ ] `primary_terminal_name(1)` returns `"pentestai-terminal-1"`
-- [ ] `primary_terminal_name(999)` returns `"pentestai-terminal-999"`
-- [ ] `get_primary_container_ports(0)` returns `[28000, 28001]`
-- [ ] `get_primary_container_ports(1)` returns `[28002, 28003]`
-- [ ] `get_primary_container_ports(1000)` wraps around: returns `[28000, 28001]`
-- [ ] Port uniqueness: 100 consecutive flow IDs all get unique port pairs
-- [ ] Constants have correct values matching PentAGI
+ - [x] `primary_terminal_name(1)` returns `"pentestai-terminal-1"`
+ - [x] `primary_terminal_name(999)` returns `"pentestai-terminal-999"`
+ - [x] `get_primary_container_ports(0)` returns `[28000, 28001]`
+ - [x] `get_primary_container_ports(1)` returns `[28002, 28003]`
+ - [x] `get_primary_container_ports(1000)` wraps around: returns `[28000, 28001]`
+ - [x] Port uniqueness: 100 consecutive flow IDs all get unique port pairs
+ - [x] Constants have correct values matching PentAGI
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Utility functions used consistently throughout Docker module
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Utility functions used consistently throughout Docker module
 
 **Dependencies:** US-005
 **Estimated Complexity:** S
@@ -1015,17 +1015,17 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 **Context:** PentAGI's `StopContainer()` and `RemoveContainer()` (`client.go` lines 368-425) handle graceful shutdown: stop the container, update DB status, remove the container and its volumes, update DB status to deleted. `RemoveContainer` calls `StopContainer` first.
 
 **Acceptance Criteria:**
-- [ ] `stop_container(container_id, db_id) -> None` that:
+ - [x] `stop_container(container_id, db_id) -> None` that:
   1. Stops the Docker container (with default timeout)
   2. Handles "container not found" gracefully (log warning, do not raise)
   3. Updates DB container status to `stopped`
-- [ ] `remove_container(container_id, db_id) -> None` that:
+ - [x] `remove_container(container_id, db_id) -> None` that:
   1. Calls `stop_container` first
   2. Removes the Docker container with `force=True` and `v=True` (remove volumes)
   3. Handles "container not found" gracefully
   4. Updates DB container status to `deleted`
-- [ ] Both methods accept the Docker container ID (string) and the database record ID (int)
-- [ ] Neither method raises on "container not found" -- logs a warning and continues
+ - [x] Both methods accept the Docker container ID (string) and the database record ID (int)
+ - [x] Neither method raises on "container not found" -- logs a warning and continues
 
 **Technical Notes:**
 - PentAGI reference: `client.go` lines 368-425
@@ -1035,19 +1035,19 @@ Docker client to create, execute commands in, and destroy Kali Linux containers 
 - Stop timeout: Docker default (10 seconds) is fine
 
 **Tests Required:**
-- [ ] Stop a running container, verify it is no longer in `docker ps` (but is in `docker ps -a`)
-- [ ] Remove a stopped container, verify it is gone from `docker ps -a`
-- [ ] DB status after stop: `stopped`
-- [ ] DB status after remove: `deleted`
-- [ ] Stop an already-stopped container: no error, DB status remains `stopped`
-- [ ] Remove a non-existent container: no error, DB status set to `deleted`
-- [ ] Remove a running container: stops it first, then removes (force=True)
-- [ ] Volumes are removed with the container: verify the named volume is gone
+ - [x] Stop a running container, verify it is no longer in `docker ps` (but is in `docker ps -a`)
+ - [x] Remove a stopped container, verify it is gone from `docker ps -a`
+ - [x] DB status after stop: `stopped`
+ - [x] DB status after remove: `deleted`
+ - [x] Stop an already-stopped container: no error, DB status remains `stopped`
+ - [x] Remove a non-existent container: no error, DB status set to `deleted`
+ - [x] Remove a running container: stops it first, then removes (force=True)
+ - [x] Volumes are removed with the container: verify the named volume is gone
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Containers are cleaned up reliably after scans
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Containers are cleaned up reliably after scans
 
 **Dependencies:** US-014b
 **Estimated Complexity:** M
@@ -1343,12 +1343,12 @@ Knowledge graph para guardar relações entre entidades descobertas durante scan
 **Context:** O PentAGI corre Neo4j + Graphiti via `docker-compose-graphiti.yml`. No nosso caso, adicionamos ao dev container / docker-compose de dev. Neo4j Community Edition é grátis e open-source.
 
 **Acceptance Criteria:**
-- [ ] Neo4j container corre na porta 7687 (Bolt) e 7474 (HTTP browser)
-- [ ] Graphiti API container corre na porta 8000
-- [ ] Graphiti está ligado ao Neo4j (health check passa)
-- [ ] Neo4j browser acessível em `http://localhost:7474` para debug
-- [ ] Variáveis de ambiente configuradas: `GRAPHITI_ENABLED`, `GRAPHITI_URL`, `GRAPHITI_TIMEOUT`
-- [ ] Se `GRAPHITI_ENABLED=false`, o sistema funciona sem Neo4j/Graphiti (graceful disable)
+ - [x] Neo4j container corre na porta 7687 (Bolt) e 7474 (HTTP browser)
+ - [x] Graphiti API container corre na porta 8000
+ - [x] Graphiti está ligado ao Neo4j (health check passa)
+ - [x] Neo4j browser acessível em `http://localhost:7474` para debug
+ - [x] Variáveis de ambiente configuradas: `GRAPHITI_ENABLED`, `GRAPHITI_URL`, `GRAPHITI_TIMEOUT`
+ - [x] Se `GRAPHITI_ENABLED=false`, o sistema funciona sem Neo4j/Graphiti (graceful disable)
 
 **Technical Notes:**
 - Neo4j image: `neo4j:community` (grátis)
@@ -1357,14 +1357,14 @@ Knowledge graph para guardar relações entre entidades descobertas durante scan
 - Referência: `pentagi/docker-compose-graphiti.yml`
 
 **Tests Required:**
-- [ ] Dev container up → Neo4j health check passa (`curl http://localhost:7474`)
-- [ ] Graphiti health check passa (`curl http://localhost:8000/health`)
-- [ ] Com `GRAPHITI_ENABLED=false` → app inicia sem erros, sem tentar conectar ao Graphiti
+ - [x] Dev container up → Neo4j health check passa (`curl http://localhost:7474`)
+ - [x] Graphiti health check passa (`curl http://localhost:8000/health`)
+ - [x] Com `GRAPHITI_ENABLED=false` → app inicia sem erros, sem tentar conectar ao Graphiti
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Outro developer pode fazer rebuild do dev container e ter Neo4j+Graphiti a correr
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Outro developer pode fazer rebuild do dev container e ter Neo4j+Graphiti a correr
 
 **Dependencies:** US-001 (Base Dev Container)
 **Estimated Complexity:** M
@@ -1380,11 +1380,11 @@ Knowledge graph para guardar relações entre entidades descobertas durante scan
 **Context:** Tradução direta de `pentagi/backend/pkg/graphiti/client.go` (145 linhas). O client é um wrapper HTTP que fala com o Graphiti API. Se Graphiti está disabled, todas as operações são no-op (retornam sem erro). Vive em `src/pentest/graphiti/`.
 
 **Acceptance Criteria:**
-- [ ] `GraphitiClient` inicializa com URL, timeout, e flag enabled
-- [ ] Se `enabled=False`, todas as operações retornam sem erro (no-op)
-- [ ] Se `enabled=True`, verifica health check no init — falha se Graphiti não está acessível
-- [ ] Método `add_messages(messages)` — envia outputs dos agentes para o Graphiti extrair entidades
-- [ ] 7 métodos de pesquisa (mesmo que PentAGI):
+ - [x] `GraphitiClient` inicializa com URL, timeout, e flag enabled
+ - [x] Se `enabled=False`, todas as operações retornam sem erro (no-op)
+ - [x] Se `enabled=True`, verifica health check no init — falha se Graphiti não está acessível
+ - [x] Método `add_messages(messages)` — envia outputs dos agentes para o Graphiti extrair entidades
+ - [x] 7 métodos de pesquisa (mesmo que PentAGI):
   - `temporal_search(query, recency_window)` — pesquisa por janela temporal
   - `entity_relationship_search(query, center_node_uuid, max_depth)` — relações de uma entidade
   - `diverse_search(query, diversity_level)` — resultados variados, não redundantes
@@ -1392,8 +1392,8 @@ Knowledge graph para guardar relações entre entidades descobertas durante scan
   - `successful_tools_search(query, min_mentions)` — ferramentas que funcionaram
   - `recent_context_search(query, recency_window)` — contexto recente
   - `entity_by_label_search(query, node_labels)` — entidades por tipo
-- [ ] Cada método retorna Pydantic models tipados (não dicts raw)
-- [ ] Timeout configurável por request
+ - [x] Cada método retorna Pydantic models tipados (não dicts raw)
+ - [x] Timeout configurável por request
 
 **Technical Notes:**
 - PentAGI usa `github.com/vxcontrol/graphiti-go-client` — nós usamos `httpx` direto ou a Python client library do Graphiti
@@ -1402,19 +1402,19 @@ Knowledge graph para guardar relações entre entidades descobertas durante scan
 - Referência: `pentagi/backend/pkg/graphiti/client.go` (145 linhas)
 
 **Tests Required:**
-- [ ] `GraphitiClient(enabled=False)` → `add_messages()` retorna sem erro, `temporal_search()` retorna erro "not enabled"
-- [ ] `GraphitiClient(enabled=True, url="http://localhost:8000")` → health check passa, client inicializa
-- [ ] `GraphitiClient(enabled=True, url="http://invalid:9999")` → init falha com erro claro
-- [ ] `add_messages([{role: "agent", content: "nmap found port 443 running nginx 1.24"}])` → retorna sem erro (Graphiti extrai entidades)
-- [ ] `temporal_search("nginx vulnerabilities")` → retorna lista de NodeResult/EdgeResult
-- [ ] `entity_relationship_search(center_node_uuid="...", max_depth=2)` → retorna relações
-- [ ] Timeout: request que demora mais de timeout → erro claro, sem hang
+ - [x] `GraphitiClient(enabled=False)` → `add_messages()` retorna sem erro, `temporal_search()` retorna erro "not enabled"
+ - [x] `GraphitiClient(enabled=True, url="http://localhost:8000")` → health check passa, client inicializa
+ - [x] `GraphitiClient(enabled=True, url="http://invalid:9999")` → init falha com erro claro
+ - [x] `add_messages([{role: "agent", content: "nmap found port 443 running nginx 1.24"}])` → retorna sem erro (Graphiti extrai entidades)
+ - [x] `temporal_search("nginx vulnerabilities")` → retorna lista de NodeResult/EdgeResult
+ - [x] `entity_relationship_search(center_node_uuid="...", max_depth=2)` → retorna relações
+ - [x] Timeout: request que demora mais de timeout → erro claro, sem hang
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Client funciona com Graphiti real (integration test)
-- [ ] Client funciona com mock (unit test)
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Client funciona com Graphiti real (integration test)
+ - [x] Client funciona com mock (unit test)
 
 **Dependencies:** US-034 (Neo4j + Graphiti no Dev Container), US-005 (Project Skeleton)
 **Estimated Complexity:** L
@@ -1430,12 +1430,12 @@ Knowledge graph para guardar relações entre entidades descobertas durante scan
 **Context:** No PentAGI, o Graphiti search é uma tool disponível para o Pentester, Coder, e outros agentes com vector DB access. O agente chama `graphiti_search` com o tipo de pesquisa e query. O handler traduz para o método correto do GraphitiClient. Baseado em `pentagi/backend/pkg/tools/graphiti_search.go`.
 
 **Acceptance Criteria:**
-- [ ] Tool `graphiti_search` registada no tool registry com JSON schema
-- [ ] Parâmetros aceites: `search_type` (enum: recent_context, successful_tools, episode_context, entity_relationships, diverse_results, entity_by_label), `query` (string), e parâmetros opcionais por tipo (recency_window, center_node_uuid, max_depth, diversity_level, min_mentions, node_labels)
-- [ ] Cada search_type mapeia para o método correto do GraphitiClient
-- [ ] Se Graphiti disabled → retorna mensagem "Knowledge graph not enabled" (não crasha)
-- [ ] Resultado formatado como texto legível para o agente
-- [ ] Tool type: `SearchVectorDbToolType` (no registry)
+ - [x] Tool `graphiti_search` registada no tool registry com JSON schema
+ - [x] Parâmetros aceites: `search_type` (enum: recent_context, successful_tools, episode_context, entity_relationships, diverse_results, entity_by_label), `query` (string), e parâmetros opcionais por tipo (recency_window, center_node_uuid, max_depth, diversity_level, min_mentions, node_labels)
+ - [x] Cada search_type mapeia para o método correto do GraphitiClient
+ - [x] Se Graphiti disabled → retorna mensagem "Knowledge graph not enabled" (não crasha)
+ - [x] Resultado formatado como texto legível para o agente
+ - [x] Tool type: `SearchVectorDbToolType` (no registry)
 
 **Technical Notes:**
 - O PentAGI define 6 search types no prompt do Pentester (pentester.tmpl) com instruções detalhadas de quando usar cada um
@@ -1443,17 +1443,17 @@ Knowledge graph para guardar relações entre entidades descobertas durante scan
 - Referência: `pentagi/backend/pkg/tools/graphiti_search.go`
 
 **Tests Required:**
-- [ ] Tool registada com JSON schema válido
-- [ ] `graphiti_search(search_type="recent_context", query="nmap results")` → chama `client.recent_context_search()`
-- [ ] `graphiti_search(search_type="entity_relationships", query="...", center_node_uuid="...")` → chama `client.entity_relationship_search()`
-- [ ] Com Graphiti disabled → retorna "Knowledge graph not enabled", sem erro
-- [ ] Com search_type inválido → retorna erro claro
-- [ ] Resultado formatado como texto (não JSON raw)
+ - [x] Tool registada com JSON schema válido
+ - [x] `graphiti_search(search_type="recent_context", query="nmap results")` → chama `client.recent_context_search()`
+ - [x] `graphiti_search(search_type="entity_relationships", query="...", center_node_uuid="...")` → chama `client.entity_relationship_search()`
+ - [x] Com Graphiti disabled → retorna "Knowledge graph not enabled", sem erro
+ - [x] Com search_type inválido → retorna erro claro
+ - [x] Resultado formatado como texto (não JSON raw)
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Integra com tool registry (US-022) e tool executor (US-023)
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Integra com tool registry (US-022) e tool executor (US-023)
 
 **Dependencies:** US-035 (Graphiti Client), US-022 (Tool Registry)
 **Estimated Complexity:** M
@@ -1481,17 +1481,17 @@ Primeiro agente do sistema. Recebe o URL do target + resultado do FASE 0 (backen
 **Ficheiros:** `src/pentest/agents/base.py`
 
 **Acceptance Criteria:**
-- [ ] `AgentState` TypedDict com:
+ - [x] `AgentState` TypedDict com:
   - `messages: Annotated[list, operator.add]` — message chain (LangGraph MessagesState)
   - `barrier_result: dict | None` — args extraídos do barrier tool call (None enquanto não terminou)
   - `barrier_hit: bool` (default False) — flag que indica se o barrier foi chamado
-- [ ] `BarrierAwareToolNode` — wrapper do `ToolNode` prebuilt que:
+ - [x] `BarrierAwareToolNode` — wrapper do `ToolNode` prebuilt que:
   1. Usa `ToolNode(tools, handle_tool_errors=True)` internamente para executar TODAS as tool calls do turno
   2. DEPOIS de executar todas, verifica se alguma tool call era barrier (nome está em `barrier_names`)
   3. Se barrier encontrado: extrai os **args** do tool call (não o return value) do `AIMessage.tool_calls`, guarda em `barrier_result`
   4. Se múltiplos tool calls no mesmo turno (normal + barrier): executa TODOS, marca barrier depois (comportamento PentAGI)
   5. Retorna state update com messages + barrier_hit + barrier_result
-- [ ] Função `create_agent_graph(llm, tools, barrier_names, max_iterations) -> CompiledGraph` que:
+ - [x] Função `create_agent_graph(llm, tools, barrier_names, max_iterations) -> CompiledGraph` que:
   1. Cria um `StateGraph(AgentState)`
   2. Node `call_llm` — chama `llm.bind_tools(tools)` com as messages do state
   3. Node `execute_tools` — `BarrierAwareToolNode` (executa tools + detecta barriers)
@@ -1502,9 +1502,9 @@ Primeiro agente do sistema. Recebe o URL do target + resultado do FASE 0 (backen
      - Se `barrier_hit == True` → vai para END
      - Se `barrier_hit == False` → volta para `call_llm` (loop)
   6. `recursion_limit` configurável (default 20 para Generator, 100 para outros)
-- [ ] O graph compila e executa com `graph.invoke({"messages": [system, human]})`
-- [ ] O resultado do barrier é extraído do state: `state["barrier_result"]` contém os args parsed do barrier tool call (ex: `{"subtasks": [...], "message": "Plan ready"}`)
-- [ ] O graph funciona com qualquer LLM (Claude, GPT, etc.) via LangChain model interface
+ - [x] O graph compila e executa com `graph.invoke({"messages": [system, human]})`
+ - [x] O resultado do barrier é extraído do state: `state["barrier_result"]` contém os args parsed do barrier tool call (ex: `{"subtasks": [...], "message": "Plan ready"}`)
+ - [x] O graph funciona com qualquer LLM (Claude, GPT, etc.) via LangChain model interface
 
 **Graph visual:**
 ```
@@ -1567,20 +1567,20 @@ class BarrierAwareToolNode:
 ```
 
 **Tests Required:**
-- [ ] Graph com tool mock: LLM chama tool "echo" → executa → LLM chama barrier → graph para, `barrier_result` tem os args
-- [ ] Graph com barrier imediato: LLM chama barrier no primeiro turno → graph para, `barrier_result` extraído
-- [ ] Graph sem tool calls: LLM retorna texto → graph para (END), `barrier_result` é None
-- [ ] Graph com múltiplos turnos: LLM chama tool A → tool B → barrier → para
-- [ ] Múltiplos tool calls no mesmo turno: LLM retorna [terminal(...), subtask_list(...)]] → AMBOS executam, barrier detectado depois, `barrier_result` contém args do subtask_list
-- [ ] `recursion_limit` funciona: graph para ao atingir limite, `barrier_result` é None
-- [ ] `handle_tool_errors=True`: tool que faz raise → erro retorna como ToolMessage, LLM pode recuperar
-- [ ] `barrier_result` contém os args parsed (dict), não a string de confirmação
-- [ ] State `barrier_hit` é True quando barrier é chamado, False caso contrário
+ - [x] Graph com tool mock: LLM chama tool "echo" → executa → LLM chama barrier → graph para, `barrier_result` tem os args
+ - [x] Graph com barrier imediato: LLM chama barrier no primeiro turno → graph para, `barrier_result` extraído
+ - [x] Graph sem tool calls: LLM retorna texto → graph para (END), `barrier_result` é None
+ - [x] Graph com múltiplos turnos: LLM chama tool A → tool B → barrier → para
+ - [x] Múltiplos tool calls no mesmo turno: LLM retorna [terminal(...), subtask_list(...)]] → AMBOS executam, barrier detectado depois, `barrier_result` contém args do subtask_list
+ - [x] `recursion_limit` funciona: graph para ao atingir limite, `barrier_result` é None
+ - [x] `handle_tool_errors=True`: tool que faz raise → erro retorna como ToolMessage, LLM pode recuperar
+ - [x] `barrier_result` contém os args parsed (dict), não a string de confirmação
+ - [x] State `barrier_hit` é True quando barrier é chamado, False caso contrário
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Padrão é genérico — pode ser usado por qualquer agente mudando tools e barrier_names
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Padrão é genérico — pode ser usado por qualquer agente mudando tools e barrier_names
 
 **Dependencies:** Nenhuma (este é o ponto de partida)
 **Estimated Complexity:** L
@@ -1598,20 +1598,20 @@ class BarrierAwareToolNode:
 **Ficheiros:** `src/pentest/tools/barriers.py`, `src/pentest/models/subtask.py`
 
 **Acceptance Criteria:**
-- [ ] `SubtaskInfo` Pydantic model:
+ - [x] `SubtaskInfo` Pydantic model:
   - `title: str` (required) — nome curto da subtask
   - `description: str` (required) — descrição detalhada
   - `fase: str | None` (optional) — referência à SKILL.md (ex: "scan-fase-3")
-- [ ] `SubtaskList` Pydantic model:
+ - [x] `SubtaskList` Pydantic model:
   - `subtasks: list[SubtaskInfo]` (required, min 1, max 15 items)
   - `message: str` (required) — mensagem explicativa do plano
-- [ ] LangChain `@tool` function `subtask_list` que:
+ - [x] LangChain `@tool` function `subtask_list` que:
   1. Recebe os argumentos como `SubtaskList`
   2. Valida: pelo menos 1 subtask, máximo 15
   3. Retorna "subtask list successfully processed with N subtasks"
   4. **Nota:** O return value é apenas confirmação. O resultado real (a lista de subtasks) é extraído pelo `BarrierAwareToolNode` dos args do tool call (`AIMessage.tool_calls[i]["args"]`) e guardado em `state["barrier_result"]`.
-- [ ] JSON schema gerado por `subtask_list` é compatível com LLM function calling
-- [ ] A tool é passada em `barrier_names={"subtask_list"}` ao `create_agent_graph` (US-037)
+ - [x] JSON schema gerado por `subtask_list` é compatível com LLM function calling
+ - [x] A tool é passada em `barrier_names={"subtask_list"}` ao `create_agent_graph` (US-037)
 
 **Technical Notes:**
 - Usar `@tool` decorator do LangChain com Pydantic args schema
@@ -1621,18 +1621,18 @@ class BarrierAwareToolNode:
 - Após o graph terminar: `state["barrier_result"]["subtasks"]` contém a lista de subtasks como dicts
 
 **Tests Required:**
-- [ ] `subtask_list` com 3 subtasks válidas → retorna "successfully processed with 3 subtasks"
-- [ ] `subtask_list` com 0 subtasks → validation error
-- [ ] `subtask_list` com 16 subtasks → validation error (max 15)
-- [ ] `subtask_list` com campo `fase` preenchido → valida
-- [ ] `subtask_list` com campo `fase` None → valida (fase é opcional)
-- [ ] JSON schema tem os campos correctos para function calling
-- [ ] Integração com graph: após barrier, `state["barrier_result"]["subtasks"]` contém a lista de subtasks como dicts
-- [ ] `SubtaskInfo` valida: title e description não podem ser vazios
+ - [x] `subtask_list` com 3 subtasks válidas → retorna "successfully processed with 3 subtasks"
+ - [x] `subtask_list` com 0 subtasks → validation error
+ - [x] `subtask_list` com 16 subtasks → validation error (max 15)
+ - [x] `subtask_list` com campo `fase` preenchido → valida
+ - [x] `subtask_list` com campo `fase` None → valida (fase é opcional)
+ - [x] JSON schema tem os campos correctos para function calling
+ - [x] Integração com graph: após barrier, `state["barrier_result"]["subtasks"]` contém a lista de subtasks como dicts
+ - [x] `SubtaskInfo` valida: title e description não podem ser vazios
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-037 (Agent State e Base Graph)
 **Estimated Complexity:** S
@@ -1650,18 +1650,18 @@ class BarrierAwareToolNode:
 **Ficheiros:** `src/pentest/tools/terminal.py`, `src/pentest/tools/file.py`
 
 **Acceptance Criteria:**
-- [ ] `TerminalAction` Pydantic model (em `src/pentest/models/tool_args.py`):
+ - [x] `TerminalAction` Pydantic model (em `src/pentest/models/tool_args.py`):
   - `input: str` (required) — comando a executar
   - `cwd: str` (default "/work") — working directory
   - `detach: bool` (default False) — execução em background
   - `timeout: int` (default 60, min 10, max 1200) — timeout em segundos
   - `message: str` (required) — descrição humana do comando
-- [ ] `FileAction` Pydantic model:
+ - [x] `FileAction` Pydantic model:
   - `action: Literal["read_file", "update_file"]` (required)
   - `path: str` (required)
   - `content: str` (optional, para update_file)
   - `message: str` (required)
-- [ ] Factory functions que criam LangChain tools com estado:
+ - [x] Factory functions que criam LangChain tools com estado:
   ```python
   def create_terminal_tool(docker_client, container_id) -> BaseTool:
       """Cria terminal tool com Docker client injectado via closure."""
@@ -1679,10 +1679,10 @@ class BarrierAwareToolNode:
       """Cria file tool com Docker client injectado via closure."""
       ...
   ```
-- [ ] `create_mock_terminal_tool() -> BaseTool` — para testes sem Docker, retorna respostas fixas
-- [ ] `create_mock_file_tool() -> BaseTool` — idem
-- [ ] Erros são retornados como string (nunca raise) — o LLM vê o erro e decide o que fazer
-- [ ] Format de erro: `"terminal tool error: {mensagem do erro}"` (matching PentAGI)
+ - [x] `create_mock_terminal_tool() -> BaseTool` — para testes sem Docker, retorna respostas fixas
+ - [x] `create_mock_file_tool() -> BaseTool` — idem
+ - [x] Erros são retornados como string (nunca raise) — o LLM vê o erro e decide o que fazer
+ - [x] Format de erro: `"terminal tool error: {mensagem do erro}"` (matching PentAGI)
 
 **Technical Notes:**
 - Estas tools dependem do Docker client (Epic 3, US-015 e US-016)
@@ -1693,22 +1693,22 @@ class BarrierAwareToolNode:
 - Para testes unitários: mock do Docker client ou usar `create_mock_terminal_tool()`
 
 **Tests Required:**
-- [ ] `create_terminal_tool(mock_docker, "container-123")` → retorna tool LangChain válida
-- [ ] terminal tool com comando simples → retorna output do mock Docker
-- [ ] terminal tool com comando que falha → retorna erro como string, sem exception
-- [ ] terminal tool com timeout → retorna timeout error como string
-- [ ] `create_file_tool(mock_docker, "container-123")` → retorna tool válida
-- [ ] file tool `read_file` → retorna conteúdo
-- [ ] file tool `update_file` → retorna confirmação
-- [ ] file tool com path inválido → retorna erro como string
-- [ ] file tool com action inválida → validation error
-- [ ] Mock tools: `create_mock_terminal_tool()` retorna tool funcional com respostas fixas
-- [ ] JSON schemas compatíveis com LLM function calling
+ - [x] `create_terminal_tool(mock_docker, "container-123")` → retorna tool LangChain válida
+ - [x] terminal tool com comando simples → retorna output do mock Docker
+ - [x] terminal tool com comando que falha → retorna erro como string, sem exception
+ - [x] terminal tool com timeout → retorna timeout error como string
+ - [x] `create_file_tool(mock_docker, "container-123")` → retorna tool válida
+ - [x] file tool `read_file` → retorna conteúdo
+ - [x] file tool `update_file` → retorna confirmação
+ - [x] file tool com path inválido → retorna erro como string
+ - [x] file tool com action inválida → validation error
+ - [x] Mock tools: `create_mock_terminal_tool()` retorna tool funcional com respostas fixas
+ - [x] JSON schemas compatíveis com LLM function calling
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Funciona com Docker real (via factory) ou mock (via mock factory)
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Funciona com Docker real (via factory) ou mock (via mock factory)
 
 **Dependencies:** US-037; Epic 3 (Docker Sandbox) para modo real; sem dependência para modo mock
 **Estimated Complexity:** M
@@ -1724,19 +1724,19 @@ class BarrierAwareToolNode:
 **Context:** O browser tool faz HTTP requests ao target e retorna o conteúdo da página (HTML convertido para markdown, ou raw HTML, ou lista de links). Não é um browser headless completo — é um HTTP client com parsing. O Generator usa para ver o target antes de criar o plano.
 
 **Acceptance Criteria:**
-- [ ] `BrowserAction` Pydantic model:
+ - [x] `BrowserAction` Pydantic model:
   - `url: str` (required) — URL a visitar
   - `action: Literal["markdown", "html", "links"]` (default "markdown") — formato de output
   - `message: str` (required) — descrição
-- [ ] LangChain `@tool` function `browser(url, action, message) -> str` que:
+ - [x] LangChain `@tool` function `browser(url, action, message) -> str` que:
   1. Faz GET request ao URL via `httpx` (async)
   2. Se `action == "markdown"`: converte HTML para markdown (usar `markdownify` ou `html2text`)
   3. Se `action == "html"`: retorna raw HTML (truncado a 16KB se necessário)
   4. Se `action == "links"`: extrai todos os `<a href>` e retorna lista
   5. Timeout: 30 segundos
   6. Erros retornados como string (URL inválido, timeout, 4xx/5xx)
-- [ ] Respeita headers básicos: User-Agent, Accept
-- [ ] Trunca output a 16KB para não encher o context (com nota "[truncated]")
+ - [x] Respeita headers básicos: User-Agent, Accept
+ - [x] Trunca output a 16KB para não encher o context (com nota "[truncated]")
 
 **Ficheiros:** `src/pentest/tools/browser.py`
 
@@ -1749,17 +1749,17 @@ class BarrierAwareToolNode:
 - Screenshots ficam para depois (quando tivermos o Reporter)
 
 **Tests Required:**
-- [ ] `browser("https://httpbin.org/html", "markdown")` → retorna markdown do conteúdo
-- [ ] `browser("https://httpbin.org/html", "links")` → retorna lista de links
-- [ ] `browser("https://httpbin.org/html", "html")` → retorna raw HTML
-- [ ] `browser("https://invalid.url.xxx")` → retorna erro como string
-- [ ] `browser` com timeout → retorna timeout como string
-- [ ] Output > 16KB → truncado com nota
-- [ ] JSON schema compatível com LLM function calling
+ - [x] `browser("https://httpbin.org/html", "markdown")` → retorna markdown do conteúdo
+ - [x] `browser("https://httpbin.org/html", "links")` → retorna lista de links
+ - [x] `browser("https://httpbin.org/html", "html")` → retorna raw HTML
+ - [x] `browser("https://invalid.url.xxx")` → retorna erro como string
+ - [x] `browser` com timeout → retorna timeout como string
+ - [x] Output > 16KB → truncado com nota
+ - [x] JSON schema compatível com LLM function calling
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-037
 **Estimated Complexity:** M
@@ -1777,17 +1777,17 @@ class BarrierAwareToolNode:
 **Ficheiros:** `src/pentest/tools/stubs.py`
 
 **Acceptance Criteria:**
-- [ ] `MemoristAction` Pydantic model:
+ - [x] `MemoristAction` Pydantic model:
   - `question: str` (required) — query de pesquisa na memória
   - `message: str` (required)
-- [ ] `ComplexSearch` Pydantic model:
+ - [x] `ComplexSearch` Pydantic model:
   - `question: str` (required) — query de pesquisa
   - `message: str` (required)
-- [ ] LangChain `@tool` functions:
+ - [x] LangChain `@tool` functions:
   - `memorist(question, message) -> str` — retorna "No previous scan data available. The Memorist agent is not yet implemented. Proceed with planning based on the target information provided."
   - `search(question, message) -> str` — retorna "External search is not yet available. The Searcher agent is not yet implemented. Proceed with planning based on the target information provided."
-- [ ] Estas tools NÃO são barriers — retornam resultado e o loop continua
-- [ ] Log warning quando stub é chamado: "Stub handler called for {tool_name}: {question}"
+ - [x] Estas tools NÃO são barriers — retornam resultado e o loop continua
+ - [x] Log warning quando stub é chamado: "Stub handler called for {tool_name}: {question}"
 
 **Technical Notes:**
 - Estes stubs serão substituídos por handlers reais que criam novos `performAgentChain()` para os agentes Memorist e Searcher
@@ -1795,16 +1795,16 @@ class BarrierAwareToolNode:
 - PentAGI reference: `performers.go` lines 110-118 — `cfg.Memorist` e `cfg.Searcher` são handlers passados ao executor
 
 **Tests Required:**
-- [ ] `memorist("scans Supabase anteriores?")` → retorna mensagem de stub
-- [ ] `searcher("SvelteKit vulnerabilities")` → retorna mensagem de stub
-- [ ] Warning logged quando stub é chamado
-- [ ] Tools aparecem na lista de tools do Generator
-- [ ] JSON schemas compatíveis com LLM function calling
+ - [x] `memorist("scans Supabase anteriores?")` → retorna mensagem de stub
+ - [x] `searcher("SvelteKit vulnerabilities")` → retorna mensagem de stub
+ - [x] Warning logged quando stub é chamado
+ - [x] Tools aparecem na lista de tools do Generator
+ - [x] JSON schemas compatíveis com LLM function calling
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Documentado como stubs — clear TODO para substituir por implementação real
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Documentado como stubs — clear TODO para substituir por implementação real
 
 **Dependencies:** US-037
 **Estimated Complexity:** S
@@ -1822,7 +1822,7 @@ class BarrierAwareToolNode:
 **Ficheiros:** `src/pentest/skills/loader.py`
 
 **Acceptance Criteria:**
-- [ ] `load_fase_index(scan_path: list[str], skills_dir: str) -> str` que:
+ - [x] `load_fase_index(scan_path: list[str], skills_dir: str) -> str` que:
   1. Para cada fase no scan_path, converte o nome: `"fase-1"` → `"scan-fase-1"` (os directórios das skills usam prefixo `scan-`)
   2. Lê `{skills_dir}/scan-{fase}/SKILL.md` (ex: `skills_dir/scan-fase-1/SKILL.md`)
   3. Extrai o campo `description` do frontmatter YAML (`---` delimitado)
@@ -1834,10 +1834,10 @@ class BarrierAwareToolNode:
      - fase-3: RLS Testing — testar Row Level Security em tabelas Supabase
      - ...
      ```
-- [ ] `load_fase_skill(fase: str, skills_dir: str) -> str` — lê a SKILL.md **completa** de uma fase (para o Scanner usar depois). Mesma conversão de nome: `"fase-3"` → `"scan-fase-3"`.
-- [ ] Se um SKILL.md não existe → skip com warning (não crashar)
-- [ ] Se frontmatter inválido → skip com warning
-- [ ] Funciona com o path `lusitai-internal-scan/.claude/skills/scan-fase-{N}/SKILL.md`
+ - [x] `load_fase_skill(fase: str, skills_dir: str) -> str` — lê a SKILL.md **completa** de uma fase (para o Scanner usar depois). Mesma conversão de nome: `"fase-3"` → `"scan-fase-3"`.
+ - [x] Se um SKILL.md não existe → skip com warning (não crashar)
+ - [x] Se frontmatter inválido → skip com warning
+ - [x] Funciona com o path `lusitai-internal-scan/.claude/skills/scan-fase-{N}/SKILL.md`
 
 **Technical Notes:**
 - **Mapping de nomes:** o FASE 0 (BackendProfile) retorna `scan_path: ["fase-1", "fase-3"]` mas os directórios das skills são `scan-fase-1/`, `scan-fase-3/`. A função faz a conversão: `f"scan-{fase}"` → directório.
@@ -1848,15 +1848,15 @@ class BarrierAwareToolNode:
 - `load_fase_skill` será usado pelo Scanner em epics futuros — implementamos agora porque o loader é o mesmo
 
 **Tests Required:**
-- [ ] `load_fase_index(["scan-fase-1", "scan-fase-3"], skills_dir)` → retorna índice com 2 entries
-- [ ] `load_fase_index(["scan-fase-999"], skills_dir)` → retorna índice vazio com warning (skill não existe)
-- [ ] Descriptions limpas: sem "Execute FASE X -", sem "Invoke with..."
-- [ ] Formato correcto: "- scan-fase-1: {description limpa}"
-- [ ] Funciona com todos os 22 SKILL.md existentes
+ - [x] `load_fase_index(["scan-fase-1", "scan-fase-3"], skills_dir)` → retorna índice com 2 entries
+ - [x] `load_fase_index(["scan-fase-999"], skills_dir)` → retorna índice vazio com warning (skill não existe)
+ - [x] Descriptions limpas: sem "Execute FASE X -", sem "Invoke with..."
+ - [x] Formato correcto: "- scan-fase-1: {description limpa}"
+ - [x] Funciona com todos os 22 SKILL.md existentes
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** Nenhuma (só leitura de ficheiros)
 **Estimated Complexity:** S
@@ -1926,7 +1926,7 @@ class BarrierAwareToolNode:
 **Ficheiros:** `src/pentest/agents/generator.py`
 
 **Acceptance Criteria:**
-- [ ] `async def generate_subtasks(input: str, backend_profile: BackendProfile, skills_dir: str, docker_client: DockerClient | None = None, model: str | None = None, provider: str | None = None) -> list[SubtaskInfo]` que:
+ - [x] `async def generate_subtasks(input: str, backend_profile: BackendProfile, skills_dir: str, docker_client: DockerClient | None = None, model: str | None = None, provider: str | None = None) -> list[SubtaskInfo]` que:
   1. Carrega o fase index via `load_fase_index(backend_profile.scan_path, skills_dir)`
   2. Renderiza o prompt via `render_generator_prompt(input, backend_profile, fase_index, "")`
   3. Cria as tools: terminal, file (se docker_client disponível), browser, memorist (stub), searcher (stub), subtask_list (barrier)
@@ -1935,11 +1935,11 @@ class BarrierAwareToolNode:
   6. Invoca o graph com system prompt + user message
   7. Extrai a lista de subtasks do resultado
   8. Retorna `list[SubtaskInfo]`
-- [ ] Se docker_client é None: terminal e file não são incluídos nas tools (Generator planeia só com browser + stubs)
-- [ ] Se LLM não chama subtask_list após max_iterations: raise `GeneratorError("Generator failed to produce a plan")`
-- [ ] Modelo LLM configurável via parâmetro `model`/`provider` ou env vars (`GENERATOR_PROVIDER`, `GENERATOR_MODEL`, `LLM_PROVIDER`, `LLM_MODEL`)
-- [ ] Log do plano gerado: lista de subtasks com títulos
-- [ ] LLM desacoplado de vendor específico (usa `pentest.config` centralizado e factory)
+ - [x] Se docker_client é None: terminal e file não são incluídos nas tools (Generator planeia só com browser + stubs)
+ - [x] Se LLM não chama subtask_list após max_iterations: raise `GeneratorError("Generator failed to produce a plan")`
+ - [x] Modelo LLM configurável via parâmetro `model`/`provider` ou env vars (`GENERATOR_PROVIDER`, `GENERATOR_MODEL`, `LLM_PROVIDER`, `LLM_MODEL`)
+ - [x] Log do plano gerado: lista de subtasks com títulos
+ - [x] LLM desacoplado de vendor específico (usa `pentest.config` centralizado e factory)
 
 **Technical Notes:**
 - PentAGI reference: `performers.go` → `performSubtasksGenerator()` lines 94-172
@@ -1948,23 +1948,23 @@ class BarrierAwareToolNode:
 - Para a v1: o Generator corre isolado, sem controller. Testável como função standalone.
 
 **Tests Required:**
-- [ ] `tests/unit/agents/test_generator.py`: Testes unitários com `_FakeLLM` e monkeypatch (sem grafo real)
-- [ ] `tests/agent/test_generator_agent.py`: Testes de camada agent com grafo real + LLM mockado (`@pytest.mark.agent`)
-- [ ] `tests/e2e/test_generator_llm_e2e.py`: Teste E2E com LLM real provider-agnostic (`@pytest.mark.e2e`, manual via `workflow_dispatch`)
-- [ ] `generate_subtasks("scan https://example.com", supabase_profile)` → retorna lista de subtasks
-- [ ] Cada subtask tem title e description não vazios
-- [ ] Subtasks incluem campo `fase` (pelo menos em algumas)
-- [ ] Sem docker_client: funciona só com browser + stubs (sem terminal/file)
-- [ ] Com docker_client mock: terminal e file disponíveis
-- [ ] LLM que não chama subtask_list → `GeneratorError`
-- [ ] Resolução de modelo: parâmetro > env var > default (testado via monkeypatch)
-- [ ] Número de subtasks: entre 1 e 15
+ - [x] `tests/unit/agents/test_generator.py`: Testes unitários com `_FakeLLM` e monkeypatch (sem grafo real)
+ - [x] `tests/agent/test_generator_agent.py`: Testes de camada agent com grafo real + LLM mockado (`@pytest.mark.agent`)
+ - [x] `tests/e2e/test_generator_llm_e2e.py`: Teste E2E com LLM real provider-agnostic (`@pytest.mark.e2e`, manual via `workflow_dispatch`)
+ - [x] `generate_subtasks("scan https://example.com", supabase_profile)` → retorna lista de subtasks
+ - [x] Cada subtask tem title e description não vazios
+ - [x] Subtasks incluem campo `fase` (pelo menos em algumas)
+ - [x] Sem docker_client: funciona só com browser + stubs (sem terminal/file)
+ - [x] Com docker_client mock: terminal e file disponíveis
+ - [x] LLM que não chama subtask_list → `GeneratorError`
+ - [x] Resolução de modelo: parâmetro > env var > default (testado via monkeypatch)
+ - [x] Número de subtasks: entre 1 e 15
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pode ser chamado standalone: `python -c "from pentest.agents.generator import generate_subtasks; ..."`
-- [ ] Testado com target real (agent test com mock LLM + e2e com Claude)
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pode ser chamado standalone: `python -c "from pentest.agents.generator import generate_subtasks; ..."`
+ - [x] Testado com target real (agent test com mock LLM + e2e com Claude)
 
 **Dependencies:** US-19, US-037, US-038, US-039, US-040, US-041, US-042, US-043
 **Estimated Complexity:** L
@@ -2019,19 +2019,19 @@ Framework de avaliação para medir e comparar a qualidade dos agentes. Permite 
 - `tests/evals/datasets/portswigger_mvp.json`
 
 **Acceptance Criteria:**
-- [ ] Dataset MVP com **4 labs** no total
-- [ ] Cobertura mínima de **4 categorias** (1 lab por categoria)
-- [ ] Cada caso inclui: `lab_id`, `lab_url`, `category`, `fase_phase`, `expected_vulnerability`, `difficulty`
-- [ ] Cada caso inclui `expected_backend_type` (hardcoded para estabilidade do eval MVP)
-- [ ] Definido subset oficial:
+ - [x] Dataset MVP com **4 labs** no total
+ - [x] Cobertura mínima de **4 categorias** (1 lab por categoria)
+ - [x] Cada caso inclui: `lab_id`, `lab_url`, `category`, `fase_phase`, `expected_vulnerability`, `difficulty`
+ - [x] Cada caso inclui `expected_backend_type` (hardcoded para estabilidade do eval MVP)
+ - [x] Definido subset oficial:
   - `quick`: 4 labs (baseline principal)
-- [ ] O JSON `summary` é consistente com o número real de labs (sem drift manual)
+ - [x] O JSON `summary` é consistente com o número real de labs (sem drift manual)
 
 **Backend hardcoded dos 4 labs (MVP quick):**
-- [ ] `sqli-login-bypass` → `expected_backend_type: custom_api`
-- [ ] `xss-reflected-html-nothing-encoded` → `expected_backend_type: custom_api`
-- [ ] `auth-username-enum-different-responses` → `expected_backend_type: custom_api`
-- [ ] `xxe-xxe-via-file-upload` → `expected_backend_type: custom_api`
+ - [x] `sqli-login-bypass` → `expected_backend_type: custom_api`
+ - [x] `xss-reflected-html-nothing-encoded` → `expected_backend_type: custom_api`
+ - [x] `auth-username-enum-different-responses` → `expected_backend_type: custom_api`
+ - [x] `xxe-xxe-via-file-upload` → `expected_backend_type: custom_api`
 
 **Technical Notes:**
 - `portswigger_labs.json` continua como catálogo fonte; `portswigger_mvp.json` é a selecção curada para eval
@@ -2039,14 +2039,14 @@ Framework de avaliação para medir e comparar a qualidade dos agentes. Permite 
 - Neste MVP, backend é ground truth fixo do dataset (não depende da detecção automática em runtime)
 
 **Tests Required:**
-- [ ] `portswigger_mvp.json` parseable
-- [ ] `quick` tem exactamente 4 labs
-- [ ] Não existem duplicados por `lab_id`
+ - [x] `portswigger_mvp.json` parseable
+ - [x] `quick` tem exactamente 4 labs
+ - [x] Não existem duplicados por `lab_id`
 
 **Definition of Done:**
-- [ ] Dataset MVP publicado e validado
-- [ ] Ground truth revisado manualmente
-- [ ] Code reviewed
+ - [x] Dataset MVP publicado e validado
+ - [x] Ground truth revisado manualmente
+ - [x] Code reviewed
 
 **Dependencies:** None
 **Estimated Complexity:** S
@@ -2105,10 +2105,10 @@ Framework de avaliação para medir e comparar a qualidade dos agentes. Permite 
 - `tests/evals/evaluators/`
 
 **Acceptance Criteria:**
-- [ ] Runner aceita `--agent generator`
-- [ ] Runner aceita `--subset quick`
-- [ ] Runner aceita `--no-upload` para execução local
-- [ ] Runner imprime métricas do Generator e score final
+ - [x] Runner aceita `--agent generator`
+ - [x] Runner aceita `--subset quick`
+ - [x] Runner aceita `--no-upload` para execução local
+ - [x] Runner imprime métricas do Generator e score final
 
 **Technical Notes:**
 - LangSmith SDK: `from langsmith import Client; client.evaluate(target, data, evaluators)`
@@ -2116,12 +2116,12 @@ Framework de avaliação para medir e comparar a qualidade dos agentes. Permite 
 - `--runs 3` grava 3 runs — na US-048 escolhemos o melhor como gold standard
 
 **Tests Required:**
-- [ ] `run_agent_eval.py --help` mostra flags
-- [ ] `--agent generator --subset quick --no-upload` executa
+ - [x] `run_agent_eval.py --help` mostra flags
+ - [x] `--agent generator --subset quick --no-upload` executa
 
 **Definition of Done:**
-- [ ] Runner operacional para Generator
-- [ ] Code reviewed
+ - [x] Runner operacional para Generator
+ - [x] Code reviewed
 
 **Dependencies:** US-045, US-046
 **Estimated Complexity:** M
@@ -2140,10 +2140,10 @@ Framework de avaliação para medir e comparar a qualidade dos agentes. Permite 
 - `tests/evals/evaluators/generator_evaluators.py`
 
 **Acceptance Criteria:**
-- [ ] `structure_check` (1..15 subtasks, campos obrigatórios)
-- [ ] `fase_coverage` (0..1)
-- [ ] `vulnerability_coverage` (0..1, métrica principal)
-- [ ] `generator_composite` com pesos em ficheiro JSON
+ - [x] `structure_check` (1..15 subtasks, campos obrigatórios)
+ - [x] `fase_coverage` (0..1)
+ - [x] `vulnerability_coverage` (0..1, métrica principal)
+ - [x] `generator_composite` com pesos em ficheiro JSON
 
 **Processo de actualização do dataset:**
 Quando o prompt do Generator mudar significativamente:
@@ -2160,17 +2160,17 @@ Quando o prompt do Generator mudar significativamente:
 - Os `tool_responses` gravados alimentam directamente as fixtures da US-049
 
 **Tests Required:**
-- [ ] `generator.json` é válido e parseable
-- [ ] Todos os exemplos têm os campos obrigatórios
-- [ ] BackendProfile de cada exemplo compatível com Pydantic model
-- [ ] FASEs referenciados são válidos
-- [ ] Cada cenário tem `expected_vulnerabilities` que existem no `expected_findings` do target
-- [ ] Pelo menos 6 cenários presentes
-- [ ] Cada cenário tem 3+ runs gravadas em `recordings/`
+ - [x] `generator.json` é válido e parseable
+ - [x] Todos os exemplos têm os campos obrigatórios
+ - [x] BackendProfile de cada exemplo compatível com Pydantic model
+ - [x] FASEs referenciados são válidos
+ - [x] Cada cenário tem `expected_vulnerabilities` que existem no `expected_findings` do target
+ - [x] Pelo menos 6 cenários presentes
+ - [x] Cada cenário tem 3+ runs gravadas em `recordings/`
 
 **Definition of Done:**
-- [ ] Evaluators do Generator estáveis no subset `quick`
-- [ ] Code reviewed
+ - [x] Evaluators do Generator estáveis no subset `quick`
+ - [x] Code reviewed
 
 **Dependencies:** US-045, US-047
 **Estimated Complexity:** S
@@ -2189,10 +2189,10 @@ Quando o prompt do Generator mudar significativamente:
 - `tests/evals/evaluators/judges.py`
 
 **Acceptance Criteria:**
-- [ ] Flag `--with-judge` activa avaliação semântica
-- [ ] Default do judge: modelo barato (`haiku`)
-- [ ] Score do judge não bloqueia CI por defeito
-- [ ] Custo estimado do judge impresso no resultado
+ - [x] Flag `--with-judge` activa avaliação semântica
+ - [x] Default do judge: modelo barato (`haiku`)
+ - [x] Score do judge não bloqueia CI por defeito
+ - [x] Custo estimado do judge impresso no resultado
 
 **Technical Notes:**
 - `vulnerability_coverage` compara por tipo+fase: se o target tem `{"type": "sql_injection", "fase": "fase-6"}` e o plano tem uma subtask com `fase: "fase-6"` que menciona "SQL" ou "injection" → match
@@ -2200,22 +2200,22 @@ Quando o prompt do Generator mudar significativamente:
 - Pesos do composite em `tests/evals/evaluators/weights.json` — fácil de ajustar sem tocar no código
 
 **Tests Required:**
-- [ ] `structure_check` com output válido → score 1.0
-- [ ] `structure_check` com 0 subtasks → score 0.0
-- [ ] `vulnerability_coverage` com plano que cobre todas as vulns → score 1.0
-- [ ] `vulnerability_coverage` com plano que cobre 50% → score 0.5
-- [ ] `vulnerability_coverage` com plano vazio → score 0.0
-- [ ] `fase_coverage` com 100% match → score 1.0
-- [ ] `trajectory_check` com todos os tool calls → score 1.0
-- [ ] `plan_quality` retorna score entre 0.0 e 1.0 (mock LLM response)
-- [ ] `plan_quality` usa modelo diferente do target
-- [ ] `generator_composite` retorna weighted average correcto
-- [ ] Todos os evaluators retornam dict com keys "key", "score"
-- [ ] Custo do judge registado nos metadata do eval
+ - [x] `structure_check` com output válido → score 1.0
+ - [x] `structure_check` com 0 subtasks → score 0.0
+ - [x] `vulnerability_coverage` com plano que cobre todas as vulns → score 1.0
+ - [x] `vulnerability_coverage` com plano que cobre 50% → score 0.5
+ - [x] `vulnerability_coverage` com plano vazio → score 0.0
+ - [x] `fase_coverage` com 100% match → score 1.0
+ - [x] `trajectory_check` com todos os tool calls → score 1.0
+ - [x] `plan_quality` retorna score entre 0.0 e 1.0 (mock LLM response)
+ - [x] `plan_quality` usa modelo diferente do target
+ - [x] `generator_composite` retorna weighted average correcto
+ - [x] Todos os evaluators retornam dict com keys "key", "score"
+ - [x] Custo do judge registado nos metadata do eval
 
 **Definition of Done:**
-- [ ] Judge opcional integrado no runner unificado
-- [ ] Code reviewed
+ - [x] Judge opcional integrado no runner unificado
+ - [x] Code reviewed
 
 **Dependencies:** US-047, US-048
 **Estimated Complexity:** S
@@ -2235,10 +2235,10 @@ Quando o prompt do Generator mudar significativamente:
 - `tests/evals/compare.py`
 
 **Acceptance Criteria:**
-- [ ] Baseline guardada para `generator/quick`
-- [ ] `compare.py` calcula deltas por métrica
-- [ ] Regressão falha se `coverage` ou `composite` cair >10%
-- [ ] Saída terminal curta e legível
+ - [x] Baseline guardada para `generator/quick`
+ - [x] `compare.py` calcula deltas por métrica
+ - [x] Regressão falha se `coverage` ou `composite` cair >10%
+ - [x] Saída terminal curta e legível
 
 **Technical Notes:**
 - `client.evaluate()` do LangSmith SDK faz o heavy lifting
@@ -2246,16 +2246,16 @@ Quando o prompt do Generator mudar significativamente:
 - Custo tracking: somar tokens dos traces × preço por modelo
 
 **Tests Required:**
-- [ ] `run_generator_eval.py --no-upload --level 2` executa sem erros
-- [ ] Scores impressos no terminal em formato legível
-- [ ] `--level 1` corre sem fixtures
-- [ ] `--level 2` carrega fixtures correctamente
-- [ ] `--output results.json` produz JSON parseable
-- [ ] Custo reportado no output
+ - [x] `run_generator_eval.py --no-upload --level 2` executa sem erros
+ - [x] Scores impressos no terminal em formato legível
+ - [x] `--level 1` corre sem fixtures
+ - [x] `--level 2` carrega fixtures correctamente
+ - [x] `--output results.json` produz JSON parseable
+ - [x] Custo reportado no output
 
 **Definition of Done:**
-- [ ] Regras de regressão activas e documentadas
-- [ ] Code reviewed
+ - [x] Regras de regressão activas e documentadas
+ - [x] Code reviewed
 
 **Dependencies:** US-047, US-048, US-050
 **Estimated Complexity:** S
@@ -2276,10 +2276,10 @@ Quando o prompt do Generator mudar significativamente:
 - `tests/evals/FAILURE-ANALYSIS.md`
 
 **Acceptance Criteria:**
-- [ ] `failure_log.jsonl` append-only com falhas relevantes
-- [ ] Script simples lista piores casos por score
-- [ ] `--export-cases` gera candidatos para ampliar dataset
-- [ ] Processo humano de promoção de casos documentado
+ - [x] `failure_log.jsonl` append-only com falhas relevantes
+ - [x] Script simples lista piores casos por score
+ - [x] `--export-cases` gera candidatos para ampliar dataset
+ - [x] Processo humano de promoção de casos documentado
 
 **Technical Notes:**
 - `--eval-value`: um evaluator com >90% dos scores = 1.0 é suspeito — ou o agente dominou aquele comportamento (podes remover) ou o evaluator está demasiado permissivo (precisas de calibrar)
@@ -2288,16 +2288,16 @@ Quando o prompt do Generator mudar significativamente:
 - Tags recomendadas: `structure`, `code`, `tool_use`, `trajectory`, `semantic`, `llm_judge`, `coverage`
 
 **Tests Required:**
-- [ ] `analyze_failures.py --input <json_com_falhas> --eval-value` imprime discriminação por evaluator
-- [ ] `analyze_failures.py --export-cases` produz JSON no formato correcto de dataset
-- [ ] `record_run.py --log-failures` com plano inválido → adiciona linha ao `failure_log.jsonl`
-- [ ] `run_generator_eval.py --tags tool_use` corre só evaluators com tag `tool_use`
-- [ ] Evaluators em `generator_evaluators.py` têm docstring e `# eval_tags:`
-- [ ] `analyze_failures.py --eval-value` com evaluator sempre 1.0 → imprime aviso "consider deprecating"
+ - [x] `analyze_failures.py --input <json_com_falhas> --eval-value` imprime discriminação por evaluator
+ - [x] `analyze_failures.py --export-cases` produz JSON no formato correcto de dataset
+ - [x] `record_run.py --log-failures` com plano inválido → adiciona linha ao `failure_log.jsonl`
+ - [x] `run_generator_eval.py --tags tool_use` corre só evaluators com tag `tool_use`
+ - [x] Evaluators em `generator_evaluators.py` têm docstring e `# eval_tags:`
+ - [x] `analyze_failures.py --eval-value` com evaluator sempre 1.0 → imprime aviso "consider deprecating"
 
 **Definition of Done:**
-- [ ] Loop de melhoria contínua operacional
-- [ ] Code reviewed
+ - [x] Loop de melhoria contínua operacional
+ - [x] Code reviewed
 
 **Dependencies:** US-051, US-045
 **Estimated Complexity:** M
@@ -2318,26 +2318,26 @@ Quando o prompt do Generator mudar significativamente:
 - `tests/evals/compare.py`
 
 **Acceptance Criteria:**
-- [ ] Workflow corre `run_agent_eval.py --subset quick --agent generator`
-- [ ] Compara com baseline e falha em regressão >10%
-- [ ] Não roda em PRs docs-only
+ - [x] Workflow corre `run_agent_eval.py --subset quick --agent generator`
+ - [x] Compara com baseline e falha em regressão >10%
+ - [x] Não roda em PRs docs-only
 
 **Technical Notes:**
 - Custo alvo de CI: mínimo possível; judge desligado por defeito
 - Se precisarmos ampliar no futuro, criamos `full` numa fase seguinte
 
 **Tests Required:**
-- [ ] `compare.py` com scores iguais ao baseline → exit 0
-- [ ] `compare.py` com regressão de 15% → exit 1
-- [ ] `compare.py` com melhoria → exit 0
-- [ ] `compare.py` imprime custo do eval
-- [ ] Workflow YAML é válido
+ - [x] `compare.py` com scores iguais ao baseline → exit 0
+ - [x] `compare.py` com regressão de 15% → exit 1
+ - [x] `compare.py` com melhoria → exit 0
+ - [x] `compare.py` imprime custo do eval
+ - [x] Workflow YAML é válido
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Workflow testado com PR real
-- [ ] Baseline definido após primeira run
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Workflow testado com PR real
+ - [x] Baseline definido após primeira run
 
 **Dependencies:** US-051B (failure analysis), US-051 (eval runner)
 **Estimated Complexity:** M
@@ -2357,13 +2357,13 @@ Quando o prompt do Generator mudar significativamente:
 - `tests/evals/model_configs.json`
 
 **Acceptance Criteria:**
-- [ ] `model_configs.json` com lista de modelos
-- [ ] `benchmark_models.py` que:
+ - [x] `model_configs.json` com lista de modelos
+ - [x] `benchmark_models.py` que:
   - Corre `run_generator_eval.py` para cada modelo
   - Agrega numa tabela: scores + latência + custo (target + judge)
   - Cada run = experiment separado no LangSmith
-- [ ] Modelo sem API key → skip com warning
-- [ ] Output JSON: `--output results.json`
+ - [x] Modelo sem API key → skip com warning
+ - [x] Output JSON: `--output results.json`
 
 **Technical Notes:**
 - LangChain `init_chat_model()` para multi-provider
@@ -2371,14 +2371,14 @@ Quando o prompt do Generator mudar significativamente:
 - Judge model fixo (não muda com target model) para comparação justa
 
 **Tests Required:**
-- [ ] `benchmark_models.py --models claude-sonnet-4-20250514 --no-upload` executa sem erros
-- [ ] Tabela com colunas correctas
-- [ ] Modelo sem API key → skip com warning
+ - [x] `benchmark_models.py --models claude-sonnet-4-20250514 --no-upload` executa sem erros
+ - [x] Tabela com colunas correctas
+ - [x] Modelo sem API key → skip com warning
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Testado com 2+ modelos
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Testado com 2+ modelos
 
 **Dependencies:** US-051 (eval runner)
 **Estimated Complexity:** L
@@ -2632,17 +2632,17 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 **Ficheiros:** `src/pentest/tools/search_memory.py`
 
 **Acceptance Criteria:**
-- [ ] Factory function `create_search_answer_tool(db_session) -> BaseTool`:
+ - [x] Factory function `create_search_answer_tool(db_session) -> BaseTool`:
   - Cria LangChain tool via closure com DB session injectado
   - Se `db_session` é None → retorna tool que diz "vector store not available"
-- [ ] Tool `search_answer` com `args_schema=SearchAnswerAction`
-- [ ] Recebe `questions` (1-5 queries), `type` (filtro), `message`
-- [ ] Para cada question, faz similarity search no pgvector:
+ - [x] Tool `search_answer` com `args_schema=SearchAnswerAction`
+ - [x] Recebe `questions` (1-5 queries), `type` (filtro), `message`
+ - [x] Para cada question, faz similarity search no pgvector:
   - Filtra por `doc_type="answer"` e `answer_type={type}`
   - Similarity threshold: 0.2
   - Max 3 resultados por query
-- [ ] Deduplica resultados entre queries (mesmo doc não aparece 2x)
-- [ ] Output formatado:
+ - [x] Deduplica resultados entre queries (mesmo doc não aparece 2x)
+ - [x] Output formatado:
   ```
   Found 3 relevant answers:
 
@@ -2652,8 +2652,8 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
   2. [Score: 0.75] Q: "cloudflare bypass techniques"
      A: User-Agent rotation + 2s delay worked against Cloudflare WAF...
   ```
-- [ ] Se 0 resultados → retorna "Nothing found in answer store for these queries. Try searching the web."
-- [ ] Erros retornados como string
+ - [x] Se 0 resultados → retorna "Nothing found in answer store for these queries. Try searching the web."
+ - [x] Erros retornados como string
 
 **Technical Notes:**
 - Usar `pgvector` extension via SQLAlchemy para similarity search
@@ -2666,21 +2666,21 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 - A query de similarity é feita com o embedding da question, filtrada por metadata
 
 **Tests Required:**
-- [ ] `create_search_answer_tool(None)` → tool que retorna "vector store not available"
-- [ ] `create_search_answer_tool(mock_session)` → tool funcional
-- [ ] Mock pgvector com 2 resultados → output formatado com scores
-- [ ] Mock pgvector com 0 resultados → "Nothing found in answer store"
-- [ ] 3 questions → deduplica resultados
-- [ ] Filtro por type funciona (só retorna `answer_type` matching)
-- [ ] Threshold 0.2: resultado com score 0.1 não aparece
-- [ ] DB error → retorna error string, sem crash
-- [ ] JSON schema compatível com LLM function calling
+ - [x] `create_search_answer_tool(None)` → tool que retorna "vector store not available"
+ - [x] `create_search_answer_tool(mock_session)` → tool funcional
+ - [x] Mock pgvector com 2 resultados → output formatado com scores
+ - [x] Mock pgvector com 0 resultados → "Nothing found in answer store"
+ - [x] 3 questions → deduplica resultados
+ - [x] Filtro por type funciona (só retorna `answer_type` matching)
+ - [x] Threshold 0.2: resultado com score 0.1 não aparece
+ - [x] DB error → retorna error string, sem crash
+ - [x] JSON schema compatível com LLM function calling
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Funciona com pgvector real (integration test)
-- [ ] Funciona com mock (unit test)
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Funciona com pgvector real (integration test)
+ - [x] Funciona com mock (unit test)
 
 **Dependencies:** US-054 (SearchAnswerAction model), Epic 2 (Database + pgvector)
 **Estimated Complexity:** M
@@ -2698,7 +2698,7 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 **Ficheiros:** `src/pentest/templates/prompts/searcher_system.md.j2`, `src/pentest/templates/prompts/searcher_user.md.j2`
 
 **Acceptance Criteria:**
-- [ ] `templates/prompts/searcher_system.md.j2` — system prompt Jinja2 com:
+ - [x] `templates/prompts/searcher_system.md.j2` — system prompt Jinja2 com:
   - Papel: "You are the Searcher. Your job is to find information for penetration testing."
   - Autorização: pentesting pré-autorizado, sem disclaimers sobre pesquisa de exploits/CVEs
   - **Lista de tools dinâmica** via `{{ available_tools }}` — só lista tools que estão realmente disponíveis (evita que o LLM desperdice tool calls com stubs ou tools não configurados)
@@ -2713,14 +2713,14 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
     - Não usar mais de 2-3 tools diferentes para uma query
   - Protocolo de entrega: DEVE usar `search_result` para entregar resposta final
   - Formato de resposta: resultado detalhado em `result`, resumo curto em `message`
-- [ ] `templates/prompts/searcher_user.md.j2` — user message Jinja2 com variáveis:
+ - [x] `templates/prompts/searcher_user.md.j2` — user message Jinja2 com variáveis:
   - `{{ question }}` — a questão concreta (obrigatório)
   - `{{ task }}` — contexto do task actual (opcional)
   - `{{ subtask }}` — contexto do subtask actual (opcional)
   - `{{ execution_context }}` — resumo do estado do scan (opcional)
-- [ ] Função `render_searcher_prompt(question, task=None, subtask=None, execution_context="") -> tuple[str, str]` que renderiza os dois templates
-- [ ] Templates em Jinja2 (`.md.j2` files), não hardcoded em Python
-- [ ] Prompts em inglês (código e prompts em EN, docs em PT)
+ - [x] Função `render_searcher_prompt(question, task=None, subtask=None, execution_context="") -> tuple[str, str]` que renderiza os dois templates
+ - [x] Templates em Jinja2 (`.md.j2` files), não hardcoded em Python
+ - [x] Prompts em inglês (código e prompts em EN, docs em PT)
 
 **Technical Notes:**
 - PentAGI reference: `searcher.tmpl` (144 linhas) + `question_searcher.tmpl` (30 linhas)
@@ -2730,19 +2730,19 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 - O prompt NÃO deve incluir instruções sobre `store_answer` — o Searcher não guarda
 
 **Tests Required:**
-- [ ] `render_searcher_prompt(question="test")` retorna (system, user) não vazios
-- [ ] System prompt contém instruções sobre `search_result`
-- [ ] System prompt contém prioridade de fontes (search_answer primeiro)
-- [ ] System prompt NÃO contém referências a `store_answer`
-- [ ] User message contém a question
-- [ ] User message renderiza com task e subtask preenchidos
-- [ ] User message renderiza com task e subtask vazios (sem erro)
-- [ ] Templates renderizam sem erro com todos os campos
+ - [x] `render_searcher_prompt(question="test")` retorna (system, user) não vazios
+ - [x] System prompt contém instruções sobre `search_result`
+ - [x] System prompt contém prioridade de fontes (search_answer primeiro)
+ - [x] System prompt NÃO contém referências a `store_answer`
+ - [x] User message contém a question
+ - [x] User message renderiza com task e subtask preenchidos
+ - [x] User message renderiza com task e subtask vazios (sem erro)
+ - [x] Templates renderizam sem erro com todos os campos
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Prompt testado manualmente com Claude — produz pesquisas razoáveis
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Prompt testado manualmente com Claude — produz pesquisas razoáveis
 
 **Dependencies:** US-043 (template renderer do Epic 7)
 **Estimated Complexity:** M
@@ -2760,7 +2760,7 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 **Ficheiros:** `src/pentest/agents/searcher.py`
 
 **Acceptance Criteria:**
-- [ ] `async def perform_search(question: str, llm: BaseChatModel, db_session=None, execution_context: str = "", task=None, subtask=None) -> str` que:
+ - [x] `async def perform_search(question: str, llm: BaseChatModel, db_session=None, execution_context: str = "", task=None, subtask=None) -> str` que:
   1. Renderiza o prompt via `render_searcher_prompt(question, task, subtask, execution_context, available_tools)`
   2. Monta lista de tools (só adiciona se disponível):
      - `duckduckgo` (se `is_available()`)
@@ -2777,18 +2777,18 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
   8. Se barrier não chamado após max iterations → raise `SearcherError("Searcher failed to produce a result")`
   9. Log: questão, tools disponíveis, resultado (resumo), **token count** do LLM (via callback)
   10. Retorna a string de resultado
-- [ ] `def create_searcher_tool(llm: BaseChatModel, db_session=None, execution_context: str = "", task=None, subtask=None) -> BaseTool` que:
+ - [x] `def create_searcher_tool(llm: BaseChatModel, db_session=None, execution_context: str = "", task=None, subtask=None) -> BaseTool` que:
   1. Cria uma LangChain **async** tool via closure (usar `@tool` com `async def` ou `StructuredTool.from_function(coroutine=...)` para que `perform_search` async não bloqueie)
   2. Tool tem `args_schema=ComplexSearch`
   3. Quando chamada com `question` e `message`, invoca `await perform_search()` internamente
   4. Retorna o resultado como string
   5. Erros são capturados e retornados como string (nunca raise)
-- [ ] A tool criada por `create_searcher_tool()` substitui o stub de `search` do US-041
-- [ ] **O Generator (US-044 / `agents/generator.py`) é actualizado** para usar `create_searcher_tool()` em vez do stub. Acceptance criteria explícita: Generator funciona com Searcher real.
-- [ ] Modelo LLM configurável via parâmetro ou env var `SEARCHER_MODEL` (default: mesmo do agente que chama)
-- [ ] Log das pesquisas: questão, tools disponíveis, resultado (resumo), token usage
-- [ ] `SearcherError` exception definida
-- [ ] **RetryPolicy no base graph:** Actualizar `agents/base.py` → `create_agent_graph()` para adicionar `retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0)` no node `call_llm`. Protege todos os agentes (não só o Searcher) contra erros transientes do LLM (429, network timeout). Usar `from langgraph.types import RetryPolicy`.
+ - [x] A tool criada por `create_searcher_tool()` substitui o stub de `search` do US-041
+ - [x] **O Generator (US-044 / `agents/generator.py`) é actualizado** para usar `create_searcher_tool()` em vez do stub. Acceptance criteria explícita: Generator funciona com Searcher real.
+ - [x] Modelo LLM configurável via parâmetro ou env var `SEARCHER_MODEL` (default: mesmo do agente que chama)
+ - [x] Log das pesquisas: questão, tools disponíveis, resultado (resumo), token usage
+ - [x] `SearcherError` exception definida
+ - [x] **RetryPolicy no base graph:** Actualizar `agents/base.py` → `create_agent_graph()` para adicionar `retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0)` no node `call_llm`. Protege todos os agentes (não só o Searcher) contra erros transientes do LLM (429, network timeout). Usar `from langgraph.types import RetryPolicy`.
 
 **Technical Notes:**
 - PentAGI reference: `performers.go:693-753` → `performSearcher()`, `handlers.go:674-850` → delegation handlers
@@ -2800,28 +2800,28 @@ Segundo agente do sistema. Pesquisa na internet por CVEs, técnicas, versões vu
 - Para a v1: o Searcher corre com o mesmo LLM do agente que chama. Em futuro pode ter modelo diferente.
 
 **Tests Required:**
-- [ ] `perform_search("nginx vulnerabilities", mock_llm)` com LLM que chama duckduckgo → search_result → retorna resposta
-- [ ] `perform_search()` com LLM que não chama search_result → `SearcherError`
-- [ ] `perform_search()` com `db_session=None` → search_answer não incluído nas tools
-- [ ] `perform_search()` com `db_session=mock` → search_answer incluído
-- [ ] Tavily incluído quando `TAVILY_API_KEY` configurado
-- [ ] Tavily excluído quando `TAVILY_API_KEY` não configurado
-- [ ] **Edge case:** sem DDG e sem Tavily disponível → retorna "No search engines available" imediatamente, sem criar graph
-- [ ] `create_searcher_tool(mock_llm)` retorna BaseTool válida
-- [ ] **Async:** `create_searcher_tool()` retorna tool async (não bloqueia event loop)
-- [ ] `create_searcher_tool()` tool chamada com ComplexSearch → retorna resultado
-- [ ] `create_searcher_tool()` tool com erro → retorna error string, não raise
-- [ ] **Generator integration:** `agents/generator.py` usa `create_searcher_tool()` em vez do stub → Searcher corre e retorna resultado
-- [ ] Agent test com mocked LLM: fluxo completo search_answer → duckduckgo → browser → search_result (marcar `@pytest.mark.agent`)
-- [ ] Número de tools varia correctamente baseado na configuração
-- [ ] **Token logging:** `perform_search()` loga token count no final
+ - [x] `perform_search("nginx vulnerabilities", mock_llm)` com LLM que chama duckduckgo → search_result → retorna resposta
+ - [x] `perform_search()` com LLM que não chama search_result → `SearcherError`
+ - [x] `perform_search()` com `db_session=None` → search_answer não incluído nas tools
+ - [x] `perform_search()` com `db_session=mock` → search_answer incluído
+ - [x] Tavily incluído quando `TAVILY_API_KEY` configurado
+ - [x] Tavily excluído quando `TAVILY_API_KEY` não configurado
+ - [x] **Edge case:** sem DDG e sem Tavily disponível → retorna "No search engines available" imediatamente, sem criar graph
+ - [x] `create_searcher_tool(mock_llm)` retorna BaseTool válida
+ - [x] **Async:** `create_searcher_tool()` retorna tool async (não bloqueia event loop)
+ - [x] `create_searcher_tool()` tool chamada com ComplexSearch → retorna resultado
+ - [x] `create_searcher_tool()` tool com erro → retorna error string, não raise
+ - [x] **Generator integration:** `agents/generator.py` usa `create_searcher_tool()` em vez do stub → Searcher corre e retorna resultado
+ - [x] Agent test com mocked LLM: fluxo completo search_answer → duckduckgo → browser → search_result (marcar `@pytest.mark.agent`)
+ - [x] Número de tools varia correctamente baseado na configuração
+ - [x] **Token logging:** `perform_search()` loga token count no final
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pode ser chamado standalone: `python -c "from pentest.agents.searcher import perform_search, create_searcher_tool"`
-- [ ] `agents/generator.py` actualizado para usar `create_searcher_tool()` (stub removido ou deprecated)
-- [ ] Testado com mock LLM (agent test) + verificação manual com Claude
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pode ser chamado standalone: `python -c "from pentest.agents.searcher import perform_search, create_searcher_tool"`
+ - [x] `agents/generator.py` actualizado para usar `create_searcher_tool()` (stub removido ou deprecated)
+ - [x] Testado com mock LLM (agent test) + verificação manual com Claude
 
 **Dependencies:** US-044, US-054, US-055, US-056, US-057, US-058, US-059
 **Estimated Complexity:** L
@@ -2845,16 +2845,16 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/models/hack.py`, `src/pentest/tools/barriers.py`
 
 **Acceptance Criteria:**
-- [ ] `HackResult` Pydantic model:
+ - [x] `HackResult` Pydantic model:
   - `result: str` (required) — relatório técnico detalhado em inglês
   - `message: str` (required) — resumo curto interno para handoff/orquestração
-- [ ] `result` e `message` validam que não podem ser vazios ou whitespace-only
-- [ ] LangChain `@tool` function `hack_result` que:
+ - [x] `result` e `message` validam que não podem ser vazios ou whitespace-only
+ - [x] LangChain `@tool` function `hack_result` que:
   1. Recebe os argumentos como `HackResult`
   2. Retorna uma string de confirmação (ex: `"hack result successfully processed"`)
   3. **Nota:** tal como `subtask_list` e `search_result`, o return value é apenas confirmação. O resultado real é extraído pelo `BarrierAwareToolNode` dos args do tool call (`AIMessage.tool_calls[i]["args"]`) e guardado em `state["barrier_result"]`.
-- [ ] O JSON schema gerado por `hack_result` é compatível com LLM function calling
-- [ ] A tool é passada em `barrier_names={"hack_result"}` ao `create_agent_graph` quando o Scanner for criado
+ - [x] O JSON schema gerado por `hack_result` é compatível com LLM function calling
+ - [x] A tool é passada em `barrier_names={"hack_result"}` ao `create_agent_graph` quando o Scanner for criado
 
 **Technical Notes:**
 - PentAGI reference: `backend/pkg/tools/args.go` → `HackResult { Result, Message }`; `backend/pkg/tools/registry.go` → `HackResultToolName = "hack_result"`
@@ -2863,18 +2863,18 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - Manter o pattern já usado em `subtask_list` e `search_result`: schema Pydantic + tool barrier + extração via `BarrierAwareToolNode`
 
 **Tests Required:**
-- [ ] `HackResult(result="Detailed evidence", message="RLS bypass confirmed")` valida correctamente
-- [ ] `HackResult(result="", message="Valid summary")` → validation error
-- [ ] `HackResult(result="Detailed evidence", message="   ")` → validation error
-- [ ] `hack_result.invoke({"result": "Detailed report", "message": "Short internal summary"})` → retorna confirmação
-- [ ] JSON schema de `hack_result` contém `result` e `message` como campos obrigatórios
-- [ ] Integração com graph: quando o LLM chama `hack_result`, `state["barrier_hit"]` é `True` e `state["barrier_result"]` contém `result` e `message`
-- [ ] E2E / real-data sanity check: num run real ou semi-real do Scanner, o barrier `hack_result` é efectivamente chamado com payload válido e o resultado chega ao chamador sem parsing manual adicional
+ - [x] `HackResult(result="Detailed evidence", message="RLS bypass confirmed")` valida correctamente
+ - [x] `HackResult(result="", message="Valid summary")` → validation error
+ - [x] `HackResult(result="Detailed evidence", message="   ")` → validation error
+ - [x] `hack_result.invoke({"result": "Detailed report", "message": "Short internal summary"})` → retorna confirmação
+ - [x] JSON schema de `hack_result` contém `result` e `message` como campos obrigatórios
+ - [x] Integração com graph: quando o LLM chama `hack_result`, `state["barrier_hit"]` é `True` e `state["barrier_result"]` contém `result` e `message`
+ - [x] E2E / real-data sanity check: num run real ou semi-real do Scanner, o barrier `hack_result` é efectivamente chamado com payload válido e o resultado chega ao chamador sem parsing manual adicional
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O Scanner já tem um contrato de saída claro e compatível com o padrão de barriers do projecto
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] O Scanner já tem um contrato de saída claro e compatível com o padrão de barriers do projecto
 
 **Dependencies:** US-037 (Agent State e Base Graph)
 **Estimated Complexity:** S
@@ -2892,42 +2892,42 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/tools/sploitus.py`, `src/pentest/models/tool_args.py`, `src/pentest/tools/__init__.py`, `src/pentest/tools/README.md`
 
 **Acceptance Criteria:**
-- [ ] `SploitusAction` Pydantic model com campos:
+ - [x] `SploitusAction` Pydantic model com campos:
   - `query: str` (required) — query curta e precisa, ex: `"nginx"`, `"apache 2.4"`, `"CVE-2021-44228"`
   - `exploit_type: Literal["exploits", "tools"] = "exploits"`
   - `sort: Literal["default", "date", "score"] = "default"`
   - `max_results: int = 10` — clamp entre `1` e `25`; valores inválidos usam default `10`
   - `message: str` (required) — resumo curto interno do que se espera encontrar
-- [ ] `create_sploitus_tool(...)` ou equivalente LangChain tool `sploitus` que:
+ - [x] `create_sploitus_tool(...)` ou equivalente LangChain tool `sploitus` que:
   1. Faz `POST` para `https://sploitus.com/search`
   2. Envia JSON body com `query`, `type`, `sort`, `title=false`, `offset=0`
   3. Usa timeout de `30` segundos
   4. Envia headers para mimetizar browser real (`Accept`, `Content-Type`, `Origin`, `Referer`, `User-Agent`, etc.)
   5. Faz parse da resposta JSON da API
   6. Retorna string formatada em markdown legível pelo agente
-- [ ] Output formatado inclui pelo menos:
+ - [x] Output formatado inclui pelo menos:
   - título `# Sploitus Search Results`
   - query usada
   - tipo de pesquisa
   - total de matches
   - lista dos resultados até `max_results`
-- [ ] Para resultados do tipo exploit, incluir quando disponível:
+ - [x] Para resultados do tipo exploit, incluir quando disponível:
   - título
   - URL / href
   - score
   - published date
   - language
   - source truncado se necessário
-- [ ] Para resultados do tipo tool, incluir quando disponível:
+ - [x] Para resultados do tipo tool, incluir quando disponível:
   - título
   - URL / href
   - download URL
-- [ ] Hard limits de tamanho para evitar outputs gigantes:
+ - [x] Hard limits de tamanho para evitar outputs gigantes:
   - truncar `source` por resultado
   - truncar output total se necessário
-- [ ] `is_available()` ou equivalente retorna `True` apenas quando a tool está habilitada por config/env
-- [ ] Se a API devolver erro, timeout, rate limit (`HTTP 499` / `422`) ou resposta inválida, a tool **não levanta** para o agente; retorna string começando por `failed to search in Sploitus:` ou erro equivalente legível
-- [ ] A tool é classificada como pesquisa externa / exploit intelligence, não como environment tool
+ - [x] `is_available()` ou equivalente retorna `True` apenas quando a tool está habilitada por config/env
+ - [x] Se a API devolver erro, timeout, rate limit (`HTTP 499` / `422`) ou resposta inválida, a tool **não levanta** para o agente; retorna string começando por `failed to search in Sploitus:` ou erro equivalente legível
+ - [x] A tool é classificada como pesquisa externa / exploit intelligence, não como environment tool
 
 **Technical Notes:**
 - PentAGI reference:
@@ -2944,20 +2944,20 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - O objectivo é dar ao Scanner contexto accionável sobre exploits/PoCs públicos; a confirmação real continua a exigir teste via `terminal`/`file`/outras tools
 
 **Tests Required:**
-- [ ] `SploitusAction` valida defaults e enums correctamente
-- [ ] `max_results=0`, negativo, ou `>25` → usa/clampa para o default/comportamento esperado
-- [ ] Request HTTP é construído com método `POST`, `Content-Type: application/json`, `Origin=https://sploitus.com`, `Referer` contendo a query
-- [ ] Resposta válida da API é convertida em markdown com `# Sploitus Search Results`, total de matches, e pelo menos 1 resultado
-- [ ] `exploit_type="tools"` formata resultados de tools correctamente
-- [ ] `HTTP 499` e `422` retornam erro de rate limit legível
-- [ ] `HTTP 500`, timeout, ou JSON inválido retornam erro como string e não exception para o agente
-- [ ] Limites de tamanho/truncation funcionam em resultados grandes
-- [ ] E2E / real-data test: query real como `CVE-2021-44228` ou `nginx` retorna resposta não vazia e formatada quando a tool está habilitada e a rede está disponível
+ - [x] `SploitusAction` valida defaults e enums correctamente
+ - [x] `max_results=0`, negativo, ou `>25` → usa/clampa para o default/comportamento esperado
+ - [x] Request HTTP é construído com método `POST`, `Content-Type: application/json`, `Origin=https://sploitus.com`, `Referer` contendo a query
+ - [x] Resposta válida da API é convertida em markdown com `# Sploitus Search Results`, total de matches, e pelo menos 1 resultado
+ - [x] `exploit_type="tools"` formata resultados de tools correctamente
+ - [x] `HTTP 499` e `422` retornam erro de rate limit legível
+ - [x] `HTTP 500`, timeout, ou JSON inválido retornam erro como string e não exception para o agente
+ - [x] Limites de tamanho/truncation funcionam em resultados grandes
+ - [x] E2E / real-data test: query real como `CVE-2021-44228` ou `nginx` retorna resposta não vazia e formatada quando a tool está habilitada e a rede está disponível
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O Scanner passa a ter uma source externa especializada para exploit/PoC intelligence alinhada com o PentAGI
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] O Scanner passa a ter uma source externa especializada para exploit/PoC intelligence alinhada com o PentAGI
 
 **Dependencies:** US-039 (terminal/file patterns), US-040 (browser HTTP tool patterns)
 **Estimated Complexity:** M
@@ -3066,26 +3066,26 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/templates/scanner_system.md`, `src/pentest/templates/scanner_user.md`, `src/pentest/templates/__init__.py` (ou outro módulo existente do package `templates/` a estender para renderização)
 
 **Acceptance Criteria:**
-- [ ] `templates/scanner_system.md` criado em Jinja2 (`.md`) inspirado no `pentester.tmpl` do PentAGI, contendo pelo menos estas secções conceptuais:
+ - [x] `templates/scanner_system.md` criado em Jinja2 (`.md`) inspirado no `pentester.tmpl` do PentAGI, contendo pelo menos estas secções conceptuais:
   - papel/autorização do Scanner como especialista de pentesting delegado
   - protocolo de memória (`graphiti_search`, `search_guide`, `store_guide` quando disponíveis)
   - contexto operacional do container (`DockerImage`, `Cwd`, `ContainerPorts`)
   - regras de execução de comandos e uso do `terminal` / `file`
   - regras de delegação para `searcher`, `coder`, `installer`, `memorist`, `adviser`
   - exigência de fechar com `hack_result`
-- [ ] `templates/scanner_user.md` criado em Jinja2 (`.md`) inspirado no `question_pentester.tmpl`, contendo:
+ - [x] `templates/scanner_user.md` criado em Jinja2 (`.md`) inspirado no `question_pentester.tmpl`, contendo:
   - instrução curta de que o scan é autorizado
   - a tarefa/pergunta concreta do Scanner
   - contexto relevante opcional passado pelo Orchestrator
-- [ ] Clarificação arquitectural explícita na implementação e documentação:
+ - [x] Clarificação arquitectural explícita na implementação e documentação:
   - existem **2 prompts renderizados**: `system_prompt` + `user_message`
   - a `SKILL.md` da `fase` **não é um terceiro prompt separado**
   - o conteúdo da `fase` é injectado como uma secção adicional **dentro do system prompt**
-- [ ] O system prompt inclui uma secção explícita para a FASE actual, injectada em runtime:
+ - [x] O system prompt inclui uma secção explícita para a FASE actual, injectada em runtime:
   - se a subtask tiver `fase`, incluir o conteúdo completo da `SKILL.md`
   - se não tiver `fase`, renderizar sem erro e sem essa secção
-- [ ] Função `render_scanner_prompt(...) -> tuple[str, str]` que renderiza os dois templates e retorna `(system_prompt, user_message)`
-- [ ] `render_scanner_prompt(...)` aceita pelo menos dados equivalentes aos usados pelo PentAGI no `pentesterContext["system"]` e `pentesterContext["user"]`:
+ - [x] Função `render_scanner_prompt(...) -> tuple[str, str]` que renderiza os dois templates e retorna `(system_prompt, user_message)`
+ - [x] `render_scanner_prompt(...)` aceita pelo menos dados equivalentes aos usados pelo PentAGI no `pentesterContext["system"]` e `pentesterContext["user"]`:
   - `question`
   - `execution_context`
   - `docker_image`
@@ -3094,13 +3094,13 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
   - nomes das tools (`hack_result`, `search_guide`, `store_guide`, `graphiti_search`, `searcher`, `coder`, `adviser`, `memorist`, `installer`)
   - `current_time`
   - `fase_skill` (opcional)
-- [ ] A função usa `load_fase_skill(fase, skills_dir)` quando aplicável para obter a skill completa da fase
-- [ ] O prompt deixa claro o comportamento esperado do Scanner:
+ - [x] A função usa `load_fase_skill(fase, skills_dir)` quando aplicável para obter a skill completa da fase
+ - [x] O prompt deixa claro o comportamento esperado do Scanner:
   - tentar resolver independentemente antes de delegar
   - usar ferramentas para produzir evidência real
   - interpretar outputs, não apenas executar comandos
   - terminar com `hack_result`
-- [ ] Templates em ficheiros `.md`, não hardcoded dentro de `scanner.py`
+ - [x] Templates em ficheiros `.md`, não hardcoded dentro de `scanner.py`
 
 **Technical Notes:**
 - PentAGI reference:
@@ -3114,19 +3114,19 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - O prompt deve permanecer em inglês, mesmo com documentação do projecto em português
 
 **Tests Required:**
-- [ ] `render_scanner_prompt(...)` retorna `(system_prompt, user_message)` não vazios
-- [ ] System prompt contém `hack_result` e instruções de conclusão
-- [ ] System prompt contém referência às tools esperadas do Scanner
-- [ ] User message contém a `question` / tarefa delegada
-- [ ] Com `fase_skill` presente, o system prompt inclui o conteúdo injectado
-- [ ] Sem `fase_skill`, os templates renderizam sem erro
-- [ ] Execution context, docker image, cwd e container ports aparecem no prompt quando fornecidos
-- [ ] E2E / real-data test: com uma `SKILL.md` real do `lusitai-internal-scan`, a renderização do prompt produz um system prompt coerente, contendo a fase seleccionada e a tarefa real de uma subtask
+ - [x] `render_scanner_prompt(...)` retorna `(system_prompt, user_message)` não vazios
+ - [x] System prompt contém `hack_result` e instruções de conclusão
+ - [x] System prompt contém referência às tools esperadas do Scanner
+ - [x] User message contém a `question` / tarefa delegada
+ - [x] Com `fase_skill` presente, o system prompt inclui o conteúdo injectado
+ - [x] Sem `fase_skill`, os templates renderizam sem erro
+ - [x] Execution context, docker image, cwd e container ports aparecem no prompt quando fornecidos
+ - [x] E2E / real-data test: com uma `SKILL.md` real do `lusitai-internal-scan`, a renderização do prompt produz um system prompt coerente, contendo a fase seleccionada e a tarefa real de uma subtask
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O Scanner passa a ter o mesmo shape de prompt do `pentester` do PentAGI, com a nossa injecção de FASE skill em runtime
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] O Scanner passa a ter o mesmo shape de prompt do `pentester` do PentAGI, com a nossa injecção de FASE skill em runtime
 
 **Dependencies:** US-042 (Skill Index Loading / `load_fase_skill`), US-061, US-062, US-063
 **Estimated Complexity:** M
@@ -3231,13 +3231,13 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/tools/browser.py`, `src/pentest/tools/README.md`, documentação relevante do epic quando implementado
 
 **Acceptance Criteria:**
-- [ ] O `browser` passa a suportar navegação/renderização real adequada para SPAs e apps modernas
-- [ ] O `browser` consegue produzir screenshots quando pedido
-- [ ] O `browser` consegue extrair conteúdo já renderizado pelo browser, não apenas HTML bruto da resposta inicial
-- [ ] O `browser` consegue interagir com a página em operações básicas quando fizer sentido (ex: abrir URL, esperar renderização, seguir links, interagir com elementos simples)
-- [ ] O output continua utilizável pelo agente e com limites de tamanho razoáveis
-- [ ] A tool mantém uma interface clara entre modos simples de leitura e modos mais pesados de browser real
-- [ ] O Scanner pode continuar a usar o browser de forma não interactiva para casos simples sem pagar sempre o custo do modo avançado
+ - [x] O `browser` passa a suportar navegação/renderização real adequada para SPAs e apps modernas
+ - [x] O `browser` consegue produzir screenshots quando pedido
+ - [x] O `browser` consegue extrair conteúdo já renderizado pelo browser, não apenas HTML bruto da resposta inicial
+ - [x] O `browser` consegue interagir com a página em operações básicas quando fizer sentido (ex: abrir URL, esperar renderização, seguir links, interagir com elementos simples)
+ - [x] O output continua utilizável pelo agente e com limites de tamanho razoáveis
+ - [x] A tool mantém uma interface clara entre modos simples de leitura e modos mais pesados de browser real
+ - [x] O Scanner pode continuar a usar o browser de forma não interactiva para casos simples sem pagar sempre o custo do modo avançado
 
 **Technical Notes:**
 - Esta US é uma melhoria explícita face à US-040
@@ -3246,16 +3246,16 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - Deve preservar um modo leve para páginas simples e um modo avançado para renderização/interacção
 
 **Tests Required:**
-- [ ] Página simples continua a funcionar no modo actual de leitura
-- [ ] Página com conteúdo renderizado por JavaScript devolve conteúdo útil após renderização
-- [ ] Screenshot é gerada com sucesso quando pedida
-- [ ] Interacção básica com página funciona em pelo menos um cenário representativo
-- [ ] E2E / real-data test: contra uma app real com frontend moderno, o Scanner consegue usar o browser melhorado para observar conteúdo que não aparecia no fetch HTTP simples
+ - [x] Página simples continua a funcionar no modo actual de leitura
+ - [x] Página com conteúdo renderizado por JavaScript devolve conteúdo útil após renderização
+ - [x] Screenshot é gerada com sucesso quando pedida
+ - [x] Interacção básica com página funciona em pelo menos um cenário representativo
+ - [x] E2E / real-data test: contra uma app real com frontend moderno, o Scanner consegue usar o browser melhorado para observar conteúdo que não aparecia no fetch HTTP simples
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O `browser` deixa de ser apenas um HTTP fetcher e passa a cobrir casos reais necessários ao Scanner
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] O `browser` deixa de ser apenas um HTTP fetcher e passa a cobrir casos reais necessários ao Scanner
 
 **Dependencies:** US-040
 **Estimated Complexity:** L
@@ -3273,26 +3273,26 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 **Ficheiros:** `src/pentest/providers/handlers.py` ou módulo equivalente de handlers/delegation, `src/pentest/agents/scanner.py`, `src/pentest/models/tool_args.py` (contract partilhado), `src/pentest/tools/registry.py` ou módulo equivalente onde a tool `scanner` é definida/exportada, `src/pentest/tools/stubs.py` ou módulo equivalente se forem necessários placeholders iniciais
 
 **Acceptance Criteria:**
-- [ ] Existe um handler/factory para a tool `scanner` que recebe um payload equivalente a `ScannerAction`
-- [ ] Existe uma definição/registro explícito da tool `scanner` para uso pelo Orchestrator:
+ - [x] Existe um handler/factory para a tool `scanner` que recebe um payload equivalente a `ScannerAction`
+ - [x] Existe uma definição/registro explícito da tool `scanner` para uso pelo Orchestrator:
   - nome da tool: `scanner`
   - schema baseado no `ScannerAction` partilhado
   - export/import claro no registry/módulo de tools relevante
-- [ ] Quando chamado, o handler:
+ - [x] Quando chamado, o handler:
   1. Recebe a task/subtask actual e o execution context relevante
   2. Constrói o contexto do Scanner
   3. Renderiza os prompts do Scanner
   4. Cria/usa um novo graph isolado do Scanner
   5. Executa o Scanner até `hack_result`
   6. Retorna o resultado ao agente que chamou como tool response normal
-- [ ] O graph do Orchestrator que chamou `scanner(...)` pausa durante a tool call e continua depois com o resultado devolvido
-- [ ] O Scanner corre com chain isolada da chain do Orchestrator; o Orchestrator não partilha directamente a conversation history completa, apenas contexto delegado/filtrado
-- [ ] O payload de entrada da delegação mantém o shape do contrato do Scanner (`question`, `message`, e contexto relevante)
-- [ ] O resultado devolvido ao Orchestrator é o resultado do `hack_result` do Scanner, sem necessidade de parsing manual fora do handler
-- [ ] O handler suporta a realidade actual do roadmap:
+ - [x] O graph do Orchestrator que chamou `scanner(...)` pausa durante a tool call e continua depois com o resultado devolvido
+ - [x] O Scanner corre com chain isolada da chain do Orchestrator; o Orchestrator não partilha directamente a conversation history completa, apenas contexto delegado/filtrado
+ - [x] O payload de entrada da delegação mantém o shape do contrato do Scanner (`question`, `message`, e contexto relevante)
+ - [x] O resultado devolvido ao Orchestrator é o resultado do `hack_result` do Scanner, sem necessidade de parsing manual fora do handler
+ - [x] O handler suporta a realidade actual do roadmap:
   - Scanner real quando o agente já estiver implementado
   - dependências downstream reais ou stubs compatíveis, conforme disponibilidade
-- [ ] Errors de renderização, construção do graph, ou execução do Scanner são devolvidos com contexto suficiente para debugging
+ - [x] Errors de renderização, construção do graph, ou execução do Scanner são devolvidos com contexto suficiente para debugging
 
 **Technical Notes:**
 - PentAGI reference:
@@ -3304,17 +3304,17 @@ O Scanner é o equivalente directo ao `pentester` do PentAGI: o especialista del
 - Esta US é a ponte entre o Scanner como agente standalone e o Scanner como especialista delegado dentro do fluxo principal
 
 **Tests Required:**
-- [ ] Chamar o handler `scanner(...)` com payload válido executa um Scanner isolado e devolve resultado
-- [ ] O resultado devolvido ao chamador corresponde ao `hack_result` do Scanner
-- [ ] A chain do chamador continua após a tool response
-- [ ] Contexto filtrado da subtask actual chega ao Scanner
-- [ ] Falhas do Scanner são propagadas de forma legível ao chamador
-- [ ] E2E / real-data test: num fluxo real com Orchestrator + Scanner, o Orchestrator delega uma subtask ao Scanner, o Scanner usa pelo menos uma tool real, termina com `hack_result`, e o Orchestrator recebe esse resultado como tool response
+ - [x] Chamar o handler `scanner(...)` com payload válido executa um Scanner isolado e devolve resultado
+ - [x] O resultado devolvido ao chamador corresponde ao `hack_result` do Scanner
+ - [x] A chain do chamador continua após a tool response
+ - [x] Contexto filtrado da subtask actual chega ao Scanner
+ - [x] Falhas do Scanner são propagadas de forma legível ao chamador
+ - [x] E2E / real-data test: num fluxo real com Orchestrator + Scanner, o Orchestrator delega uma subtask ao Scanner, o Scanner usa pelo menos uma tool real, termina com `hack_result`, e o Orchestrator recebe esse resultado como tool response
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] O Scanner deixa de ser apenas um agente standalone e passa a estar pronto para integração real com o Orchestrator
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] O Scanner deixa de ser apenas um agente standalone e passa a estar pronto para integração real com o Orchestrator
 
 **Dependencies:** US-065
 **Estimated Complexity:** M
@@ -3375,21 +3375,21 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `tests/evals/searcher/conftest.py`
 
 **Acceptance Criteria:**
-- [ ] Estrutura `tests/evals/searcher/` criada com subdirectórios `datasets/`, `evaluators/`, `fixtures/`, `recordings/`
-- [ ] `record_search_run.py` que:
+ - [x] Estrutura `tests/evals/searcher/` criada com subdirectórios `datasets/`, `evaluators/`, `fixtures/`, `recordings/`
+ - [x] `record_search_run.py` que:
   - Corre o Searcher contra uma query real com tracing habilitado
   - Grava o run completo em JSON: inputs, tool calls (nome + args + response), `SearchResult` final, metadata do modelo
   - Aceita `--question`, `--output`, `--runs N`, e `--context` como argumentos
   - Suporta `--use-fixtures` para reproduzir um run sem rede
-- [ ] `run_searcher_eval.py` aceita flags:
+ - [x] `run_searcher_eval.py` aceita flags:
   - `--model` (default: `claude-sonnet-4-20250514`)
   - `--dataset` (default: `searcher`)
   - `--level` (default: `2`) — 1=final answer, 2=fixtures, 3=controlled E2E
   - `--upload/--no-upload` (default: upload para LangSmith)
   - `--judge-model` (default: lido de `EVAL_JUDGE_MODEL`)
-- [ ] Com `--no-upload`: corre tudo local sem precisar de LangSmith API key
-- [ ] `conftest.py` com fixtures pytest para carregar datasets Searcher e fixtures Searcher
-- [ ] Scripts executáveis standalone
+ - [x] Com `--no-upload`: corre tudo local sem precisar de LangSmith API key
+ - [x] `conftest.py` com fixtures pytest para carregar datasets Searcher e fixtures Searcher
+ - [x] Scripts executáveis standalone
 
 **Technical Notes:**
 - Reutilizar o máximo possível do Epic 8 em vez de copiar helpers inteiros
@@ -3397,15 +3397,15 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `record_search_run.py` deve registar explicitamente se a resposta veio de `search_answer`, `duckduckgo`, `tavily_search`, `browser`, ou combinação
 
 **Tests Required:**
-- [ ] `tests/evals/searcher/` importável como package
-- [ ] `record_search_run.py --help` mostra flags sem erros
-- [ ] `run_searcher_eval.py --no-upload` executa sem erros com dataset placeholder
-- [ ] Estrutura de directórios criada correctamente
+ - [x] `tests/evals/searcher/` importável como package
+ - [x] `record_search_run.py --help` mostra flags sem erros
+ - [x] `run_searcher_eval.py --no-upload` executa sem erros com dataset placeholder
+ - [x] Estrutura de directórios criada correctamente
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pelo menos 1 run real gravado via `record_search_run.py`
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pelo menos 1 run real gravado via `record_search_run.py`
 
 **Dependencies:** Epic 9 completo (Searcher funcional)
 **Estimated Complexity:** M
@@ -3425,14 +3425,14 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `tests/evals/searcher/datasets/README.md`
 
 **Acceptance Criteria:**
-- [ ] `searcher.json` com pelo menos 12 cenários reais cobrindo:
+ - [x] `searcher.json` com pelo menos 12 cenários reais cobrindo:
   - CVE / advisory lookup
   - versão vulnerável / affected ranges
   - exploit or bypass technique research
   - tool usage / command syntax
   - internal answer retrieval via `search_answer`
   - browser follow-up a uma source específica
-- [ ] Cada dataset entry contém:
+ - [x] Cada dataset entry contém:
   - `inputs.question`
   - `inputs.context` (opcional)
   - `reference_outputs.required_facts` (lista de factos que têm de aparecer)
@@ -3441,9 +3441,9 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
   - `reference_outputs.disallowed_behaviors` (ex.: inventar CVE, responder sem citar fonte quando cenário exige fonte)
   - `metadata.category` (`cve`, `version`, `technique`, `tool`, `memory`, `browser_followup`)
   - `metadata.difficulty` (`easy`, `medium`, `hard`)
-- [ ] Pelo menos 3 cenários dependem de `search_answer` como melhor primeira ação
-- [ ] Pelo menos 3 cenários exigem `browser` após search engine para validar detalhes
-- [ ] `README.md` documenta como adicionar novos cenários e como validar ground truth
+ - [x] Pelo menos 3 cenários dependem de `search_answer` como melhor primeira ação
+ - [x] Pelo menos 3 cenários exigem `browser` após search engine para validar detalhes
+ - [x] `README.md` documenta como adicionar novos cenários e como validar ground truth
 
 **Technical Notes:**
 - `required_facts` devem ser frases curtas, verificáveis, e independentes do wording exacto do agente
@@ -3452,23 +3452,23 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - Para cenários baseados em `search_answer`, o dataset deve indicar o tipo (`guide`, `vulnerability`, `tool`, etc.) esperado no filtro
 
 **Tests Required:**
-- [ ] `searcher.json` parseable e válido
-- [ ] Todos os cenários têm `question`, `required_facts`, e `category`
-- [ ] Todos os domínios/URLs em `acceptable_sources` são strings válidas
-- [ ] Não existem cenários duplicados por `question`
-- [ ] `README.md` cobre processo de curadoria
+ - [x] `searcher.json` parseable e válido
+ - [x] Todos os cenários têm `question`, `required_facts`, e `category`
+ - [x] Todos os domínios/URLs em `acceptable_sources` são strings válidas
+ - [x] Não existem cenários duplicados por `question`
+ - [x] `README.md` cobre processo de curadoria
 
 **Definition of Done:**
-- [ ] Dataset curado e validado manualmente
-- [ ] Code/data reviewed
-- [ ] Pelo menos 12 cenários prontos para eval
+ - [x] Dataset curado e validado manualmente
+ - [x] Code/data reviewed
+ - [x] Pelo menos 12 cenários prontos para eval
 
 **Dependencies:** US-068
 **Estimated Complexity:** M
 
 ---
 
-### US-070: Search Fixtures & Controlled Corpus
+### US-070: Search Fixtures ### US-070: Search Fixtures ### US-070: Search Fixtures US-070: Search Fixtures & Controlled Corpus Controlled Corpus Controlled Corpus (DONE) (DONE) Controlled Corpus (DONE)
 
 **Epic:** Searcher Agent Evaluation (LangSmith)
 
@@ -3482,21 +3482,21 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `tests/evals/searcher/extract_search_fixtures.py`
 
 **Acceptance Criteria:**
-- [ ] `searcher_fixtures.json` com fixtures para `duckduckgo`, `tavily_search`, `search_answer`, e `browser`
-- [ ] Cada fixture guarda:
+ - [x] `searcher_fixtures.json` com fixtures para `duckduckgo`, `tavily_search`, `search_answer`, e `browser`
+ - [x] Cada fixture guarda:
   - `tool_name`
   - `args_pattern` (regex ou match rules)
   - `response`
   - `scenario`
   - `source_type` (`live_web`, `memory`, `browser_snapshot`)
-- [ ] `browser_snapshots/` contém HTML/markdown snapshots das páginas usadas pelos cenários que exigem `browser`
-- [ ] `extract_search_fixtures.py` extrai fixtures de runs gravados e gera `args_pattern` suficientemente flexíveis para pequenas variações de query
-- [ ] Há um interceptor que:
+ - [x] `browser_snapshots/` contém HTML/markdown snapshots das páginas usadas pelos cenários que exigem `browser`
+ - [x] `extract_search_fixtures.py` extrai fixtures de runs gravados e gera `args_pattern` suficientemente flexíveis para pequenas variações de query
+ - [x] Há um interceptor que:
   - devolve responses gravadas quando encontra match
   - regista todas as tool calls feitas (nome + args + matched/unmatched)
   - expõe `get_call_log()` e `get_unmatched_count()`
   - preserva a barrier real `search_result`
-- [ ] Fallbacks seguros para unmatched calls:
+ - [x] Fallbacks seguros para unmatched calls:
   - `duckduckgo` / `tavily_search`: resposta vazia formatada, não inventada
   - `browser`: "Page snapshot not found"
   - `search_answer`: "Nothing found in answer store for these queries. Try searching the web."
@@ -3507,18 +3507,18 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - Os snapshots são parte do ground truth e podem ser versionados no repo
 
 **Tests Required:**
-- [ ] Fixture JSON parseable e válido
-- [ ] `create_search_fixture_tools(...)` retorna tools LangChain válidas
-- [ ] Match exacto e match parcial retornam responses gravadas
-- [ ] Unmatched call incrementa `get_unmatched_count()`
-- [ ] `search_result` não é mockado
-- [ ] `extract_search_fixtures.py` gera fixtures válidas a partir de recordings
+ - [x] Fixture JSON parseable e válido
+ - [x] `create_search_fixture_tools(...)` retorna tools LangChain válidas
+ - [x] Match exacto e match parcial retornam responses gravadas
+ - [x] Unmatched call incrementa `get_unmatched_count()`
+ - [x] `search_result` não é mockado
+ - [x] `extract_search_fixtures.py` gera fixtures válidas a partir de recordings
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Fixtures extraídas de runs reais do Searcher
-- [ ] Pelo menos 5 cenários reproduzíveis sem rede
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Fixtures extraídas de runs reais do Searcher
+ - [x] Pelo menos 5 cenários reproduzíveis sem rede
 
 **Dependencies:** US-068, US-069
 **Estimated Complexity:** L
@@ -3538,30 +3538,30 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `tests/evals/searcher/evaluators/weights.json`
 
 **Acceptance Criteria:**
-- [ ] **`structure_check`** (Code evaluator):
+ - [x] **`structure_check`** (Code evaluator):
   - Verifica que o output final contém `result` e `message` não vazios
   - Verifica que `message` é conciso (ex.: <= 280 chars)
   - Score: binary (1.0 / 0.0)
-- [ ] **`fact_coverage`** (Code evaluator):
+ - [x] **`fact_coverage`** (Code evaluator):
   - Compara `required_facts` vs resposta final
   - Score: 0.0 a 1.0 (percentagem de factos cobertos)
   - Esta é a métrica principal do Searcher
-- [ ] **`source_quality`** (Code evaluator):
+ - [x] **`source_quality`** (Code evaluator):
   - Verifica se a resposta cita ou menciona sources aceitáveis quando o cenário exige source attribution
   - Penaliza respostas sem source verificável em cenários marcados como `browser_followup` ou `cve`
-- [ ] **`tool_trajectory`** (Code evaluator):
+ - [x] **`tool_trajectory`** (Code evaluator):
   - Compara tool calls reais vs `expected_tools`
   - Verifica que termina com `search_result`
   - Score flexível: subset/superset aceitável, mas penaliza tools irrelevantes em excesso
-- [ ] **`efficiency_check`** (Code evaluator):
+ - [x] **`efficiency_check`** (Code evaluator):
   - Verifica se o Searcher parou em <= 5 ações quando o cenário é simples
   - Penaliza loops e repetição da mesma tool/query sem ganho
-- [ ] **`answer_quality`** (LLM-as-judge):
+ - [x] **`answer_quality`** (LLM-as-judge):
   - Rubric: factual correctness, usefulness for pentest workflow, relevance to the question, no hallucinated claims, good source hygiene
   - Recebe `required_facts` e `acceptable_sources` no prompt
   - Score: 0.0 a 1.0 com justificação textual
   - Judge model diferente do target model; configurável via `EVAL_JUDGE_MODEL`
-- [ ] **`searcher_composite`** (Composite evaluator):
+ - [x] **`searcher_composite`** (Composite evaluator):
   - Weighted average com pesos iniciais:
     - structure: 0.10
     - fact_coverage: 0.30
@@ -3570,7 +3570,7 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
     - efficiency: 0.10
     - answer_quality: 0.15
   - Pesos em `weights.json`, não hardcoded
-- [ ] Todos os evaluators seguem assinatura LangSmith v0.2+
+ - [x] Todos os evaluators seguem assinatura LangSmith v0.2+
 
 **Technical Notes:**
 - `fact_coverage` deve usar matching tolerante (keywords ou aliases) para não sobre-penalizar wording diferente
@@ -3578,20 +3578,20 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `tool_trajectory` deve aceitar múltiplos caminhos válidos: por exemplo, `tavily_search -> search_result` pode ser tão válido quanto `duckduckgo -> browser -> search_result`
 
 **Tests Required:**
-- [ ] `structure_check` com resposta válida → 1.0
-- [ ] `fact_coverage` com todos os factos presentes → 1.0
-- [ ] `fact_coverage` com metade dos factos → 0.5
-- [ ] `source_quality` sem source quando exigida → penaliza
-- [ ] `tool_trajectory` sem `search_result` → score 0.0 ou forte penalização
-- [ ] `efficiency_check` detecta loops/repetição
-- [ ] `answer_quality` retorna score válido com LLM mockado
-- [ ] `searcher_composite` retorna weighted average correcto
+ - [x] `structure_check` com resposta válida → 1.0
+ - [x] `fact_coverage` com todos os factos presentes → 1.0
+ - [x] `fact_coverage` com metade dos factos → 0.5
+ - [x] `source_quality` sem source quando exigida → penaliza
+ - [x] `tool_trajectory` sem `search_result` → score 0.0 ou forte penalização
+ - [x] `efficiency_check` detecta loops/repetição
+ - [x] `answer_quality` retorna score válido com LLM mockado
+ - [x] `searcher_composite` retorna weighted average correcto
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Evaluators integrados no runner do Searcher
-- [ ] Testado com pelo menos 5 cenários reais do dataset
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Evaluators integrados no runner do Searcher
+ - [x] Testado com pelo menos 5 cenários reais do dataset
 
 **Dependencies:** US-069, US-070
 **Estimated Complexity:** L
@@ -3609,31 +3609,31 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 **Ficheiros:** `tests/evals/searcher/run_searcher_eval.py`
 
 **Acceptance Criteria:**
-- [ ] `run_searcher_eval.py` funcional com 3 níveis:
+ - [x] `run_searcher_eval.py` funcional com 3 níveis:
   - **Nível 1:** carrega dataset e avalia só `SearchResult` final
   - **Nível 2:** usa fixtures + snapshots para avaliar resposta + trajectory
   - **Nível 3:** corre Searcher com tools reais contra web/corpus controlado
-- [ ] Aplica todos os evaluators da US-071 e imprime scores agregados
-- [ ] Reporta custo total (target + judge) por run
-- [ ] Com `--no-upload`: corre local sem LangSmith API key
-- [ ] `--output results.json` exporta resultados parseables
-- [ ] Suporta `--tags` para correr subset de evaluators (`tool_use`, `trajectory`, `semantic`, `coverage`, etc.)
+ - [x] Aplica todos os evaluators da US-071 e imprime scores agregados
+ - [x] Reporta custo total (target + judge) por run
+ - [x] Com `--no-upload`: corre local sem LangSmith API key
+ - [x] `--output results.json` exporta resultados parseables
+ - [x] Suporta `--tags` para correr subset de evaluators (`tool_use`, `trajectory`, `semantic`, `coverage`, etc.)
 
 **Technical Notes:**
 - Nível 3 deve ser tratado como controlled E2E, não como "internet inteira"
 - O runner deve expor metadata suficiente para comparar experiments no LangSmith: modelo, judge model, level, dataset version, fixture version
 
 **Tests Required:**
-- [ ] `run_searcher_eval.py --no-upload --level 2` executa sem erros
-- [ ] `--level 1` corre sem fixtures
-- [ ] `--level 2` carrega fixtures e snapshots correctamente
-- [ ] `--output results.json` produz JSON válido
-- [ ] `--tags tool_use` corre apenas evaluators relevantes
+ - [x] `run_searcher_eval.py --no-upload --level 2` executa sem erros
+ - [x] `--level 1` corre sem fixtures
+ - [x] `--level 2` carrega fixtures e snapshots correctamente
+ - [x] `--output results.json` produz JSON válido
+ - [x] `--tags tool_use` corre apenas evaluators relevantes
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pelo menos 1 experiment completo visível no LangSmith
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pelo menos 1 experiment completo visível no LangSmith
 
 **Dependencies:** US-068, US-069, US-070, US-071
 **Estimated Complexity:** M
@@ -3655,15 +3655,15 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `tests/evals/searcher/baseline.json`
 
 **Acceptance Criteria:**
-- [ ] `analyze_search_failures.py` que:
+ - [x] `analyze_search_failures.py` que:
   - Recebe `--experiment` ou `--input`
   - Lista casos com `searcher_composite < threshold`
   - Mostra scores por métrica, tool calls feitas, e outputs esperados vs reais
   - Suporta `--export-cases` para gerar candidatos a novos dataset entries
   - Suporta `--eval-value` para medir discriminação de cada evaluator
-- [ ] `failure_log.jsonl` append-only para falhas observadas em runs reais do Searcher
-- [ ] `record_search_run.py` aceita `--log-failures` para adicionar entradas quando `fact_coverage < 0.5`, `source_quality = 0`, ou loop detectado
-- [ ] GitHub Actions workflow `searcher-evals.yml` que:
+ - [x] `failure_log.jsonl` append-only para falhas observadas em runs reais do Searcher
+ - [x] `record_search_run.py` aceita `--log-failures` para adicionar entradas quando `fact_coverage < 0.5`, `source_quality = 0`, ou loop detectado
+ - [x] GitHub Actions workflow `searcher-evals.yml` que:
   - Trigger em mudanças em `src/pentest/agents/searcher.py`, `src/pentest/tools/`, `src/pentest/templates/searcher_*.md`, `tests/evals/searcher/`
   - Corre `python tests/evals/searcher/run_searcher_eval.py --level 2 --judge-model haiku`
   - Compara com `baseline.json`
@@ -3676,16 +3676,16 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - Como no Epic 8, um evaluator com >90% scores = 1.0 deve ser revisto ou deprecado
 
 **Tests Required:**
-- [ ] `analyze_search_failures.py --export-cases` produz dataset candidate válido
-- [ ] `record_search_run.py --log-failures` adiciona linha ao log
-- [ ] Workflow falha quando baseline é ultrapassada negativamente
-- [ ] `--eval-value` identifica evaluator pouco informativo
+ - [x] `analyze_search_failures.py --export-cases` produz dataset candidate válido
+ - [x] `record_search_run.py --log-failures` adiciona linha ao log
+ - [x] Workflow falha quando baseline é ultrapassada negativamente
+ - [x] `--eval-value` identifica evaluator pouco informativo
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Baseline inicial aprovada e guardada
-- [ ] Pelo menos 1 falha real promovida a dataset candidate
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Baseline inicial aprovada e guardada
+ - [x] Pelo menos 1 falha real promovida a dataset candidate
 
 **Dependencies:** US-072
 **Estimated Complexity:** M
@@ -3707,27 +3707,27 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - `tests/evals/searcher/datasets/searcher.json`
 
 **Acceptance Criteria:**
-- [ ] Adicionar evaluator **`no_store_in_searcher_check`** (Code evaluator):
+ - [x] Adicionar evaluator **`no_store_in_searcher_check`** (Code evaluator):
   - Verifica que o Searcher não chama `store_answer` (nem variantes de persistência não permitidas)
   - Score binário: `1.0` se não houver persistência, `0.0` se houver qualquer chamada proibida
   - Pode operar por trajectory (`tool_name`) e por output textual (deteção defensiva de intenção de store)
-- [ ] Adicionar evaluator **`forbidden_tools_check`** (Code evaluator):
+ - [x] Adicionar evaluator **`forbidden_tools_check`** (Code evaluator):
   - Verifica que o Searcher não chama `terminal` nem `file`
   - Penalização forte: qualquer chamada proibida produz score `0.0`
   - Mantém flexibilidade para tools opcionais permitidas (`tavily_search`, `browser`, `memorist`)
-- [ ] Adicionar evaluator **`anonymization_hygiene_check`** (Code evaluator):
+ - [x] Adicionar evaluator **`anonymization_hygiene_check`** (Code evaluator):
   - Em cenários marcados com `metadata.requires_anonymization=true`, valida que o output não expõe dados sensíveis brutos (IP, domínio interno, credenciais, tokens, URLs sensíveis)
   - Score 0..1 com penalização por cada leak detectado
   - Permite placeholders esperados (`{ip}`, `{domain}`, `{username}`, `{password}`, `{url}`)
-- [ ] Adicionar evaluator **`delegation_isolation_check`** (Code evaluator):
+ - [x] Adicionar evaluator **`delegation_isolation_check`** (Code evaluator):
   - Verifica que o output final do Searcher não inclui dumps de contexto irrelevante nem conteúdo de cadeia interna de outros agentes
   - Usa regras simples: penaliza inclusão de blocos longos de execution context, IDs internos não necessários, ou mensagens de sistema que não pertencem ao resultado final
   - Score 0..1 com threshold mínimo definido para passar
-- [ ] Integrar os 4 evaluators no composite `searcher_composite` com pesos em `weights.json` (não hardcoded)
-- [ ] Definir política de gate no runner:
+ - [x] Integrar os 4 evaluators no composite `searcher_composite` com pesos em `weights.json` (não hardcoded)
+ - [x] Definir política de gate no runner:
   - `no_store_in_searcher_check` e `forbidden_tools_check` são **hard gates** (falha imediata no cenário quando score < 1.0)
   - Os restantes entram no composite normalmente
-- [ ] Estender `searcher.json` com metadados necessários para estes checks:
+ - [x] Estender `searcher.json` com metadados necessários para estes checks:
   - `metadata.requires_anonymization` (bool)
   - `reference_outputs.forbidden_tools` (default: `["terminal", "file", "store_answer"]`)
   - `reference_outputs.allowed_placeholders` (lista de placeholders permitidos)
@@ -3742,19 +3742,19 @@ Framework de avaliação para medir e comparar a qualidade do Searcher. Reutiliz
 - Em caso de conflito entre score semântico alto e violação estrutural, a violação estrutural prevalece
 
 **Tests Required:**
-- [ ] Trajectory com chamada `store_answer` no Searcher → `no_store_in_searcher_check = 0.0`
-- [ ] Trajectory com chamada `terminal` ou `file` → `forbidden_tools_check = 0.0`
-- [ ] Output com placeholders corretos e sem leaks → `anonymization_hygiene_check >= 0.9`
-- [ ] Output com IP/token/credenciais brutas em cenário que exige anonimização → penalização clara
-- [ ] Output final com dump excessivo de execution context interno → `delegation_isolation_check` penaliza
-- [ ] `run_searcher_eval.py --level 2` falha quando hard gate estrutural é violado
-- [ ] Composite continua a calcular média ponderada correta para cenários sem violação hard gate
+ - [x] Trajectory com chamada `store_answer` no Searcher → `no_store_in_searcher_check = 0.0`
+ - [x] Trajectory com chamada `terminal` ou `file` → `forbidden_tools_check = 0.0`
+ - [x] Output com placeholders corretos e sem leaks → `anonymization_hygiene_check >= 0.9`
+ - [x] Output com IP/token/credenciais brutas em cenário que exige anonimização → penalização clara
+ - [x] Output final com dump excessivo de execution context interno → `delegation_isolation_check` penaliza
+ - [x] `run_searcher_eval.py --level 2` falha quando hard gate estrutural é violado
+ - [x] Composite continua a calcular média ponderada correta para cenários sem violação hard gate
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Regras arquitecturais do Searcher passam a estar protegidas por eval explícito
-- [ ] Pelo menos 1 regressão estrutural real reproduzida e bloqueada pelos novos checks
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Regras arquitecturais do Searcher passam a estar protegidas por eval explícito
+ - [x] Pelo menos 1 regressão estrutural real reproduzida e bloqueada pelos novos checks
 
 **Dependencies:** US-071, US-072
 **Estimated Complexity:** M
@@ -3819,12 +3819,12 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - `tests/evals/scanner/conftest.py`
 
 **Acceptance Criteria:**
-- [ ] Estrutura `tests/evals/scanner/` criada com subdirectórios `datasets/`, `evaluators/`, `fixtures/`, `recordings/`
-- [ ] `record_scan_run.py` grava JSON completo: inputs, tool calls (nome + args + response), `hack_result`, metadata do modelo
-- [ ] `record_scan_run.py` aceita `--target`, `--output`, `--runs N`, `--context`, `--use-fixtures`
-- [ ] `run_scanner_eval.py` aceita `--model`, `--dataset`, `--subset`, `--level`, `--upload/--no-upload`, `--judge-model`
-- [ ] Com `--no-upload`, corre local sem LangSmith API key
-- [ ] Scripts executáveis standalone
+ - [x] Estrutura `tests/evals/scanner/` criada com subdirectórios `datasets/`, `evaluators/`, `fixtures/`, `recordings/`
+ - [x] `record_scan_run.py` grava JSON completo: inputs, tool calls (nome + args + response), `hack_result`, metadata do modelo
+ - [x] `record_scan_run.py` aceita `--target`, `--output`, `--runs N`, `--context`, `--use-fixtures`
+ - [x] `run_scanner_eval.py` aceita `--model`, `--dataset`, `--subset`, `--level`, `--upload/--no-upload`, `--judge-model`
+ - [x] Com `--no-upload`, corre local sem LangSmith API key
+ - [x] Scripts executáveis standalone
 
 **Technical Notes:**
 - Reutilizar helpers dos epics de eval anteriores em vez de duplicar
@@ -3832,15 +3832,15 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - Registar explicitamente se as evidências vieram de `terminal`, `browser`, `file`, ou combinação
 
 **Tests Required:**
-- [ ] `tests/evals/scanner/` importável como package
-- [ ] `record_scan_run.py --help` mostra flags sem erros
-- [ ] `run_scanner_eval.py --no-upload` executa sem erros com dataset placeholder
-- [ ] Estrutura de directórios criada correctamente
+ - [x] `tests/evals/scanner/` importável como package
+ - [x] `record_scan_run.py --help` mostra flags sem erros
+ - [x] `run_scanner_eval.py --no-upload` executa sem erros com dataset placeholder
+ - [x] Estrutura de directórios criada correctamente
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pelo menos 1 run real gravado via `record_scan_run.py`
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pelo menos 1 run real gravado via `record_scan_run.py`
 
 **Dependencies:** Epic 10 completo (Scanner funcional)
 **Estimated Complexity:** M
@@ -3858,16 +3858,16 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - `tests/evals/scanner/datasets/README.md`
 
 **Acceptance Criteria:**
-- [ ] Dataset MVP com pelo menos 4 labs PortSwigger (subset `quick`)
-- [ ] Cobertura mínima de 4 categorias
-- [ ] Cada cenário inclui:
+ - [x] Dataset MVP com pelo menos 4 labs PortSwigger (subset `quick`)
+ - [x] Cobertura mínima de 4 categorias
+ - [x] Cada cenário inclui:
   - `lab_id`, `lab_url`, `category`, `difficulty`
   - `expected_vulnerability` (tipo claro)
   - `expected_evidence` (indicadores mínimos de prova)
   - `expected_tools` (subset de tools esperado)
   - `disallowed_behaviors` (ex.: claim sem prova, ação fora de escopo)
-- [ ] `summary` do JSON consistente com número real de cenários
-- [ ] Dataset parseable e sem duplicados por `lab_id`
+ - [x] `summary` do JSON consistente com número real de cenários
+ - [x] Dataset parseable e sem duplicados por `lab_id`
 
 **Technical Notes:**
 - Reusar catálogo base `tests/evals/portswigger_labs.json` como fonte
@@ -3875,15 +3875,15 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - Ground truth do Scanner exige vulnerabilidade + evidência mínima, não só categoria
 
 **Tests Required:**
-- [ ] `portswigger_scanner_mvp.json` parseable
-- [ ] `quick` contém exactamente 4 labs
-- [ ] Todos os cenários têm `expected_vulnerability` e `expected_evidence`
-- [ ] Não existem duplicados por `lab_id`
+ - [x] `portswigger_scanner_mvp.json` parseable
+ - [x] `quick` contém exactamente 4 labs
+ - [x] Todos os cenários têm `expected_vulnerability` e `expected_evidence`
+ - [x] Não existem duplicados por `lab_id`
 
 **Definition of Done:**
-- [ ] Dataset MVP publicado e validado manualmente
-- [ ] Ground truth revisado por humano
-- [ ] Code/data reviewed
+ - [x] Dataset MVP publicado e validado manualmente
+ - [x] Ground truth revisado por humano
+ - [x] Code/data reviewed
 
 **Dependencies:** US-074
 **Estimated Complexity:** M
@@ -3901,27 +3901,27 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - `tests/evals/scanner/extract_scan_fixtures.py`
 
 **Acceptance Criteria:**
-- [ ] Fixtures para `terminal`, `browser`, `file` (e outras tools relevantes do Scanner)
-- [ ] Cada fixture guarda `tool_name`, `args_pattern`, `response`, `scenario`, `source_type`
-- [ ] Interceptor devolve respostas gravadas e regista call log com matched/unmatched
-- [ ] `hack_result` permanece real (não mockado como barrier final)
-- [ ] Fallback seguro para unmatched calls (sem inventar evidência)
+ - [x] Fixtures para `terminal`, `browser`, `file` (e outras tools relevantes do Scanner)
+ - [x] Cada fixture guarda `tool_name`, `args_pattern`, `response`, `scenario`, `source_type`
+ - [x] Interceptor devolve respostas gravadas e regista call log com matched/unmatched
+ - [x] `hack_result` permanece real (não mockado como barrier final)
+ - [x] Fallback seguro para unmatched calls (sem inventar evidência)
 
 **Technical Notes:**
 - `args_pattern` deve tolerar variações pequenas (whitespace, flags equivalentes)
 - O replay deve ser determinístico e explícito quando um match não existe
 
 **Tests Required:**
-- [ ] Fixture JSON parseable e válido
-- [ ] Match exacto e parcial retornam response gravada
-- [ ] Unmatched incrementa contador e fica visível no relatório
-- [ ] `hack_result` não é interceptado
-- [ ] `extract_scan_fixtures.py` gera fixtures válidas a partir de recordings
+ - [x] Fixture JSON parseable e válido
+ - [x] Match exacto e parcial retornam response gravada
+ - [x] Unmatched incrementa contador e fica visível no relatório
+ - [x] `hack_result` não é interceptado
+ - [x] `extract_scan_fixtures.py` gera fixtures válidas a partir de recordings
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Fixtures extraídas de runs reais do Scanner
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Fixtures extraídas de runs reais do Scanner
 
 **Dependencies:** US-074, US-075
 **Estimated Complexity:** L
@@ -3939,23 +3939,23 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - `tests/evals/scanner/evaluators/weights.json`
 
 **Acceptance Criteria:**
-- [ ] `structure_check`: valida formato do `hack_result` final
-- [ ] `vulnerability_coverage`: compara vulns esperadas vs encontradas (métrica principal)
-- [ ] `evidence_quality`: valida prova mínima por finding
-- [ ] `precision_check`: penaliza claims sem prova e falso positivo
-- [ ] `tool_trajectory`: compara tool calls vs `expected_tools` e exige finalização com `hack_result`
-- [ ] `efficiency_check`: penaliza loops e excesso de ações sem ganho
-- [ ] `safety_check`: valida escopo e ausência de ações destrutivas indevidas
-- [ ] `scanner_composite` com pesos em JSON (não hardcoded)
-- [ ] `scan_quality_judge` opcional com `--with-judge`
+ - [x] `structure_check`: valida formato do `hack_result` final
+ - [x] `vulnerability_coverage`: compara vulns esperadas vs encontradas (métrica principal)
+ - [x] `evidence_quality`: valida prova mínima por finding
+ - [x] `precision_check`: penaliza claims sem prova e falso positivo
+ - [x] `tool_trajectory`: compara tool calls vs `expected_tools` e exige finalização com `hack_result`
+ - [x] `efficiency_check`: penaliza loops e excesso de ações sem ganho
+ - [x] `safety_check`: valida escopo e ausência de ações destrutivas indevidas
+ - [x] `scanner_composite` com pesos em JSON (não hardcoded)
+ - [x] `scan_quality_judge` opcional com `--with-judge`
 
 **Pesos iniciais recomendados (MVP):**
-- [ ] `vulnerability_coverage`: 0.30
-- [ ] `evidence_quality`: 0.25
-- [ ] `precision_check`: 0.15
-- [ ] `tool_trajectory`: 0.15
-- [ ] `efficiency_check`: 0.10
-- [ ] `safety_check`: 0.05 (ou hard gate configurável)
+ - [x] `vulnerability_coverage`: 0.30
+ - [x] `evidence_quality`: 0.25
+ - [x] `precision_check`: 0.15
+ - [x] `tool_trajectory`: 0.15
+ - [x] `efficiency_check`: 0.10
+ - [x] `safety_check`: 0.05 (ou hard gate configurável)
 
 **Technical Notes:**
 - Matching tolerante para evidência (aliases/keywords), sem perder rigor
@@ -3963,19 +3963,19 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - Judge semântico não bloqueia por defeito no CI quick
 
 **Tests Required:**
-- [ ] `vulnerability_coverage` com cobertura total → 1.0
-- [ ] `vulnerability_coverage` com cobertura parcial → score proporcional
-- [ ] `evidence_quality` sem prova mínima → penaliza
-- [ ] `precision_check` com claim sem prova → penaliza
-- [ ] `tool_trajectory` sem `hack_result` final → score 0.0 ou forte penalização
-- [ ] `efficiency_check` detecta loop/repetição
-- [ ] `safety_check` detecta violação de escopo
-- [ ] `scanner_composite` retorna weighted average correcto
+ - [x] `vulnerability_coverage` com cobertura total → 1.0
+ - [x] `vulnerability_coverage` com cobertura parcial → score proporcional
+ - [x] `evidence_quality` sem prova mínima → penaliza
+ - [x] `precision_check` com claim sem prova → penaliza
+ - [x] `tool_trajectory` sem `hack_result` final → score 0.0 ou forte penalização
+ - [x] `efficiency_check` detecta loop/repetição
+ - [x] `safety_check` detecta violação de escopo
+ - [x] `scanner_composite` retorna weighted average correcto
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Evaluators integrados no runner do Scanner
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Evaluators integrados no runner do Scanner
 
 **Dependencies:** US-075, US-076
 **Estimated Complexity:** L
@@ -3992,28 +3992,28 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - `tests/evals/scanner/run_scanner_eval.py`
 
 **Acceptance Criteria:**
-- [ ] Runner funcional com níveis 1/2/3
-- [ ] Aplica todos os evaluators da US-077 e imprime scores agregados
-- [ ] Reporta custo total (target + judge) e latência por run
-- [ ] `--no-upload` funciona sem LangSmith API key
-- [ ] `--output results.json` exporta resultados parseables
-- [ ] `--tags` permite subset de evaluators (`coverage`, `evidence`, `trajectory`, `safety`, etc.)
+ - [x] Runner funcional com níveis 1/2/3
+ - [x] Aplica todos os evaluators da US-077 e imprime scores agregados
+ - [x] Reporta custo total (target + judge) e latência por run
+ - [x] `--no-upload` funciona sem LangSmith API key
+ - [x] `--output results.json` exporta resultados parseables
+ - [x] `--tags` permite subset de evaluators (`coverage`, `evidence`, `trajectory`, `safety`, etc.)
 
 **Technical Notes:**
 - Nível 3 tratado como controlled E2E, não internet/lab sweep indiscriminado
 - Expor metadata suficiente para comparação entre experiments (modelo, judge model, level, dataset version, fixture version)
 
 **Tests Required:**
-- [ ] `run_scanner_eval.py --no-upload --level 2` executa sem erros
-- [ ] `--level 1` corre sem fixtures
-- [ ] `--level 2` carrega fixtures correctamente
-- [ ] `--output results.json` produz JSON válido
-- [ ] `--tags coverage` corre apenas evaluators relevantes
+ - [x] `run_scanner_eval.py --no-upload --level 2` executa sem erros
+ - [x] `--level 1` corre sem fixtures
+ - [x] `--level 2` carrega fixtures correctamente
+ - [x] `--output results.json` produz JSON válido
+ - [x] `--tags coverage` corre apenas evaluators relevantes
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pelo menos 1 experiment completo visível no LangSmith
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pelo menos 1 experiment completo visível no LangSmith
 
 **Dependencies:** US-074, US-075, US-076, US-077
 **Estimated Complexity:** M
@@ -4033,12 +4033,12 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - `tests/evals/scanner/baseline.json`
 
 **Acceptance Criteria:**
-- [ ] `analyze_scan_failures.py` lista casos com `scanner_composite < threshold`
-- [ ] Mostra delta por métrica, trajectory e evidência esperada vs real
-- [ ] `--export-cases` gera candidatos para ampliar dataset
-- [ ] `failure_log.jsonl` append-only para falhas observadas
-- [ ] Workflow CI corre subset `quick` do Scanner e compara com baseline
-- [ ] CI falha se `vulnerability_coverage` ou `scanner_composite` cair >10%
+ - [x] `analyze_scan_failures.py` lista casos com `scanner_composite < threshold`
+ - [x] Mostra delta por métrica, trajectory e evidência esperada vs real
+ - [x] `--export-cases` gera candidatos para ampliar dataset
+ - [x] `failure_log.jsonl` append-only para falhas observadas
+ - [x] Workflow CI corre subset `quick` do Scanner e compara com baseline
+ - [x] CI falha se `vulnerability_coverage` ou `scanner_composite` cair >10%
 
 **Technical Notes:**
 - `vulnerability_coverage` e `scanner_composite` são métricas gate principais
@@ -4046,16 +4046,16 @@ Framework de avaliação para medir e comparar a qualidade do Scanner. Reutiliza
 - Um evaluator com discriminação baixa (quase sempre 1.0) deve ser revisto/deprecado
 
 **Tests Required:**
-- [ ] `analyze_scan_failures.py --export-cases` produz candidate válido
-- [ ] `record_scan_run.py --log-failures` adiciona linha ao log
-- [ ] Workflow falha em regressão acima do threshold
-- [ ] `--eval-value` identifica evaluator pouco informativo
+ - [x] `analyze_scan_failures.py --export-cases` produz candidate válido
+ - [x] `record_scan_run.py --log-failures` adiciona linha ao log
+ - [x] Workflow falha em regressão acima do threshold
+ - [x] `--eval-value` identifica evaluator pouco informativo
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Baseline inicial aprovada e guardada
-- [ ] Pelo menos 1 falha real promovida a dataset candidate
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Baseline inicial aprovada e guardada
+ - [x] Pelo menos 1 falha real promovida a dataset candidate
 
 **Dependencies:** US-078
 **Estimated Complexity:** M
@@ -4085,25 +4085,25 @@ Implementar o agente Memorist como especialista de memória de longo prazo, subs
 - `tests/unit/tools/test_barriers.py`
 
 **Acceptance Criteria:**
-- [ ] Existe modelo `MemoristResult` com campos `result` e `message` (não vazios)
-- [ ] Existe tool `memorist_result` com `args_schema=MemoristResult`
-- [ ] `memorist_result` integra com `BarrierAwareToolNode` e encerra o loop
-- [ ] Validação rejeita payloads vazios/whitespace
+ - [x] Existe modelo `MemoristResult` com campos `result` e `message` (não vazios)
+ - [x] Existe tool `memorist_result` com `args_schema=MemoristResult`
+ - [x] `memorist_result` integra com `BarrierAwareToolNode` e encerra o loop
+ - [x] Validação rejeita payloads vazios/whitespace
 
 **Tests Required:**
-- [ ] Model validation (`result`/`message`) com casos válidos e inválidos
-- [ ] Barrier extraction de args no `create_agent_graph`
+ - [x] Model validation (`result`/`message`) com casos válidos e inválidos
+ - [x] Barrier extraction de args no `create_agent_graph`
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-037
 **Estimated Complexity:** S
 
 ---
 
-### US-081: search_in_memory tool with flow/task/subtask filters
+### US-081: search_in_memory tool with flow/task/subtask filters (DONE)
 
 **Epic:** Memorist Agent
 
@@ -4116,29 +4116,29 @@ Implementar o agente Memorist como especialista de memória de longo prazo, subs
 - `tests/integration/tools/test_search_memory_integration.py`
 
 **Acceptance Criteria:**
-- [ ] `search_in_memory` aceita 1-5 queries
-- [ ] Suporta filtros opcionais por `task_id`/`subtask_id` (quando aplicável ao modelo de dados)
-- [ ] Faz merge + deduplicação de resultados multi-query
-- [ ] Ordena por relevância e aplica limite de resultados
-- [ ] Falha gracefully quando DB/embeddings não estiverem disponíveis
-- [ ] Prova em infra real: com PostgreSQL+pgvector real, inserir dados reais de memória e recuperar resultados relevantes com score/ranking esperado
-- [ ] Quando `OPENAI_API_KEY` ou o provider de embeddings não estiver configurado, a tool devolve fallback explícito e não quebra o fluxo do agente chamador
+- [x] `search_in_memory` aceita 1-5 queries
+- [x] Suporta filtros opcionais por `task_id`/`subtask_id` (quando aplicável ao modelo de dados)
+- [x] Faz merge + deduplicação de resultados multi-query
+- [x] Ordena por relevância e aplica limite de resultados
+- [x] Falha gracefully quando DB/embeddings não estiverem disponíveis
+- [x] Prova em infra real: com PostgreSQL+pgvector real, inserir dados reais de memória e recuperar resultados relevantes com score/ranking esperado
+- [x] Quando `OPENAI_API_KEY` ou o provider de embeddings não estiver configurado, a tool devolve fallback explícito e não quebra o fluxo do agente chamador
 
 **Technical Notes:**
 - Basear comportamento no PentAGI `memory.go` (threshold + multi-query + dedup)
 - Manter anonimização e evitar retorno de dados sensíveis em claro
 
 **Tests Required:**
-- [ ] Multi-query com deduplicação
-- [ ] Sem resultados -> mensagem clara
-- [ ] Erros de DB/embedding -> tratamento robusto
-- [ ] Com filtros e sem filtros
-- [ ] Integração real (sem mocks) com PostgreSQL+pgvector: round-trip completo `store` (seed controlado) -> `search_in_memory` -> assert de relevância
-- [ ] Integração real com filtro de `task_id`/`subtask_id`: resultados fora do escopo não aparecem
+- [x] Multi-query com deduplicação
+- [x] Sem resultados -> mensagem clara
+- [x] Erros de DB/embedding -> tratamento robusto
+- [x] Com filtros e sem filtros
+- [x] Integração real (sem mocks) com PostgreSQL+pgvector: round-trip completo `store` (seed controlado) -> `search_in_memory` -> assert de relevância
+- [x] Integração real com filtro de `task_id`/`subtask_id`: resultados fora do escopo não aparecem
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+- [x] Code written and passing all tests
+- [x] Code reviewed
 
 **Dependencies:** US-010, US-080
 **Estimated Complexity:** M
@@ -4158,18 +4158,18 @@ Implementar o agente Memorist como especialista de memória de longo prazo, subs
 - `tests/unit/templates/test_memorist_templates.py`
 
 **Acceptance Criteria:**
-- [ ] Prompt define explicitamente a diferença Graphiti vs pgvector
-- [ ] Prompt define ordem recomendada: histórico episódico primeiro, depois memória vetorial
-- [ ] Prompt força finalização via `memorist_result`
-- [ ] Prompt inclui regras de eficiência (max ações, parar cedo quando suficiente)
+ - [x] Prompt define explicitamente a diferença Graphiti vs pgvector
+ - [x] Prompt define ordem recomendada: histórico episódico primeiro, depois memória vetorial
+ - [x] Prompt força finalização via `memorist_result`
+ - [x] Prompt inclui regras de eficiência (max ações, parar cedo quando suficiente)
 
 **Tests Required:**
-- [ ] Render com todas as variáveis esperadas
-- [ ] Snapshot/asserts para secções críticas do prompt
+ - [x] Render com todas as variáveis esperadas
+ - [x] Snapshot/asserts para secções críticas do prompt
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-080
 **Estimated Complexity:** S
@@ -4190,29 +4190,29 @@ Implementar o agente Memorist como especialista de memória de longo prazo, subs
 - `tests/integration/agents/test_memorist_delegation.py`
 
 **Acceptance Criteria:**
-- [ ] Tool `memorist(...)` deixa de ser stub e passa a delegar para um graph dedicado
-- [ ] O graph do Memorist usa `create_agent_graph` com barrier `memorist_result`
-- [ ] Retorno da delegação volta como tool response para o agente chamador
-- [ ] Contexto do chamador é filtrado (sem dump integral desnecessário)
-- [ ] Fluxo real provado: num flow real, um agente chama `memorist(...)`, o Memorist consulta memória, fecha com `memorist_result` e o chamador continua a execução com esse resultado
-- [ ] O graph do Memorist define `recursion_limit` explícito (target: 20) para prevenção de loops
-- [ ] Se o Memorist falhar internamente (erro de tool/timeout), o chamador recebe resposta controlada e segue com fallback seguro
+ - [x] Tool `memorist(...)` deixa de ser stub e passa a delegar para um graph dedicado
+ - [x] O graph do Memorist usa `create_agent_graph` com barrier `memorist_result`
+ - [x] Retorno da delegação volta como tool response para o agente chamador
+ - [x] Contexto do chamador é filtrado (sem dump integral desnecessário)
+ - [x] Fluxo real provado: num flow real, um agente chama `memorist(...)`, o Memorist consulta memória, fecha com `memorist_result` e o chamador continua a execução com esse resultado
+ - [x] O graph do Memorist define `recursion_limit` explícito (target: 20) para prevenção de loops
+ - [x] Se o Memorist falhar internamente (erro de tool/timeout), o chamador recebe resposta controlada e segue com fallback seguro
 
 **Technical Notes:**
 - Seguir padrão de delegação já usado no Searcher (graph isolado por chamada)
 - Divergência intencional vs PentAGI deve ficar documentada se decidirmos não expor `terminal`/`file` ao Memorist
 
 **Tests Required:**
-- [ ] Delegação de ponta a ponta com barrier hit
-- [ ] Caso de erro no Memorist retorna mensagem de falha controlada
-- [ ] Substituição efectiva do stub no registry/callsite
-- [ ] Teste integration/agent com flow real (DB real + runtime real), sem mocks sintéticos de resultado, validando handoff completo entre agente chamador e Memorist
-- [ ] E2E mínimo: executar um cenário de scan controlado onde existe memória prévia real e verificar que o plano/decisão muda com base no retorno do Memorist
-- [ ] E2E com critério observável objetivo: comparar execução A (sem memória relevante) vs execução B (com memória relevante) e validar diferença concreta em `subtask_list` (ordem, conteúdo, ou inclusão de subtask)
+ - [x] Delegação de ponta a ponta com barrier hit
+ - [x] Caso de erro no Memorist retorna mensagem de falha controlada
+ - [x] Substituição efectiva do stub no registry/callsite
+ - [x] Teste integration/agent com flow real (DB real + runtime real), sem mocks sintéticos de resultado, validando handoff completo entre agente chamador e Memorist
+ - [x] E2E mínimo: executar um cenário de scan controlado onde existe memória prévia real e verificar que o plano/decisão muda com base no retorno do Memorist
+ - [x] E2E com critério observável objetivo: comparar execução A (sem memória relevante) vs execução B (com memória relevante) e validar diferença concreta em `subtask_list` (ordem, conteúdo, ou inclusão de subtask)
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-037, US-080, US-081, US-082
 **Estimated Complexity:** L
@@ -4232,20 +4232,20 @@ Implementar o agente Memorist como especialista de memória de longo prazo, subs
 - `tests/unit/templates/test_memorist_templates.py`
 
 **Acceptance Criteria:**
-- [ ] Documentação explicita quem escreve no Graphiti e quem escreve no pgvector
-- [ ] `store_answer` permanece centralizado no Reporter
-- [ ] Searcher/Memorist não fazem store de conhecimento não validado
-- [ ] Regras de memória estão alinhadas entre docs e prompts
-- [ ] Existe proteção de regressão para impedir introdução de `store_answer` fora do Reporter (prompt, ligação de tools ou registry)
+ - [x] Documentação explicita quem escreve no Graphiti e quem escreve no pgvector
+ - [x] `store_answer` permanece centralizado no Reporter
+ - [x] Searcher/Memorist não fazem store de conhecimento não validado
+ - [x] Regras de memória estão alinhadas entre docs e prompts
+ - [x] Existe proteção de regressão para impedir introdução de `store_answer` fora do Reporter (prompt, ligação de tools ou registry)
 
 **Tests Required:**
-- [ ] Tests/guardrails que garantem ausência de `store_answer` no Searcher prompts
-- [ ] Tests/guardrails para instruções de boundary no Memorist prompt
-- [ ] Teste/proteção que falha se qualquer agente não-Reporter expuser `store_answer` no seu conjunto de tools
+ - [x] Tests/guardrails que garantem ausência de `store_answer` no Searcher prompts
+ - [x] Tests/guardrails para instruções de boundary no Memorist prompt
+ - [x] Teste/proteção que falha se qualquer agente não-Reporter expuser `store_answer` no seu conjunto de tools
 
 **Definition of Done:**
-- [ ] Documentation and tests updated
-- [ ] Code reviewed
+ - [x] Documentation and tests updated
+ - [x] Code reviewed
 
 **Dependencies:** US-060, US-083
 **Estimated Complexity:** S
@@ -4302,23 +4302,23 @@ Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliz
 - `tests/evals/memorist/conftest.py`
 
 **Acceptance Criteria:**
-- [ ] Estrutura `tests/evals/memorist/` criada com subdirectórios `datasets/`, `evaluators/`, `fixtures/`, `recordings/`
-- [ ] `record_memorist_run.py` grava JSON completo: inputs, contexto, tool calls, output `memorist_result`, metadata de modelo
-- [ ] `run_memorist_eval.py` aceita flags `--model`, `--dataset`, `--level`, `--upload/--no-upload`, `--judge-model`, `--tags`, `--output`
-- [ ] Runner invoca o graph com `thread_id` por exemplo e `recursion_limit` explícito para reprodutibilidade e prevenção de loops
-- [ ] Com `--no-upload` corre local sem LangSmith API key
-- [ ] Com `--no-upload`, o runner não depende de artifacts remotos do LangSmith para produzir resultados locais
-- [ ] Scripts executáveis standalone
+ - [x] Estrutura `tests/evals/memorist/` criada com subdirectórios `datasets/`, `evaluators/`, `fixtures/`, `recordings/`
+ - [x] `record_memorist_run.py` grava JSON completo: inputs, contexto, tool calls, output `memorist_result`, metadata de modelo
+ - [x] `run_memorist_eval.py` aceita flags `--model`, `--dataset`, `--level`, `--upload/--no-upload`, `--judge-model`, `--tags`, `--output`
+ - [x] Runner invoca o graph com `thread_id` por exemplo e `recursion_limit` explícito para reprodutibilidade e prevenção de loops
+ - [x] Com `--no-upload` corre local sem LangSmith API key
+ - [x] Com `--no-upload`, o runner não depende de artifacts remotos do LangSmith para produzir resultados locais
+ - [x] Scripts executáveis standalone
 
 **Tests Required:**
-- [ ] `tests/evals/memorist/` importável como package
-- [ ] `record_memorist_run.py --help` sem erros
-- [ ] `run_memorist_eval.py --no-upload` executa com dataset placeholder
+ - [x] `tests/evals/memorist/` importável como package
+ - [x] `record_memorist_run.py --help` sem erros
+ - [x] `run_memorist_eval.py --no-upload` executa com dataset placeholder
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pelo menos 1 run real gravado
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pelo menos 1 run real gravado
 
 **Dependencies:** US-083
 **Estimated Complexity:** M
@@ -4336,13 +4336,13 @@ Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliz
 - `tests/evals/memorist/datasets/README.md`
 
 **Acceptance Criteria:**
-- [ ] Dataset com pelo menos 12 cenários reais cobrindo:
+ - [x] Dataset com pelo menos 12 cenários reais cobrindo:
   - recuperação vetorial (`search_in_memory`)
   - recuperação episódica (`graphiti_search`)
   - cenários híbridos (episódico + vetorial)
   - cenários com filtro `task_id`/`subtask_id`
   - cenários sem resultados (fallback esperado)
-- [ ] Cada entry contém:
+ - [x] Cada entry contém:
   - `inputs.question`
   - `inputs.context` (opcional)
   - `reference_outputs.required_facts`
@@ -4351,18 +4351,18 @@ Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliz
   - `reference_outputs.forbidden_tools` (default: `store_answer`, `terminal`, `file`)
   - `metadata.memory_mode` (`vector`, `episodic`, `hybrid`)
   - `metadata.difficulty` (`easy`, `medium`, `hard`)
-- [ ] Pelo menos 3 cenários provam isolamento de escopo (dados fora do filtro não podem aparecer)
-- [ ] README documenta curadoria, seed da memória e validação do ground truth
+ - [x] Pelo menos 3 cenários provam isolamento de escopo (dados fora do filtro não podem aparecer)
+ - [x] README documenta curadoria, seed da memória e validação do ground truth
 
 **Tests Required:**
-- [ ] `memorist.json` parseable e válido
-- [ ] Sem duplicados por pergunta/contexto
-- [ ] Todos os cenários têm `required_facts` e `memory_mode`
-- [ ] `forbidden_tools` presente em todos os cenários
+ - [x] `memorist.json` parseable e válido
+ - [x] Sem duplicados por pergunta/contexto
+ - [x] Todos os cenários têm `required_facts` e `memory_mode`
+ - [x] `forbidden_tools` presente em todos os cenários
 
 **Definition of Done:**
-- [ ] Dataset curado e validado manualmente
-- [ ] Code/data reviewed
+ - [x] Dataset curado e validado manualmente
+ - [x] Code/data reviewed
 
 **Dependencies:** US-085
 **Estimated Complexity:** M
@@ -4382,22 +4382,22 @@ Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliz
 - `tests/evals/memorist/extract_memorist_fixtures.py`
 
 **Acceptance Criteria:**
-- [ ] Fixtures para `search_in_memory`, `graphiti_search` e `memorist_result`
-- [ ] Seed controlado para pgvector e Graphiti com casos positivos e negativos por escopo
-- [ ] Interceptor regista calls (matched/unmatched) e preserva barrier real
-- [ ] Fixtures preservam ordem temporal da trajetória e identificadores de tool call (`tool_call_id` equivalente) para trajectory eval determinístico
-- [ ] Fallback seguro para calls não correspondentes sem quebrar fluxo
+ - [x] Fixtures para `search_in_memory`, `graphiti_search` e `memorist_result`
+ - [x] Seed controlado para pgvector e Graphiti com casos positivos e negativos por escopo
+ - [x] Interceptor regista calls (matched/unmatched) e preserva barrier real
+ - [x] Fixtures preservam ordem temporal da trajetória e identificadores de tool call (`tool_call_id` equivalente) para trajectory eval determinístico
+ - [x] Fallback seguro para calls não correspondentes sem quebrar fluxo
 
 **Tests Required:**
-- [ ] Fixtures parseables e válidas
-- [ ] Match exacto/parcial retorna resposta esperada
-- [ ] Unmatched incrementa contador
-- [ ] Cenário com filtro impede retorno cross-task/cross-subtask
+ - [x] Fixtures parseables e válidas
+ - [x] Match exacto/parcial retorna resposta esperada
+ - [x] Unmatched incrementa contador
+ - [x] Cenário com filtro impede retorno cross-task/cross-subtask
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Pelo menos 6 cenários reproduzíveis sem drift externo
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Pelo menos 6 cenários reproduzíveis sem drift externo
 
 **Dependencies:** US-086, US-081
 **Estimated Complexity:** L
@@ -4415,39 +4415,39 @@ Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliz
 - `tests/evals/memorist/evaluators/weights.json`
 
 **Acceptance Criteria:**
-- [ ] `structure_check`: output final com `result`/`message` não vazios e `memorist_result` presente
-- [ ] `memory_relevance`: cobertura de `required_facts` (0.0..1.0)
-- [ ] `scope_isolation_check`: penaliza retorno fora de `scope_filters` (task/subtask)
-- [ ] `source_policy_check`: valida uso coerente de `search_in_memory` vs `graphiti_search` por cenário
-- [ ] `efficiency_check`: penaliza loops/repetição e excesso de ações
-- [ ] `safe_boundary_check`: score 0.0 se usar tool proibida (`store_answer`/persistência indevida)
-- [ ] `answer_quality` (judge): factualidade, utilidade para próximo passo, ausência de alucinação
-- [ ] `memorist_composite` com pesos em JSON (não hardcoded)
-- [ ] Todos os evaluators seguem assinatura LangSmith v0.2+
-- [ ] Cada evaluator retorna payload normalizado (`key`, `score`) com `metadata` opcional
-- [ ] `answer_quality` usa modelo de judge diferente do target model e regista custo/tokens nos metadados
-- [ ] Evaluators incluem tags explícitas (`coverage`, `scope`, `boundary`, `semantic`, `trajectory`) para suportar `--tags`
+ - [x] `structure_check`: output final com `result`/`message` não vazios e `memorist_result` presente
+ - [x] `memory_relevance`: cobertura de `required_facts` (0.0..1.0)
+ - [x] `scope_isolation_check`: penaliza retorno fora de `scope_filters` (task/subtask)
+ - [x] `source_policy_check`: valida uso coerente de `search_in_memory` vs `graphiti_search` por cenário
+ - [x] `efficiency_check`: penaliza loops/repetição e excesso de ações
+ - [x] `safe_boundary_check`: score 0.0 se usar tool proibida (`store_answer`/persistência indevida)
+ - [x] `answer_quality` (judge): factualidade, utilidade para próximo passo, ausência de alucinação
+ - [x] `memorist_composite` com pesos em JSON (não hardcoded)
+ - [x] Todos os evaluators seguem assinatura LangSmith v0.2+
+ - [x] Cada evaluator retorna payload normalizado (`key`, `score`) com `metadata` opcional
+ - [x] `answer_quality` usa modelo de judge diferente do target model e regista custo/tokens nos metadados
+ - [x] Evaluators incluem tags explícitas (`coverage`, `scope`, `boundary`, `semantic`, `trajectory`) para suportar `--tags`
 
 **Pesos iniciais sugeridos (`weights.json`):**
-- [ ] structure: 0.10
-- [ ] memory_relevance: 0.30
-- [ ] scope_isolation: 0.20
-- [ ] source_policy: 0.15
-- [ ] efficiency: 0.10
-- [ ] safe_boundary: 0.10
-- [ ] answer_quality: 0.05
+ - [x] structure: 0.10
+ - [x] memory_relevance: 0.30
+ - [x] scope_isolation: 0.20
+ - [x] source_policy: 0.15
+ - [x] efficiency: 0.10
+ - [x] safe_boundary: 0.10
+ - [x] answer_quality: 0.05
 
 **Tests Required:**
-- [ ] `memory_relevance` com cobertura total -> 1.0
-- [ ] `scope_isolation_check` com vazamento -> 0.0 ou penalização forte
-- [ ] `safe_boundary_check` com `store_answer` -> 0.0
-- [ ] `efficiency_check` detecta repetição sem ganho
-- [ ] `memorist_composite` retorna weighted average correcto
+ - [x] `memory_relevance` com cobertura total -> 1.0
+ - [x] `scope_isolation_check` com vazamento -> 0.0 ou penalização forte
+ - [x] `safe_boundary_check` com `store_answer` -> 0.0
+ - [x] `efficiency_check` detecta repetição sem ganho
+ - [x] `memorist_composite` retorna weighted average correcto
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
-- [ ] Evaluators integrados no runner
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
+ - [x] Evaluators integrados no runner
 
 **Dependencies:** US-086, US-087
 **Estimated Complexity:** L
@@ -4467,22 +4467,22 @@ Framework de avaliação para medir e comparar a qualidade do Memorist. Reutiliz
 - `tests/evals/memorist/analyze_failures.py`
 
 **Acceptance Criteria:**
-- [ ] Baseline oficial para subset `quick`
-- [ ] `compare.py` falha em regressão >10% nas métricas `memory_relevance`, `scope_isolation`, `memorist_composite`
-- [ ] `compare.py` falha com qualquer regressão em `safe_boundary_check` (gate de segurança hard)
-- [ ] `analyze_failures.py` lista piores casos e exporta candidatos para dataset
-- [ ] Runner suporta `--tags` para subsets (`coverage`, `scope`, `boundary`, `semantic`, `trajectory`)
+ - [x] Baseline oficial para subset `quick`
+ - [x] `compare.py` falha em regressão >10% nas métricas `memory_relevance`, `scope_isolation`, `memorist_composite`
+ - [x] `compare.py` falha com qualquer regressão em `safe_boundary_check` (gate de segurança hard)
+ - [x] `analyze_failures.py` lista piores casos e exporta candidatos para dataset
+ - [x] Runner suporta `--tags` para subsets (`coverage`, `scope`, `boundary`, `semantic`, `trajectory`)
 
 **Tests Required:**
-- [ ] Scores iguais ao baseline -> exit 0
-- [ ] Regressão >10% -> exit 1
-- [ ] `analyze_failures.py --export-cases` gera JSON válido
-- [ ] `--tags scope` corre apenas evaluators relevantes
+ - [x] Scores iguais ao baseline -> exit 0
+ - [x] Regressão >10% -> exit 1
+ - [x] `analyze_failures.py --export-cases` gera JSON válido
+ - [x] `--tags scope` corre apenas evaluators relevantes
 
 **Definition of Done:**
-- [ ] Regras de regressão activas e documentadas
-- [ ] Loop de melhoria contínua operacional
-- [ ] Code reviewed
+ - [x] Regras de regressão activas e documentadas
+ - [x] Loop de melhoria contínua operacional
+ - [x] Code reviewed
 
 **Dependencies:** US-088
 **Estimated Complexity:** M
@@ -4501,7 +4501,7 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 
 ---
 
-### US-090: Adviser — prompt templates + simple chain + advice delegation tool
+### US-090: Adviser — prompt templates + simple chain + advice delegation tool (DONE)
 
 **Epic:** Support Agents
 
@@ -4521,16 +4521,16 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 - `tests/unit/templates/test_adviser_templates.py`
 
 **Acceptance Criteria:**
-- [ ] Existe modelo `AdviserInput` com campos `question: str` e `context: str` (não vazios)
-- [ ] Existem templates `adviser_system.md.j2` e `adviser_user.md.j2` em `templates/prompts/`
-- [ ] `render_adviser_prompt()` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
-- [ ] `give_advice(question, context, llm, execution_context="")` é `async`, constrói `SystemMessage + HumanMessage` e invoca o LLM directamente (sem `create_agent_graph` e sem `create_agent`)
-- [ ] Devolve a resposta do LLM como `str` — sem parsing, sem barrier, sem loop
-- [ ] Existe tool `advice` criada via `StructuredTool.from_function()` com `args_schema=AdviserInput` e factory `create_advice_tool(llm)`
-- [ ] Quando chamada, a tool invoca `give_advice()` passando `execution_context` opcional e devolve a resposta como string
-- [ ] Prompt system inclui: papel de conselheiro estratégico, autorização de pentesting, regras de eficiência (resposta concisa e accionável), e instrução de nunca executar comandos directamente
-- [ ] Prompt user inclui: a questão, o contexto do problema, e execution context opcional
-- [ ] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
+ - [x] Existe modelo `AdviserInput` com campos `question: str` e `context: str` (não vazios)
+ - [x] Existem templates `adviser_system.md.j2` e `adviser_user.md.j2` em `templates/prompts/`
+ - [x] `render_adviser_prompt()` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
+ - [x] `give_advice(question, context, llm, execution_context="")` é `async`, constrói `SystemMessage + HumanMessage` e invoca o LLM directamente (sem `create_agent_graph` e sem `create_agent`)
+ - [x] Devolve a resposta do LLM como `str` — sem parsing, sem barrier, sem loop
+ - [x] Existe tool `advice` criada via `StructuredTool.from_function()` com `args_schema=AdviserInput` e factory `create_advice_tool(llm)`
+ - [x] Quando chamada, a tool invoca `give_advice()` passando `execution_context` opcional e devolve a resposta como string
+ - [x] Prompt system inclui: papel de conselheiro estratégico, autorização de pentesting, regras de eficiência (resposta concisa e accionável), e instrução de nunca executar comandos directamente
+ - [x] Prompt user inclui: a questão, o contexto do problema, e execution context opcional
+ - [x] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
 
 **Technical Notes:**
 - Não usar nem `create_agent_graph()` (LangGraph) nem `create_agent()` (LangChain agent loop com tools) — o Adviser é uma chamada directa ao LLM: `llm.ainvoke([SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)])`. Não há loop, não há tools, não há state. A `framework-selection` skill classifica este padrão como *"pure model call → LangChain (LCEL / chain)"*. Usa-se `ainvoke` directo em vez de LCEL pipe (`prompt | llm`) porque há apenas uma invocação com mensagens já renderizadas pelo Jinja2 — o pipe operator não acrescenta valor neste caso.
@@ -4539,18 +4539,18 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 - O Mentor (intervenção automática a 20+ tool calls) usa prompts diferentes (`mentor_system.md.j2`) e será implementado no `providers/performer.py` — fora do âmbito desta US
 
 **Tests Required:**
-- [ ] `AdviserInput` valida campos obrigatórios e rejeita strings vazias/whitespace
-- [ ] `render_adviser_prompt()` devolve tuple com system e user prompt não vazios
-- [ ] System prompt contém referência ao papel de conselheiro e regras de eficiência
-- [ ] User prompt contém a questão passada como argumento
-- [ ] `give_advice()` com LLM mockado devolve string não vazia
-- [ ] `give_advice()` passa `execution_context` ao `render_adviser_prompt()` quando fornecido
-- [ ] Tool `advice` criada com `StructuredTool.from_function()`, com `args_schema=AdviserInput`, é chamável e devolve string
-- [ ] `create_advice_tool(llm)` devolve tool com nome `"advice"`
+ - [x] `AdviserInput` valida campos obrigatórios e rejeita strings vazias/whitespace
+ - [x] `render_adviser_prompt()` devolve tuple com system e user prompt não vazios
+ - [x] System prompt contém referência ao papel de conselheiro e regras de eficiência
+ - [x] User prompt contém a questão passada como argumento
+ - [x] `give_advice()` com LLM mockado devolve string não vazia
+ - [x] `give_advice()` passa `execution_context` ao `render_adviser_prompt()` quando fornecido
+ - [x] Tool `advice` criada com `StructuredTool.from_function()`, com `args_schema=AdviserInput`, é chamável e devolve string
+ - [x] `create_advice_tool(llm)` devolve tool com nome `"advice"`
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-037 (create_agent_graph pattern estabelecido — não usado directamente mas o padrão de factory closures é reutilizado)
 **Estimated Complexity:** S
@@ -4577,19 +4577,19 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 - `tests/unit/templates/test_refiner_templates.py`
 
 **Acceptance Criteria:**
-- [ ] Existe modelo `SubtaskPatchOperation` com: `action: Literal["add", "update", "remove"]`, `subtask_id: int | None` (obrigatório para `update`/`remove`, `None` para `add`), `title: str | None`, `description: str | None`, `fase: str | None`; validação via `@model_validator(mode='after')`
-- [ ] Existe modelo `SubtaskPatchInput` com: `patches: list[SubtaskPatchOperation]` (min 1) e `message: str`
-- [ ] Existe barrier `subtask_patch` em `tools/barriers.py`, criado com `@tool(args_schema=SubtaskPatchInput)`, seguindo o padrão de `subtask_list` e `search_result`
-- [ ] `render_refiner_prompt(task, subtasks, findings, available_tools, execution_context="")` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
-- [ ] Usa o `AgentState` partilhado de `agents/base.py` (`messages`, `barrier_result: dict | None`, `barrier_hit: bool`) — não define state próprio
-- [ ] Chama `create_agent_graph(llm, tools, barrier_names={"subtask_patch"}, max_iterations=20)` — argumento é `barrier_names` (plural, set), seguindo o padrão de `agents/generator.py`
-- [ ] Grafo tem 2 nós: `call_llm` e `execute_tools` (`BarrierAwareToolNode`); edge condicional de `execute_tools`: `barrier_hit=True` → `END`, caso contrário → `call_llm`
-- [ ] Tools do agente: terminal (factory closure), file (factory closure), browser (factory closure), stub memorist, stub searcher, `subtask_patch` (barrier)
-- [ ] Resultado extraído de `state["barrier_result"]` (dict) via `SubtaskPatchInput.model_validate(result["barrier_result"])`; levanta `RefinerError` se `barrier_hit` for `False`
-- [ ] Função de entrada é `refine_subtasks(task, subtasks, findings, docker_client, llm, ...)` async — cria o grafo internamente e invoca com `graph.ainvoke()`; não expõe o grafo directamente
-- [ ] Prompt system define: papel de analista de plano de pentest, autorização de pentesting, instrução para usar tools de reconhecimento antes de propor patch
-- [ ] Prompt user inclui: descrição do task, lista de subtasks actual (com estado), findings que motivaram a revisão, execution context opcional
-- [ ] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
+ - [x] Existe modelo `SubtaskPatchOperation` com: `action: Literal["add", "update", "remove"]`, `subtask_id: int | None` (obrigatório para `update`/`remove`, `None` para `add`), `title: str | None`, `description: str | None`, `fase: str | None`; validação via `@model_validator(mode='after')`
+ - [x] Existe modelo `SubtaskPatchInput` com: `patches: list[SubtaskPatchOperation]` (min 1) e `message: str`
+ - [x] Existe barrier `subtask_patch` em `tools/barriers.py`, criado com `@tool(args_schema=SubtaskPatchInput)`, seguindo o padrão de `subtask_list` e `search_result`
+ - [x] `render_refiner_prompt(task, subtasks, findings, available_tools, execution_context="")` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
+ - [x] Usa o `AgentState` partilhado de `agents/base.py` (`messages`, `barrier_result: dict | None`, `barrier_hit: bool`) — não define state próprio
+ - [x] Chama `create_agent_graph(llm, tools, barrier_names={"subtask_patch"}, max_iterations=20)` — argumento é `barrier_names` (plural, set), seguindo o padrão de `agents/generator.py`
+ - [x] Grafo tem 2 nós: `call_llm` e `execute_tools` (`BarrierAwareToolNode`); edge condicional de `execute_tools`: `barrier_hit=True` → `END`, caso contrário → `call_llm`
+ - [x] Tools do agente: terminal (factory closure), file (factory closure), browser (factory closure), stub memorist, stub searcher, `subtask_patch` (barrier)
+ - [x] Resultado extraído de `state["barrier_result"]` (dict) via `SubtaskPatchInput.model_validate(result["barrier_result"])`; levanta `RefinerError` se `barrier_hit` for `False`
+ - [x] Função de entrada é `refine_subtasks(task, subtasks, findings, docker_client, llm, ...)` async — cria o grafo internamente e invoca com `graph.ainvoke()`; não expõe o grafo directamente
+ - [x] Prompt system define: papel de analista de plano de pentest, autorização de pentesting, instrução para usar tools de reconhecimento antes de propor patch
+ - [x] Prompt user inclui: descrição do task, lista de subtasks actual (com estado), findings que motivaram a revisão, execution context opcional
+ - [x] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
 
 **Technical Notes:**
 - Usa `create_agent_graph()` (LangGraph) — o Refiner TEM tools e usa o loop completo; seguir o padrão exacto de `agents/generator.py` (`generate_subtasks`)
@@ -4603,18 +4603,18 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 - O controller chama `refine_subtasks()`, recebe `SubtaskPatchInput`, e aplica o patch à lista de subtasks no DB
 
 **Tests Required:**
-- [ ] `SubtaskPatchOperation` rejeita `update` e `remove` sem `subtask_id`
-- [ ] `SubtaskPatchOperation` aceita `add` com `subtask_id=None`
-- [ ] `SubtaskPatchInput` rejeita lista vazia de patches
-- [ ] `render_refiner_prompt()` devolve tuple com system e user prompt não vazios
-- [ ] User prompt contém task e findings passados como argumento
-- [ ] Barrier `subtask_patch` com `SubtaskPatchInput` mockado termina o loop do agente e devolve patches
-- [ ] `refine_subtasks()` com LLM e docker mockados invoca o grafo e devolve `SubtaskPatchInput` validado
-- [ ] `refine_subtasks()` levanta `RefinerError` quando `barrier_hit` é `False`
+ - [x] `SubtaskPatchOperation` rejeita `update` e `remove` sem `subtask_id`
+ - [x] `SubtaskPatchOperation` aceita `add` com `subtask_id=None`
+ - [x] `SubtaskPatchInput` rejeita lista vazia de patches
+ - [x] `render_refiner_prompt()` devolve tuple com system e user prompt não vazios
+ - [x] User prompt contém task e findings passados como argumento
+ - [x] Barrier `subtask_patch` com `SubtaskPatchInput` mockado termina o loop do agente e devolve patches
+ - [x] `refine_subtasks()` com LLM e docker mockados invoca o grafo e devolve `SubtaskPatchInput` validado
+ - [x] `refine_subtasks()` levanta `RefinerError` quando `barrier_hit` é `False`
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-037 (create_agent_graph), US-039 (terminal/file tools), US-040 (browser tool), US-041 (memorist/searcher stubs), US-055 (subtask_list barrier pattern)
 **Estimated Complexity:** M
@@ -4641,18 +4641,18 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 - `tests/unit/templates/test_enricher_templates.py`
 
 **Acceptance Criteria:**
-- [ ] Existe modelo `EnricherResultInput` com: `context: str` (min_length=1) e `message: str`
-- [ ] Existe barrier `enricher_result` em `tools/barriers.py`, criado com `@tool(args_schema=EnricherResultInput)`, seguindo o padrão de `subtask_list` e `search_result`
-- [ ] `render_enricher_prompt(question, execution_context, available_tools)` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
-- [ ] Usa o `AgentState` partilhado de `agents/base.py` (`messages`, `barrier_result: dict | None`, `barrier_hit: bool`) — não define state próprio
-- [ ] Chama `create_agent_graph(llm, tools, barrier_names={"enricher_result"}, max_iterations=20)` — argumento é `barrier_names` (plural, set)
-- [ ] Tools do agente: terminal (factory closure com `DockerClient`), file (factory closure com `DockerClient`), `create_search_answer_tool(session)` (search_in_memory), `create_graphiti_search_tool(graphiti_client)`
-- [ ] `BarrierAwareToolNode` detecta `enricher_result` como barrier, guarda `EnricherResultInput` em `state["barrier_result"]`, e termina o grafo (`END`)
-- [ ] Função de entrada é `enrich_context(question, execution_context, docker_client, session, graphiti_client, llm, ...)` async — cria o grafo internamente e invoca com `graph.ainvoke()`
-- [ ] Resultado extraído de `state["barrier_result"]` via `EnricherResultInput.model_validate(result["barrier_result"])`; levanta `EnricherError` se `barrier_hit` for `False`
-- [ ] Prompt system define: papel de recolhedor de contexto, instrução para pesquisar memória e knowledge graph antes de responder, e instrução para sintetizar numa resposta estruturada via `enricher_result`
-- [ ] Prompt user inclui: a questão que precisa de contexto e o execution context actual
-- [ ] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
+ - [x] Existe modelo `EnricherResultInput` com: `context: str` (min_length=1) e `message: str`
+ - [x] Existe barrier `enricher_result` em `tools/barriers.py`, criado com `@tool(args_schema=EnricherResultInput)`, seguindo o padrão de `subtask_list` e `search_result`
+ - [x] `render_enricher_prompt(question, execution_context, available_tools)` renderiza os dois templates via Jinja2 e devolve `(system_prompt, user_prompt)`
+ - [x] Usa o `AgentState` partilhado de `agents/base.py` (`messages`, `barrier_result: dict | None`, `barrier_hit: bool`) — não define state próprio
+ - [x] Chama `create_agent_graph(llm, tools, barrier_names={"enricher_result"}, max_iterations=20)` — argumento é `barrier_names` (plural, set)
+ - [x] Tools do agente: terminal (factory closure com `DockerClient`), file (factory closure com `DockerClient`), `create_search_answer_tool(session)` (search_in_memory), `create_graphiti_search_tool(graphiti_client)`
+ - [x] `BarrierAwareToolNode` detecta `enricher_result` como barrier, guarda `EnricherResultInput` em `state["barrier_result"]`, e termina o grafo (`END`)
+ - [x] Função de entrada é `enrich_context(question, execution_context, docker_client, session, graphiti_client, llm, ...)` async — cria o grafo internamente e invoca com `graph.ainvoke()`
+ - [x] Resultado extraído de `state["barrier_result"]` via `EnricherResultInput.model_validate(result["barrier_result"])`; levanta `EnricherError` se `barrier_hit` for `False`
+ - [x] Prompt system define: papel de recolhedor de contexto, instrução para pesquisar memória e knowledge graph antes de responder, e instrução para sintetizar numa resposta estruturada via `enricher_result`
+ - [x] Prompt user inclui: a questão que precisa de contexto e o execution context actual
+ - [x] Templates em `templates/prompts/` com extensão `.md.j2`; renderer usa `Path(__file__).parent / "prompts"`
 
 **Technical Notes:**
 - Usa `create_agent_graph()` (LangGraph) — seguir o padrão exacto de `agents/generator.py` e `agents/refiner.py`
@@ -4663,16 +4663,16 @@ Implementar os três agentes de suporte — Adviser, Refiner e Enricher. Nenhum 
 - `graphiti_client` pode ser `None` se Graphiti não estiver habilitado — nesse caso, não adicionar a tool à lista (verificar `GRAPHITI_ENABLED` env var ou usar `graphiti_client.enabled`)
 
 **Tests Required:**
-- [ ] `EnricherResultInput` rejeita `context` vazio ou só whitespace
-- [ ] `render_enricher_prompt()` devolve tuple com system e user prompt não vazios
-- [ ] User prompt contém a questão passada como argumento
-- [ ] Barrier `enricher_result` com `EnricherResultInput` mockado termina o loop e devolve context
-- [ ] `enrich_context()` com LLM e tools mockados invoca o grafo e devolve `EnricherResultInput` validado
-- [ ] `enrich_context()` levanta `EnricherError` quando `barrier_hit` é `False`
+ - [x] `EnricherResultInput` rejeita `context` vazio ou só whitespace
+ - [x] `render_enricher_prompt()` devolve tuple com system e user prompt não vazios
+ - [x] User prompt contém a questão passada como argumento
+ - [x] Barrier `enricher_result` com `EnricherResultInput` mockado termina o loop e devolve context
+ - [x] `enrich_context()` com LLM e tools mockados invoca o grafo e devolve `EnricherResultInput` validado
+ - [x] `enrich_context()` levanta `EnricherError` quando `barrier_hit` é `False`
 
 **Definition of Done:**
-- [ ] Code written and passing all tests
-- [ ] Code reviewed
+ - [x] Code written and passing all tests
+ - [x] Code reviewed
 
 **Dependencies:** US-037 (create_agent_graph), US-034/US-035 (graphiti client), US-039 (terminal/file tools), US-058 (create_search_answer_tool), US-091 (enricher_result barrier pattern)
 **Estimated Complexity:** M

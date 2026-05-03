@@ -9,6 +9,7 @@ Testes unitários de `agents/` — padrão base e factory concreta do Memorist.
 | `__init__.py` | Package init |
 | `test_base.py` | Testa `AgentState`, `BarrierAwareToolNode`, `create_agent_graph` |
 | `test_memorist.py` | Testa `create_memorist_agent()` e garante reutilização do contrato base com barrier `memorist_result` |
+| `test_generator.py` | Testa `generate_subtasks`: validação de saída, toolset condicional com/sem Docker, fallback de provider/model e erros de barrier/contagem |
 
 ## O que é testado
 
@@ -21,3 +22,5 @@ Testes unitários de `agents/` — padrão base e factory concreta do Memorist.
 ## Módulo de produção
 
 `src/pentest/agents/base.py`, `src/pentest/agents/memorist.py` — ver `docs/Epics/Generator agent/US-037-BASE-GRAPH-EXPLAINED.md`
+- `src/pentest/agents/base.py` — ver `docs/Epics/Generator agent/US-037-BASE-GRAPH-EXPLAINED.md`
+- `src/pentest/agents/generator.py` — ver `docs/Epics/Generator agent/US-044-GENERATOR-AGENT-EXPLAINED.md`

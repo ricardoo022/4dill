@@ -41,7 +41,7 @@
         }
     },
 
-    "postCreateCommand": "pip install -e '.[dev]' && pre-commit install",
+    "postCreateCommand": "pip install -e '.[dev]' && python -m pre_commit install",
 
     "containerEnv": {
         "DATABASE_URL": "postgresql+asyncpg://postgres:postgres@db:5432/lusitaidb",
@@ -58,5 +58,10 @@
         "PATH": "${containerEnv:PATH}:/usr/local/bin"
     },
 
-    "forwardPorts": [5432, 7474, 7687, 8000]
+    "forwardPorts": [5432, 7474, 7687, 8000],
+
+    "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ],
+    "remoteUser": "root"
 }

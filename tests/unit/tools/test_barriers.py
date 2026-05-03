@@ -171,6 +171,20 @@ def test_memorist_result_tool_json_schema():
     assert "message" in schema["required"]
 
 
+def test_hack_result_tool():
+    invoke_args = {"result": "Detailed technical report", "message": "Short internal summary"}
+    result = hack_result.invoke(invoke_args)
+    assert result == "hack result successfully processed"
+
+
+def test_hack_result_tool_json_schema():
+    schema = hack_result.args_schema.model_json_schema()
+    assert "result" in schema["properties"]
+    assert "message" in schema["properties"]
+    assert "result" in schema["required"]
+    assert "message" in schema["required"]
+
+
 def test_graph_integration_with_memorist_result():
     mock_llm = RunnableLambda(
         lambda x: AIMessage(

@@ -1,0 +1,1 @@
+[{"tool_name": "duckduckgo", "args_pattern": ".*query.*test.*", "response": {"results": ["test1", "test2"]}, "scenario": "test_scenario", "source_type": "live_web"}]

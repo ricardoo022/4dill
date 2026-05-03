@@ -1,0 +1,7 @@
+{
+  "tool_name": "string",
+  "args_pattern": "string (regex)",
+  "response": "string or object",
+  "scenario": "string",
+  "source_type": "live_web | memory | browser_snapshot"
+}

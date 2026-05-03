@@ -119,6 +119,12 @@ Hub note: [[Epics/Docker Sandbox/README|Docker Sandbox]]
 | [US-062 Sploitus Search Tool](Epics/Scanner%20Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md) | `tools/sploitus.py` — pesquisa de exploits no Sploitus.com |
 | [US-063 Guide Tools](Epics/Scanner%20Agent/US-063-GUIDE-TOOLS-EXPLAINED.md) | `tools/guide.py` — armazenamento e busca semantica de playbooks com redacao de dados sensiveis |
 
+### Support Agents
+
+| Doc | Módulo |
+|---|---|
+| [US-090 Adviser Agent](Epics/Support%20Agents/US-090-ADVISER-AGENT-EXPLAINED.md) | `agents/adviser.py` — simple LLM chain, strategic advice |
+
 ### Avaliação de Agentes
 
 Hub note: [[Epics/Agent Evaluation/README|Agent Evaluation]]
@@ -131,10 +137,12 @@ Hub note: [[Epics/Agent Evaluation/README|Agent Evaluation]]
 | [US-047 Generator Eval Runner](Epics/Agent%20Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md) | Runner de evaluacao do Generator com metricas de cobertura de plano e validacao de output estruturado |
 
 ### Searcher Agent Evaluation
+| [US-070 Search Fixtures](Epics/Searcher%20Agent%20Evaluation/US-070-SEARCH-FIXTURES-EXPLAINED.md) | Fixtures and interceptor for deterministic search evaluations |
 
 | Doc | Descrição |
 |---|---|
 | [US-068 Searcher Eval Infra](Epics/Searcher%20Agent%20Evaluation/US-068-SEARCHER-EVAL-INFRA-EXPLAINED.md) | Infraestrutura base de avaliações, gravação de trajectories |
+| [US-069 Searcher Dataset](Epics/Searcher%20Agent%20Evaluation/US-069-SEARCHER-DATASET-EXPLAINED.md) | Ground truth dataset e testes de avaliação para o agente Searcher |
 
 ## Related Notes
 

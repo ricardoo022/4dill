@@ -234,7 +234,7 @@ Detailed architecture docs (Portuguese) in `docs/`:
 - `Epics/Agent Evaluation/EVAL-TARGETS.md` — vulnerable test targets by backend type
 - `Epics/Agent Evaluation/US-045-PORTSWIGGER-MVP-DATASET-EXPLAINED.md` — PortSwigger MVP dataset design and lab selection
 - `Epics/Agent Evaluation/US-046-PORTSWIGGER-SPINUP-EXPLAINED.md` — PortSwigger lab spinup automation and eval harness
-- `Epics/Agent Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md` — Generator eval CLI runner: local mode, LangSmith upload, subtask_plan_valid evaluator
+- `Epics/Agent Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md` — Generator evaluation runner for plan quality and structured output validation
 - `Epics/Searcher Agent/US-054-SEARCH-MODELS-EXPLAINED.md` — SearchResult, SearchAction, ComplexSearch, SearchAnswerAction Pydantic models
 - `Epics/Searcher Agent/US-055-SEARCH-RESULT-BARRIER-EXPLAINED.md` — search_result barrier tool, coexistence with subtask_list, graph integration
 - `Epics/Searcher Agent/US-056-DUCKDUCKGO-SEARCH-TOOL-EXPLAINED.md` — DuckDuckGo web search tool and availability checks
@@ -245,6 +245,7 @@ Detailed architecture docs (Portuguese) in `docs/`:
 - `Epics/Scanner Agent/US-062-SPLOITUS-TOOL-EXPLAINED.md` — Sploitus.com exploit search tool, result formatting, truncation
 - `Epics/Scanner Agent/US-063-GUIDE-TOOLS-EXPLAINED.md` — guide search/store tools: OpenAI embeddings, pgvector retrieval, anonymization pipeline
 - `Epics/Agent Evaluation/US-047-GENERATOR-EVAL-RUNNER-EXPLAINED.md` — Generator eval harness: LangSmith integration, subtask_plan structural evaluator, CLI runner
+- `Epics/Scanner Agent/US-063-GUIDE-TOOLS-EXPLAINED.md` — Guide tools for semantic search and storage of reusable Scanner playbooks
 
 ## Development Notes
 
@@ -254,8 +255,8 @@ Detailed architecture docs (Portuguese) in `docs/`:
   - `providers/factory.py` — `create_chat_model()` factory + `resolve_provider_config()`; supports Anthropic and OpenAI; selects provider and model per agent via the config resolver
   - `recon/` — backend detection (supabase, firebase, custom_api, subdomains, orchestrator)
   - `agents/base.py` — LangGraph base graph pattern (BarrierAwareToolNode, AgentState, create_agent_graph)
-  - `agents/generator.py` — full Generator agent: resolves LLM via `providers/factory.py`, loads FASE skill index, renders prompt via `templates/renderer.py`, builds tool list, calls `create_agent_graph()`
   - `agents/exceptions.py` — `GeneratorError` exception for Generator agent failures; used by evaluation harness and future controller
+  - `agents/generator.py` — full Generator agent: `generate_subtasks(input, backend_profile, skills_dir, docker_client=None)` is the **async** public entry point; resolves LLM via `providers/factory.py`, loads FASE skill index, renders prompt via `templates/renderer.py`, builds tool list, calls `create_agent_graph()`
   - `models/` — subtask.py, recon.py, tool_args.py (Pydantic schemas; includes `SearchGuideAction` + `StoreGuideAction` for guide tools), search.py (`SearchResult`, `SearchAction`, `ComplexSearch`, `SearchAnswerAction`), hack.py (`HackResult` with `result` + `message` fields for Scanner output)
   - `tools/` — barriers.py (`subtask_list` + `search_result`), terminal.py, file.py (Docker execution via factory closures), browser.py (HTTP content fetching), stubs.py (memorist/searcher placeholders), graphiti_search.py (Graphiti knowledge graph search), duckduckgo.py (DuckDuckGo web search), tavily.py (Tavily web search), search_memory.py (`create_search_answer_tool()` pgvector semantic search for Memorist), sploitus.py (Sploitus.com exploit search with result formatting/truncation), guide.py (`search_guide()` + `store_guide()` semantic memory for pentest playbooks using OpenAI embeddings + pgvector; automatic content anonymization for IPs/credentials/patterns; `is_available()` check), registry.py (tool registry dataclasses)
   - `skills/loader.py` — `load_fase_index()` parses SKILL.md frontmatter for Generator prompt injection; `load_fase_skill()` loads full SKILL.md for Scanner

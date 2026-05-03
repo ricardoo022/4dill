@@ -1,0 +1,37 @@
+[
+  {
+    "tool_name": "duckduckgo",
+    "args_pattern": "^\\\{"query\\":\\s*\\"CVE-2023-1234\\"\\}"",
+    "response": "CVE-2023-1234: A critical vulnerability found in example software.",
+    "scenario": "cve_search_scenario",
+    "source_type": "live_web"
+  },
+  {
+    "tool_name": "tavily_search",
+    "args_pattern": "^\\\{"query\\":\\s*\\"latest security news\\"\\}"",
+    "response": "Latest security news indicates several zero-day vulnerabilities.",
+    "scenario": "security_news_scenario",
+    "source_type": "live_web"
+  },
+  {
+    "tool_name": "browser",
+    "args_pattern": "^\\\{"url\\":\\s*\\"http://exploit-db.com/test\\"\\}"",
+    "response": {"snapshot_path": "0.html"},
+    "scenario": "browser_exploit_scenario",
+    "source_type": "browser_snapshot"
+  },
+  {
+    "tool_name": "search_answer",
+    "args_pattern": "^\\\{"query\\":\\s*\\"what is CVE-2023-1234?\\"\\}"",
+    "response": "CVE-2023-1234 is a buffer overflow vulnerability.",
+    "scenario": "answer_scenario",
+    "source_type": "live_web"
+  },
+  {
+    "tool_name": "browser",
+    "args_pattern": "^\\\{"url\\":\\s*\\"https://github.com/vulnerable-repo\\"\\}"",
+    "response": {"snapshot_path": "1.html"},
+    "scenario": "repo_browser_scenario",
+    "source_type": "browser_snapshot"
+  }
+]
